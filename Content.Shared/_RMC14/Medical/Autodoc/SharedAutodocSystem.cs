@@ -184,7 +184,7 @@ public abstract class SharedAutodocSystem : EntitySystem
         }
     }
 
-    public bool TryEjectOccupant(Entity<AutodocComponent> autodoc, EntityUid occupant, EntityUid? user = null)
+    protected bool TryEjectOccupant(Entity<AutodocComponent> autodoc, EntityUid occupant, EntityUid? user = null)
     {
         // If surgery is in progress and user is the occupant, deny
         if (autodoc.Comp.IsSurgeryInProgress && user == occupant)
