@@ -1,0 +1,117 @@
+<DefaultWindow
+    xmlns="https://spacestation14.io"
+    xmlns:cc="clr-namespace:Content.Client.Administration.UI.CustomControls"
+    MinSize="500 650">
+    <BoxContainer Orientation="Vertical" Margin="5">
+        <!-- Empty State -->
+        <BoxContainer Name="EmptyPanel" Orientation="Vertical" VerticalExpand="True" HorizontalExpand="True">
+            <Control VerticalExpand="True" />
+            <Label Text="{Loc rmc-autodoc-no-occupant}" Align="Center" StyleClasses="LabelBig" />
+            <Control VerticalExpand="True" />
+        </BoxContainer>
+
+        <!-- Occupant State -->
+        <BoxContainer Name="OccupantPanel" Orientation="Vertical" Visible="False">
+            <!-- Occupant Section -->
+            <BoxContainer Orientation="Vertical" Margin="0 0 0 5">
+                <BoxContainer Orientation="Horizontal" Margin="0 0 0 5">
+                    <Label Text="{Loc rmc-autodoc-occupant-header}" StyleClasses="LabelHeading" />
+                    <Control HorizontalExpand="True" />
+                    <Label Text="{Loc rmc-autodoc-auto-eject-dead}" Margin="0 0 5 0" />
+                    <Button Name="AutoEjectDeadButton" Text="{Loc rmc-autodoc-auto-eject-dead-off}" ToggleMode="True" MinWidth="60" />
+                    <Button Name="EjectButton" Text="{Loc rmc-autodoc-eject}" MinWidth="60" Margin="5 0 0 0" />
+                </BoxContainer>
+                <cc:HSeparator Color="#4972A1" Margin="0 5 0 5" />
+                <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
+                    <Label Text="{Loc rmc-autodoc-name-label}" MinWidth="120" Modulate="#5B88B0" />
+                    <Label Name="OccupantNameLabel" Text="" />
+                </BoxContainer>
+                <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
+                    <Label Text="{Loc rmc-autodoc-health-label}" MinWidth="120" Modulate="#5B88B0" />
+                    <ProgressBar Name="HealthBar" HorizontalExpand="True" MinHeight="16">
+                        <Label Name="HealthBarText" Align="Right" Margin="0 0 5 0" />
+                    </ProgressBar>
+                </BoxContainer>
+                <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
+                    <Label Text="{Loc rmc-autodoc-status-label}" MinWidth="120" Modulate="#5B88B0" />
+                    <Label Name="StatusLabel" Text="" />
+                </BoxContainer>
+                <BoxContainer Name="BloodSection" Orientation="Vertical" Margin="0 2 0 2" Visible="False">
+                    <BoxContainer Orientation="Horizontal">
+                        <Label Text="{Loc rmc-autodoc-blood-level}" MinWidth="120" Modulate="#5B88B0" />
+                        <ProgressBar Name="BloodBar" HorizontalExpand="True" MinValue="0" MaxValue="100" MinHeight="16">
+                            <Label Name="BloodBarText" Align="Right" Margin="0 0 5 0" />
+                        </ProgressBar>
+                    </BoxContainer>
+                    <BoxContainer Orientation="Horizontal" Margin="0 2 0 0">
+                        <Label Text="{Loc rmc-autodoc-pulse}" MinWidth="120" Modulate="#5B88B0" />
+                        <Label Name="PulseLabel" Text="" />
+                    </BoxContainer>
+                </BoxContainer>
+            </BoxContainer>
+
+            <!-- Damage Section -->
+            <BoxContainer Orientation="Vertical">
+                <Label Text="{Loc rmc-autodoc-damage-header}" StyleClasses="LabelHeading" Margin="0 0 0 5" />
+                <cc:HSeparator Color="#4972A1" Margin="0 0 0 5" />
+                <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
+                    <Label Text="{Loc rmc-autodoc-brute}" MinWidth="80" Modulate="#5B88B0" />
+                    <ProgressBar Name="BruteBar" HorizontalExpand="True" MinValue="0" MaxValue="100" MinHeight="16">
+                        <Label Name="BruteBarText" Align="Right" Margin="0 0 5 0" />
+                    </ProgressBar>
+                </BoxContainer>
+                <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
+                    <Label Text="{Loc rmc-autodoc-burn}" MinWidth="80" Modulate="#5B88B0" />
+                    <ProgressBar Name="BurnBar" HorizontalExpand="True" MinValue="0" MaxValue="100" MinHeight="16">
+                        <Label Name="BurnBarText" Align="Right" Margin="0 0 5 0" />
+                    </ProgressBar>
+                </BoxContainer>
+                <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
+                    <Label Text="{Loc rmc-autodoc-toxin}" MinWidth="80" Modulate="#5B88B0" />
+                    <ProgressBar Name="ToxinBar" HorizontalExpand="True" MinValue="0" MaxValue="100" MinHeight="16">
+                        <Label Name="ToxinBarText" Align="Right" Margin="0 0 5 0" />
+                    </ProgressBar>
+                </BoxContainer>
+                <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
+                    <Label Text="{Loc rmc-autodoc-oxygen}" MinWidth="80" Modulate="#5B88B0" />
+                    <ProgressBar Name="OxygenBar" HorizontalExpand="True" MinValue="0" MaxValue="100" MinHeight="16">
+                        <Label Name="OxygenBarText" Align="Right" Margin="0 0 5 0" />
+                    </ProgressBar>
+                </BoxContainer>
+                <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
+                    <Label Text="{Loc rmc-autodoc-reagents}" MinWidth="80" Modulate="#5B88B0" />
+                    <ProgressBar Name="ReagentsBar" HorizontalExpand="True" MinValue="0" MaxValue="60" MinHeight="16">
+                        <Label Name="ReagentsBarText" Align="Right" Margin="0 0 5 0" />
+                    </ProgressBar>
+                </BoxContainer>
+            </BoxContainer>
+
+            <!-- Surgery Queue Section -->
+            <BoxContainer Orientation="Vertical" Margin="0 10 0 5">
+                <Label Text="{Loc rmc-autodoc-surgery-queue-header}" StyleClasses="LabelHeading" Margin="0 0 0 5" />
+                <cc:HSeparator Color="#4972A1" Margin="0 0 0 5" />
+
+                <!-- Treatment Buttons -->
+                <GridContainer Columns="2" Margin="0 5 0 5">
+                    <Button Name="BruteToggleButton" Text="{Loc rmc-autodoc-brute-treatment}" ToggleMode="True" MinWidth="200" Margin="2" />
+                    <Button Name="BurnToggleButton" Text="{Loc rmc-autodoc-burn-treatment}" ToggleMode="True" MinWidth="200" Margin="2" />
+                    <Button Name="ToxinToggleButton" Text="{Loc rmc-autodoc-toxin-treatment}" ToggleMode="True" MinWidth="200" Margin="2" />
+                    <Button Name="BloodToggleButton" Text="{Loc rmc-autodoc-blood-transfusion}" ToggleMode="True" MinWidth="200" Margin="2" />
+                    <Button Name="DialysisToggleButton" Text="{Loc rmc-autodoc-dialysis}" ToggleMode="True" MinWidth="200" Margin="2" />
+                </GridContainer>
+            </BoxContainer>
+
+            <!-- Control Buttons -->
+            <BoxContainer Orientation="Vertical" Margin="0 10 0 0">
+                <cc:HSeparator Color="#4972A1" Margin="0 0 0 10" />
+                <BoxContainer Orientation="Horizontal">
+                    <Button Name="StartSurgeryButton" Text="{Loc rmc-autodoc-start-surgery}" HorizontalExpand="True" MinHeight="40" Margin="2" StyleClasses="ButtonColorGreen" />
+                    <Button Name="ClearButton" Text="{Loc rmc-autodoc-clear}" MinWidth="100" MinHeight="40" Margin="2" />
+                </BoxContainer>
+                <BoxContainer Name="SurgeryStatusContainer" Orientation="Horizontal" Margin="0 5 0 0" Visible="False">
+                    <Label Name="SurgeryStatusLabel" Text="{Loc rmc-autodoc-surgery-in-progress}" Modulate="#FFD700" StyleClasses="LabelHeading" />
+                </BoxContainer>
+            </BoxContainer>
+        </BoxContainer>
+    </BoxContainer>
+</DefaultWindow>
