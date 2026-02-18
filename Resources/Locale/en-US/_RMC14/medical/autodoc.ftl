@@ -34,10 +34,6 @@ rmc-autodoc-eject = Eject
 
 rmc-autodoc-surgery-in-progress = Surgery in progress...
 
-rmc-autodoc-auto-eject-dead = Auto-Eject Dead:
-rmc-autodoc-auto-eject-dead-on = ON
-rmc-autodoc-auto-eject-dead-off = OFF
-
 rmc-autodoc-ejected = {CAPITALIZE($entity)} has been ejected from the autodoc.
 rmc-autodoc-cannot-exit-during-surgery = There's no way you're getting out while this thing is operating on you!
 rmc-autodoc-surgery-aborted = The autodoc malfunctions as surgery is aborted!
