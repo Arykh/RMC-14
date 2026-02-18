@@ -28,7 +28,7 @@ public sealed partial class AutodocComponent : Component
     /// This is applied based on the autodoc's rotation.
     /// </summary>
     [DataField]
-    public Vector2 ConsoleSpawnOffset = new(1, 0);
+    public Vector2 ConsoleSpawnOffset = new(0, 1);
 
     [DataField, AutoNetworkedField]
     public bool IsSurgeryInProgress;
