@@ -54,8 +54,8 @@ public abstract class SharedAutodocSystem : EntitySystem
             var consoleCoords = _transform.GetMoverCoordinates(autodoc).Offset(rotatedOffset);
             var consoleId = Spawn(autodoc.Comp.SpawnConsolePrototype.Value, consoleCoords);
 
-            // Set the console's rotation to match the autodoc
-            _transform.SetLocalRotation(consoleId, rotation);
+            // Set the console's rotation to match the autodoc + 90 degrees for sprite alignment
+            _transform.SetLocalRotation(consoleId, rotation + Angle.FromDegrees(90));
 
             if (TryComp(consoleId, out AutodocConsoleComponent? console))
             {
@@ -203,7 +203,7 @@ public abstract class SharedAutodocSystem : EntitySystem
         return true;
     }
 
-    protected void EjectOccupant(Entity<AutodocComponent> autodoc, EntityUid occupant)
+    private void EjectOccupant(Entity<AutodocComponent> autodoc, EntityUid occupant)
     {
         if (!_container.TryGetContainer(autodoc, autodoc.Comp.ContainerId, out var container))
             return;

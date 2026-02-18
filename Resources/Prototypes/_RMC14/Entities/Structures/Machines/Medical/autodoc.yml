@@ -66,7 +66,7 @@
 - type: entity
   parent: CMBaseStructureCorrodible
   id: RMCAutodocConsole
-  name: autodoc medical system control console
+  name: autodoc medical system control console # TODO RMC14 Insert upgrade into console /obj/item/research_upgrades/autodoc
   description: The control interface used to operate the adjoining autodoc. Requires training to use properly.
   placement:
     mode: SnapgridCenter
@@ -125,5 +125,4 @@
   description: A much more expensive model of autodoc modified with an A.I. diagnostic unit. The result is a much simpler, point-and-click interface that anyone, regardless of training, can use.
   suffix: Unskilled, Spawns with Console
   components:
-  - type: Autodoc
-    # No skill requirements - unskilled version
+  - type: Autodoc # todo unskilled bool or swappable skill component

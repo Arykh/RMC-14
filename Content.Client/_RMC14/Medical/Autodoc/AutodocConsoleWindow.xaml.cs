@@ -8,7 +8,7 @@ using Robust.Client.UserInterface.XAML;
 namespace Content.Client._RMC14.Medical.Autodoc;
 
 [GenerateTypedNameReferences]
-public sealed class AutodocConsoleWindow : DefaultWindow
+public sealed partial class AutodocConsoleWindow : DefaultWindow
 {
     private AutodocConsoleBui? _bui;
 
