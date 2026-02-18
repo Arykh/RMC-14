@@ -9,4 +9,3 @@ public sealed partial class InsideAutodocComponent : Component
     [DataField, AutoNetworkedField]
     public EntityUid? Autodoc;
 }
-

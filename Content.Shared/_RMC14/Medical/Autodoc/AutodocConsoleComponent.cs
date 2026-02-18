@@ -18,4 +18,3 @@ public sealed partial class AutodocConsoleComponent : Component
     [DataField]
     public TimeSpan UpdateCooldown = TimeSpan.FromSeconds(1);
 }
-

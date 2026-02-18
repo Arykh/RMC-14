@@ -24,7 +24,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
     [Dependency] private readonly MobThresholdSystem _mobThreshold = default!;
     [Dependency] private readonly IPrototypeManager _proto = default!;
     [Dependency] private readonly SharedRMCBloodstreamSystem _rmcBloodstream = default!;
-    //[Dependency] private readonly RMCPulseSystem _rmcPulse = default!;
+    [Dependency] private readonly RMCPulseSystem _rmcPulse = default!;
     [Dependency] private readonly SharedSolutionContainerSystem _solution = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
@@ -47,7 +47,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocStartSurgeryBuiMsg>(OnConsoleStartSurgery);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocClearBuiMsg>(OnConsoleClear);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocEjectBuiMsg>(OnConsoleEject);
-        SubscribeLocalEvent<AutodocConsoleComponent, AutodocAutoEjectDeadBuiMsg>(OnConsoleAutoEjectDead);
     }
 
     private void OnConsoleUIOpened(Entity<AutodocConsoleComponent> console, ref AfterActivatableUIOpenEvent args)
@@ -175,23 +174,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         UpdateUI(console);
     }
 
-    private void OnConsoleAutoEjectDead(Entity<AutodocConsoleComponent> console, ref AutodocAutoEjectDeadBuiMsg args)
-    {
-        if (!TryGetLinkedAutodoc(console, out var autodoc))
-            return;
-
-        autodoc.Comp.AutoEjectDead = args.Enabled;
-        Dirty(autodoc);
-
-        if (args.Enabled && autodoc.Comp.Occupant is { } occupant && _mobState.IsDead(occupant))
-        {
-            _audio.PlayPvs(autodoc.Comp.AutoEjectDeadSound, autodoc);
-            EjectOccupant(autodoc, occupant);
-        }
-
-        UpdateUI(console);
-    }
-
     private bool TryGetLinkedAutodoc(Entity<AutodocConsoleComponent> console, out Entity<AutodocComponent> autodoc)
     {
         autodoc = default;
@@ -264,7 +246,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 var bloodMax = bloodSol.MaxVolume;
                 bloodPercent = bloodMax > 0 ? (bloodLevel / bloodMax).Float() * 100f : 0f;
 
-                //pulse = _rmcPulse.GetPulseValue(occupant.Value, true);
+                pulse = _rmcPulse.GetPulseValue(occupant.Value, true);
             }
 
             if (_solution.TryGetSolution(occupant.Value, "chemicals", out _, out var chemSol))
@@ -291,8 +273,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
             autodoc.Comp.HealingToxin,
             autodoc.Comp.BloodTransfusion,
             autodoc.Comp.Filtering,
-            totalReagents,
-            autodoc.Comp.AutoEjectDead);
+            totalReagents);
 
         _ui.SetUiState(console.Owner, AutodocUIKey.Key, state);
     }
@@ -325,29 +306,14 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 continue;
 
             var occupant = autodoc.Occupant.Value;
-
-            // Auto-eject dead
-            if (autodoc.AutoEjectDead && _mobState.IsDead(occupant))
-            {
-                _audio.PlayPvs(autodoc.AutoEjectDeadSound, uid);
-                autodoc.AutoEjectDead = false;
-                autodoc.IsSurgeryInProgress = false;
-                Dirty(uid, autodoc);
-                EjectOccupant((uid, autodoc), occupant);
-                continue;
-            }
-
-            // If surgery is not in progress, don't process
             if (!autodoc.IsSurgeryInProgress)
                 continue;
 
-            // Check if it's time to tick
             if (time < autodoc.NextTick)
                 continue;
 
             autodoc.NextTick = time + autodoc.TickDelay;
 
-            // Dead check - stop surgery
             if (_mobState.IsDead(occupant))
             {
                 autodoc.IsSurgeryInProgress = false;
@@ -357,8 +323,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
             }
 
             var anyTreatmentRemaining = false;
-
-            // Heal brute damage
             if (autodoc.HealingBrute)
             {
                 if (TryComp<DamageableComponent>(occupant, out var damageable) &&
@@ -382,7 +346,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 }
             }
 
-            // Heal burn damage
             if (autodoc.HealingBurn)
             {
                 if (TryComp<DamageableComponent>(occupant, out var damageable) &&
@@ -406,7 +369,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 }
             }
 
-            // Heal toxin damage
             if (autodoc.HealingToxin)
             {
                 if (TryComp<DamageableComponent>(occupant, out var damageable) &&
@@ -430,7 +392,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 }
             }
 
-            // Blood transfusion
             if (autodoc.BloodTransfusion)
             {
                 if (TryComp<BloodstreamComponent>(occupant, out var blood) &&
@@ -448,18 +409,14 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 }
             }
 
-            // Dialysis (filtering toxins from bloodstream)
             if (autodoc.Filtering)
             {
                 _rmcBloodstream.RemoveBloodstreamToxins(occupant, autodoc.DialysisAmount);
-
-                // Check if there are still toxins to filter
                 if (_rmcBloodstream.TryGetChemicalSolution(occupant, out _, out var chemSol))
                 {
                     var hasToxins = false;
                     foreach (var content in chemSol.Contents)
                     {
-                        // Check for toxin reagents - this is a simplified check
                         if (content.Quantity > 0)
                         {
                             hasToxins = true;
@@ -482,7 +439,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 }
             }
 
-            // Check if all treatments are complete
             if (!anyTreatmentRemaining)
             {
                 autodoc.IsSurgeryInProgress = false;

@@ -24,8 +24,7 @@ public sealed class AutodocBuiState(
     bool healingToxin,
     bool bloodTransfusion,
     bool filtering,
-    FixedPoint2 totalReagents,
-    bool autoEjectDead)
+    FixedPoint2 totalReagents)
     : BoundUserInterfaceState
 {
     public readonly NetEntity? Occupant = occupant;
@@ -48,7 +47,6 @@ public sealed class AutodocBuiState(
     public readonly bool BloodTransfusion = bloodTransfusion;
     public readonly bool Filtering = filtering;
     public readonly FixedPoint2 TotalReagents = totalReagents;
-    public readonly bool AutoEjectDead = autoEjectDead;
 }
 
 [Serializable, NetSerializable]

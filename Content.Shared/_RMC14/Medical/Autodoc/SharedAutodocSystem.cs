@@ -193,10 +193,9 @@ public abstract class SharedAutodocSystem : EntitySystem
             return false;
         }
 
-        // If surgery is in progress and someone else is ejecting, warn them but allow
+        // If surgery is in progress and someone else is ejecting, warn them but allow. This causes damage to the patient.
         if (autodoc.Comp.IsSurgeryInProgress && user != null && user != occupant)
         {
-            // In original CM, this causes damage to the patient - we could implement this if wanted
             _popup.PopupEntity(Loc.GetString("rmc-autodoc-surgery-aborted"), autodoc);
         }
 

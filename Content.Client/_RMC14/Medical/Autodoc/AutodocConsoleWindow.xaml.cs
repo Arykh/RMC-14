@@ -8,7 +8,7 @@ using Robust.Client.UserInterface.XAML;
 namespace Content.Client._RMC14.Medical.Autodoc;
 
 [GenerateTypedNameReferences]
-public sealed partial class AutodocConsoleWindow : DefaultWindow
+public sealed class AutodocConsoleWindow : DefaultWindow
 {
     private AutodocConsoleBui? _bui;
 
@@ -24,10 +24,6 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         StartSurgeryButton.OnPressed += _ => _bui?.StartSurgery();
         ClearButton.OnPressed += _ => _bui?.Clear();
         EjectButton.OnPressed += _ => _bui?.Eject();
-        AutoEjectDeadButton.OnPressed += _ =>
-        {
-            _bui?.SetAutoEjectDead(AutoEjectDeadButton.Pressed);
-        };
     }
 
     public void SetBui(AutodocConsoleBui bui)
@@ -43,12 +39,6 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
 
         if (!hasOccupant)
             return;
-
-        // Auto-eject
-        AutoEjectDeadButton.Pressed = state.AutoEjectDead;
-        AutoEjectDeadButton.Text = state.AutoEjectDead
-            ? Loc.GetString("rmc-autodoc-auto-eject-dead-on")
-            : Loc.GetString("rmc-autodoc-auto-eject-dead-off");
 
         OccupantNameLabel.Text = state.OccupantName ?? "";
 
@@ -160,13 +150,6 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
 
     private static void UpdateToggleButtonStyle(Button button, bool active)
     {
-        if (active)
-        {
-            button.Modulate = Color.FromHex("#80FF80");
-        }
-        else
-        {
-            button.Modulate = Color.White;
-        }
+        button.Modulate = active ? Color.FromHex("#80FF80") : Color.White;
     }
 }

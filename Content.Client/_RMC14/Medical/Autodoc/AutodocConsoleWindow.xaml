@@ -17,8 +17,6 @@
                 <BoxContainer Orientation="Horizontal" Margin="0 0 0 5">
                     <Label Text="{Loc rmc-autodoc-occupant-header}" StyleClasses="LabelHeading" />
                     <Control HorizontalExpand="True" />
-                    <Label Text="{Loc rmc-autodoc-auto-eject-dead}" Margin="0 0 5 0" />
-                    <Button Name="AutoEjectDeadButton" Text="{Loc rmc-autodoc-auto-eject-dead-off}" ToggleMode="True" MinWidth="60" />
                     <Button Name="EjectButton" Text="{Loc rmc-autodoc-eject}" MinWidth="60" Margin="5 0 0 0" />
                 </BoxContainer>
                 <cc:HSeparator Color="#4972A1" Margin="0 5 0 5" />

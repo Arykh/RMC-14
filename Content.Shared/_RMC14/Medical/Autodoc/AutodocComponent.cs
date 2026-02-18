@@ -30,39 +30,21 @@ public sealed partial class AutodocComponent : Component
     [DataField]
     public Vector2 ConsoleSpawnOffset = new(1, 0);
 
-    /// <summary>
-    /// Is the autodoc currently performing surgery?
-    /// </summary>
     [DataField, AutoNetworkedField]
     public bool IsSurgeryInProgress;
 
-    /// <summary>
-    /// Is healing brute damage currently enabled?
-    /// </summary>
     [DataField, AutoNetworkedField]
     public bool HealingBrute;
 
-    /// <summary>
-    /// Is healing burn damage currently enabled?
-    /// </summary>
     [DataField, AutoNetworkedField]
     public bool HealingBurn;
 
-    /// <summary>
-    /// Is healing toxin damage currently enabled?
-    /// </summary>
     [DataField, AutoNetworkedField]
     public bool HealingToxin;
 
-    /// <summary>
-    /// Is blood transfusion currently enabled?
-    /// </summary>
     [DataField, AutoNetworkedField]
     public bool BloodTransfusion;
 
-    /// <summary>
-    /// Is dialysis (filtering) currently enabled?
-    /// </summary>
     [DataField, AutoNetworkedField]
     public bool Filtering;
 
@@ -78,15 +60,9 @@ public sealed partial class AutodocComponent : Component
     [DataField, AutoNetworkedField]
     public FixedPoint2 ToxinHealAmount = FixedPoint2.New(3);
 
-    /// <summary>
-    /// Amount to filter per tick for dialysis.
-    /// </summary>
     [DataField, AutoNetworkedField]
     public FixedPoint2 DialysisAmount = FixedPoint2.New(3);
 
-    /// <summary>
-    /// Amount of blood to transfuse per tick.
-    /// </summary>
     [DataField, AutoNetworkedField]
     public FixedPoint2 BloodTransfusionAmount = FixedPoint2.New(8);
 
@@ -102,17 +78,8 @@ public sealed partial class AutodocComponent : Component
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoNetworkedField, AutoPausedField]
     public TimeSpan NextTick;
 
-    /// <summary>
-    /// Stun applied when exiting the autodoc.
-    /// </summary>
     [DataField, AutoNetworkedField]
     public TimeSpan ExitStun = TimeSpan.FromSeconds(1);
-
-    /// <summary>
-    /// Whether to auto eject dead patients.
-    /// </summary>
-    [DataField, AutoNetworkedField]
-    public bool AutoEjectDead;
 
     [DataField, AutoNetworkedField]
     public EntityUid? LinkedConsole;
@@ -132,4 +99,3 @@ public sealed partial class AutodocComponent : Component
     [DataField]
     public SoundSpecifier SurgeryStartSound = new SoundPathSpecifier("/Audio/Machines/airlock_close.ogg");
 }
-
