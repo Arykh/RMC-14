@@ -1,10 +1,10 @@
-using Content.Shared._RMC14.Chemistry.Effects.Negative;
+using Content.Shared._RMC14.Emote;
+using Content.Shared._RMC14.Stun;
+using Content.Shared.Chat.Prototypes;
 using Content.Shared.Damage;
 using Content.Shared.EntityEffects;
 using Content.Shared.FixedPoint;
-using Content.Shared.Movement.Systems;
 using Content.Shared.Popups;
-using Content.Shared.Stunnable;
 using Robust.Shared.GameStates;
 using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
@@ -14,6 +14,8 @@ namespace Content.Shared._RMC14.Chemistry.Effects.Neutral;
 
 public sealed partial class Antispasmodic : RMCChemicalEffect
 {
+    private static readonly ProtoId<EmotePrototype> YawnEmote = "Yawn";
+
     public override string Abbreviation => "ASP";
 
     [DataField]
@@ -31,6 +33,18 @@ public sealed partial class Antispasmodic : RMCChemicalEffect
         var speed = EnsureComp<AntispasmodicSpeedComponent>(args);
         speed.Multiplier = FixedPoint2.Max(SpeedMultiplier, 1 - potency.Float() * SpeedMultiplier).Float();
         speed.AppliedAt = IoCManager.Resolve<IGameTiming>().CurTime;
+
+        if (ProbHundred(5))
+        {
+            var emoteSystem = args.EntityManager.System<SharedRMCEmoteSystem>();
+            emoteSystem.TryEmoteWithChat(
+                args.TargetEntity,
+                YawnEmote,
+                hideLog: true,
+                ignoreActionBlocker: true,
+                forceEmote: true
+            );
+        }
     }
 
     protected override void TickOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
@@ -47,16 +61,16 @@ public sealed partial class Antispasmodic : RMCChemicalEffect
 
     protected override void TickCriticalOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        var stun = System<SharedStunSystem>(args);
-        if (ProbHundred(15 * potency))
-            stun.TryParalyze(args.TargetEntity, TimeSpan.FromSeconds(potency.Float() * 2f), true);
+        var knockOut = System<RMCSizeStunSystem>(args);
+        if (ProbHundred(7.5 * potency))
+            knockOut.TryKnockOut(args.TargetEntity, TimeSpan.FromSeconds(potency.Float() * 2f), true);
 
         TryChangeDamage(args, AsphyxiationType, potency);
 
         var popup = System<SharedPopupSystem>(args);
         var net = IoCManager.Resolve<INetManager>();
-        if (net.IsServer && ProbHundred(5))
-            popup.PopupClient("You feel incredibly weak!", args.TargetEntity, args.TargetEntity);
+        if (net.IsServer && ProbHundred(2.5))
+            popup.PopupClient("You can hardly breathe!", args.TargetEntity, args.TargetEntity);
 
         // TODO RMC14 organ damage heart
     }

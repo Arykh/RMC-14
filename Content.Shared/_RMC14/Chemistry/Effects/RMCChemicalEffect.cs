@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Content.Shared._RMC14.Damage;
 using Content.Shared._RMC14.Marines;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
@@ -150,6 +151,14 @@ public abstract partial class RMCChemicalEffect : EntityEffect
     protected T EnsureComp<T>(EntityEffectReagentArgs args) where T : IComponent, new()
     {
         return args.EntityManager.EnsureComponent<T>(args.TargetEntity);
+    }
+
+    protected void TryHealDamageGroup(EntityEffectReagentArgs args, ProtoId<DamageGroupPrototype> group, FixedPoint2 amount)
+    {
+        var rmcDamageable = args.EntityManager.System<SharedRMCDamageableSystem>();
+        var healing = rmcDamageable.DistributeHealingCached(args.TargetEntity, group, amount);
+        var damageable = args.EntityManager.System<DamageableSystem>();
+        damageable.TryChangeDamage(args.TargetEntity, healing, true, interruptsDoAfters: false);
     }
 
     protected void TryChangeDamage(EntityEffectReagentArgs args, ProtoId<DamageTypePrototype> type, FixedPoint2 amount)

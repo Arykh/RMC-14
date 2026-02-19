@@ -1,8 +1,6 @@
 ﻿using Content.Shared._RMC14.Body;
-using Content.Shared._RMC14.Damage;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Damage;
-using Content.Shared.Damage.Prototypes;
 using Content.Shared.EntityEffects;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Prototypes;
@@ -28,10 +26,8 @@ public sealed partial class Oxygenating : RMCChemicalEffect
 
     protected override void Tick(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        var rmcDamageable = args.EntityManager.System<SharedRMCDamageableSystem>();
         var amount = Potency >= 3 ? 99999 : potency;
-        var healing = rmcDamageable.DistributeHealingCached(args.TargetEntity, AirlossGroup, amount);
-        damageable.TryChangeDamage(args.TargetEntity, healing, true, interruptsDoAfters: false);
+        TryHealDamageGroup(args, AirlossGroup, amount);
 
         var bloodstream = args.EntityManager.System<SharedRMCBloodstreamSystem>();
         bloodstream.RemoveBloodstreamChemical(args.TargetEntity, Lexorin, potency);
@@ -39,16 +35,12 @@ public sealed partial class Oxygenating : RMCChemicalEffect
 
     protected override void TickOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        var damage = new DamageSpecifier();
-        damage.DamageDict[PoisonType] = potency * 0.5f;
-        damageable.TryChangeDamage(args.TargetEntity, damage, true, interruptsDoAfters: false);
+        TryChangeDamage(args, PoisonType, potency * 0.5f);
     }
 
     protected override void TickCriticalOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        var damage = new DamageSpecifier();
-        damage.DamageDict[BluntType] = potency;
-        damage.DamageDict[PoisonType] = potency * 2f;
-        damageable.TryChangeDamage(args.TargetEntity, damage, true, interruptsDoAfters: false);
+        TryChangeDamage(args, BluntType, potency);
+        TryChangeDamage(args, PoisonType, potency * 2f);
     }
 }

@@ -12,8 +12,8 @@ public sealed partial class Pneumotoxic : RMCChemicalEffect
     protected override string ReagentEffectGuidebookText(IPrototypeManager prototype, IEntitySystemManager entSys)
     {
         // TODO RMC14 organ lung damage
-        return $"Overdoses cause [color=red]{PotencyPerSecond * 2}[/color] toxin damage.\n" +
-               $"Critical overdoses cause [color=red]{PotencyPerSecond * 5}[/color] toxin damage.";
+        return $"Overdoses cause [color=red]{PotencyPerSecond * 2}[/color] oxygen damage.\n" +
+               $"Critical overdoses cause [color=red]{PotencyPerSecond * 5}[/color] oxygen damage.";
     }
 
     protected override void Tick(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
@@ -26,11 +26,11 @@ public sealed partial class Pneumotoxic : RMCChemicalEffect
 
     protected override void TickOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        TryChangeDamage(args, PoisonType, potency * 2);
+        TryChangeDamage(args, AsphyxiationType, potency * 2);
     }
 
     protected override void TickCriticalOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        TryChangeDamage(args, PoisonType, potency * 5);
+        TryChangeDamage(args, AsphyxiationType, potency * 5);
     }
 }

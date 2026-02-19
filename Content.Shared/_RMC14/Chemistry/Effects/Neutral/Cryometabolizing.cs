@@ -1,8 +1,5 @@
 using Content.Shared._RMC14.Temperature;
 using Content.Shared.EntityEffects;
-using Content.Shared.Temperature.Systems;
-using Robust.Shared.GameObjects;
-using Robust.Shared.IoC;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._RMC14.Chemistry.Effects.Neutral;

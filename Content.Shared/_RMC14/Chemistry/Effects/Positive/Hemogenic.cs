@@ -1,7 +1,6 @@
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
-using Content.Shared.Damage.Prototypes;
 using Content.Shared.EntityEffects;
 using Content.Shared.FixedPoint;
 using Content.Shared.Nutrition.Components;
@@ -29,48 +28,37 @@ public sealed partial class Hemogenic : RMCChemicalEffect
 
     protected override void Tick(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        var entityManager = args.EntityManager;
-        var target = args.TargetEntity;
-        var hungerSystem = entityManager.System<HungerSystem>();
-
-        if (!entityManager.TryGetComponent<HungerComponent>(target, out var hungerComponent) ||
-            hungerSystem.GetHunger(hungerComponent) < 200)
+        var hungerSys = System<HungerSystem>(args);
+        if (!TryComp<HungerComponent>(args, out var hungerComponent) || hungerSys.GetHunger(hungerComponent) < 200)
             return;
 
-        hungerSystem.ModifyHunger(target, -PotencyPerSecond); // TODO RMC14 Yuatja get no hunger drain.
+        hungerSys.ModifyHunger(args.TargetEntity, -PotencyPerSecond); // TODO RMC14 Yuatja get no hunger drain.
 
-        if (entityManager.TryGetComponent<BloodstreamComponent>(target, out var bloodstream))
+        if (TryComp<BloodstreamComponent>(args, out var bloodstreamComponent))
         {
-            var bloodstreamSystem = entityManager.System<SharedBloodstreamSystem>();
-            bloodstreamSystem.TryModifyBloodLevel((target, bloodstream), potency);
+            var bloodstream = System<SharedBloodstreamSystem>(args);
+            bloodstream.TryModifyBloodLevel((args.TargetEntity, bloodstreamComponent), potency);
         }
 
-        var rmcBloodstreamSystem = entityManager.System<SharedRMCBloodstreamSystem>();
+        var rmcBloodstream = System<SharedRMCBloodstreamSystem>(args);
         var shouldApplyDamage = Potency > 3 &&
-                                rmcBloodstreamSystem.TryGetBloodSolution(target, out var bloodSolution) &&
+                                rmcBloodstream.TryGetBloodSolution(args.TargetEntity, out var bloodSolution) &&
                                 bloodSolution.Volume > 570; // TODO RMC14 Also check if they're not a Yautja.
         if (!shouldApplyDamage)
             return;
-        var damage = new DamageSpecifier();
-        damage.DamageDict[BluntType] = potency;
-        damage.DamageDict[AsphyxiationType] = potency * 2;
-        damageable.TryChangeDamage(args.TargetEntity, damage, true, interruptsDoAfters: false);
+        TryChangeDamage(args, BluntType, potency);
+        TryChangeDamage(args, AsphyxiationType, potency * 2);
         // TODO RMC14 M.reagent_move_delay_modifier += potency
     }
 
     protected override void TickOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        var damage = new DamageSpecifier();
-        damage.DamageDict[PoisonType] = potency;
-        damageable.TryChangeDamage(args.TargetEntity, damage, true, interruptsDoAfters: false);
+        TryChangeDamage(args, PoisonType, potency);
     }
 
     protected override void TickCriticalOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        var entityManager = args.EntityManager;
-        var target = args.TargetEntity;
-        var hungerSystem = entityManager.System<HungerSystem>();
-
-        hungerSystem.ModifyHunger(target, -PotencyPerSecond * 5);
+        var hungerSystem = System<HungerSystem>(args);
+        hungerSystem.ModifyHunger(args.TargetEntity, -PotencyPerSecond * 5);
     }
 }

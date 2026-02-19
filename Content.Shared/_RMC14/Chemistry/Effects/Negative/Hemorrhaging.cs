@@ -1,5 +1,4 @@
 using Content.Shared._RMC14.Chat;
-using Content.Shared._RMC14.Emote;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.EntityEffects;
