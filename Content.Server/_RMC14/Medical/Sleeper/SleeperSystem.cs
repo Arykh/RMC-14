@@ -36,12 +36,6 @@ public sealed class SleeperSystem : SharedSleeperSystem
     private readonly HashSet<string> _emergencyChemLookup = [];
     private readonly HashSet<string> _nonTransferableLookup = [];
 
-    private const string BruteGroup = "Brute";
-    private const string BurnGroup = "Burn";
-    private const string ToxinGroup = "Toxin";
-    private const string AirlossGroup = "Airloss";
-    private const string GeneticGroup = "Genetic";
-
     public override void Initialize()
     {
         base.Initialize();
@@ -195,11 +189,11 @@ public sealed class SleeperSystem : SharedSleeperSystem
                     emergencyHealthThreshold = (float) (deadThreshold - deadThreshold * sleeper.PercentHealthThreshold);
                 }
 
-                bruteLoss = damageable.DamagePerGroup.GetValueOrDefault(BruteGroup).Float();
-                burnLoss = damageable.DamagePerGroup.GetValueOrDefault(BurnGroup).Float();
-                toxinLoss = damageable.DamagePerGroup.GetValueOrDefault(ToxinGroup).Float();
-                oxyLoss = damageable.DamagePerGroup.GetValueOrDefault(AirlossGroup).Float();
-                geneticLoss = damageable.DamagePerGroup.GetValueOrDefault(GeneticGroup).Float();
+                bruteLoss = damageable.DamagePerGroup.GetValueOrDefault("Brute").Float();
+                burnLoss = damageable.DamagePerGroup.GetValueOrDefault("Burn").Float();
+                toxinLoss = damageable.DamagePerGroup.GetValueOrDefault("Toxin").Float();
+                oxyLoss = damageable.DamagePerGroup.GetValueOrDefault("Airloss").Float();
+                geneticLoss = damageable.DamagePerGroup.GetValueOrDefault("Genetic").Float();
             }
 
             if (TryComp<BloodstreamComponent>(occupant, out var blood) &&
