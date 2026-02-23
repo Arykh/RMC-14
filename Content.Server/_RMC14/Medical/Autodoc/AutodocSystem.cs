@@ -8,7 +8,6 @@ using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Damage;
-using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Mobs;
@@ -18,7 +17,6 @@ using Content.Shared.Projectiles;
 using Content.Shared.UserInterface;
 using Robust.Server.Audio;
 using Robust.Server.GameObjects;
-using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._RMC14.Medical.Autodoc;
@@ -32,16 +30,12 @@ public sealed class AutodocSystem : SharedAutodocSystem
     [Dependency] private readonly MobThresholdSystem _mobThreshold = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedRMCBloodstreamSystem _rmcBloodstream = default!;
+    [Dependency] private readonly SharedRMCDamageableSystem _rmcDamageable = default!;
     [Dependency] private readonly RMCPulseSystem _rmcPulse = default!;
     [Dependency] private readonly SharedSolutionContainerSystem _solution = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly SharedTransformSystem _xform = default!;
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
-
-    private static readonly ProtoId<DamageGroupPrototype> BruteGroup = "Brute";
-    private static readonly ProtoId<DamageGroupPrototype> BurnGroup = "Burn";
-    private static readonly ProtoId<DamageGroupPrototype> ToxinGroup = "Toxin";
-    private static readonly ProtoId<DamageGroupPrototype> AirlossGroup = "Airloss";
 
     public override void Initialize()
     {
@@ -182,10 +176,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
             return;
 
         // Check if any surgery is queued
-        if (!autodoc.Comp.HealingBrute && !autodoc.Comp.HealingBurn &&
-            !autodoc.Comp.HealingToxin && !autodoc.Comp.BloodTransfusion &&
-            !autodoc.Comp.Filtering && !autodoc.Comp.RemoveLarva &&
-            !autodoc.Comp.CloseIncisions && !autodoc.Comp.RemoveShrapnel)
+        if (autodoc.Comp is { HealingBrute: false, HealingBurn: false, HealingToxin: false, BloodTransfusion: false, Filtering: false, RemoveLarva: false, CloseIncisions: false, RemoveShrapnel: false })
         {
             return;
         }
@@ -241,8 +232,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         return true;
     }
 
-    #region Availability Checks
-
     private bool HasLarva(EntityUid occupant)
     {
         return TryComp<VictimInfectedComponent>(occupant, out var infected) && !infected.IsBursting;
@@ -266,10 +255,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         }
         return false;
     }
-
-    #endregion
-
-    #region Surgery Operations
 
     private void PerformLarvaExtraction(EntityUid uid, AutodocComponent autodoc, EntityUid occupant)
     {
@@ -295,7 +280,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         if (infected.SpawnedLarva != null)
         {
             QueueDel(infected.SpawnedLarva.Value);
-            infected.SpawnedLarva = null;
         }
 
         RemComp<VictimInfectedComponent>(occupant);
@@ -372,8 +356,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         Dirty(uid, autodoc);
     }
 
-    #endregion
-
     private void UpdateUI(Entity<AutodocConsoleComponent> console)
     {
         if (!_ui.IsUiOpen(console.Owner, AutodocUIKey.Key))
@@ -400,7 +382,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
         var hasLarva = false;
         var hasOpenIncisions = false;
         var hasShrapnel = false;
-        var surgeryProgress = 0f;
+        var surgeryProgressTime = 0f;
 
         if (occupant != null)
         {
@@ -417,17 +399,16 @@ public sealed class AutodocSystem : SharedAutodocSystem
                     occupantState = AutodocOccupantMobState.Alive;
 
                 var totalDamage = damageable.TotalDamage;
-
                 if (_mobThreshold.TryGetThresholdForState(occupant.Value, MobState.Critical, out var critThreshold))
                 {
                     maxHealth = (float) critThreshold;
                     health = (float) (critThreshold - totalDamage);
                 }
 
-                bruteLoss = damageable.DamagePerGroup.GetValueOrDefault(BruteGroup).Float();
-                burnLoss = damageable.DamagePerGroup.GetValueOrDefault(BurnGroup).Float();
-                toxinLoss = damageable.DamagePerGroup.GetValueOrDefault(ToxinGroup).Float();
-                oxyLoss = damageable.DamagePerGroup.GetValueOrDefault(AirlossGroup).Float();
+                bruteLoss = damageable.DamagePerGroup.GetValueOrDefault("Brute").Float();
+                burnLoss = damageable.DamagePerGroup.GetValueOrDefault("Burn").Float();
+                toxinLoss = damageable.DamagePerGroup.GetValueOrDefault("Toxin").Float();
+                oxyLoss = damageable.DamagePerGroup.GetValueOrDefault("Airloss").Float();
             }
 
             if (TryComp<BloodstreamComponent>(occupant, out var blood) &&
@@ -449,8 +430,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
             hasOpenIncisions = HasOpenIncisions(occupant.Value);
             hasShrapnel = HasShrapnel(occupant.Value);
 
-            if (autodoc.Comp.CurrentSurgeryType != AutodocSurgeryType.None &&
-                autodoc.Comp.SurgeryCompleteAt > _timing.CurTime)
+            if (autodoc.Comp.CurrentSurgeryType != AutodocSurgeryType.None && autodoc.Comp.SurgeryCompleteAt > _timing.CurTime)
             {
                 var totalTime = autodoc.Comp.CurrentSurgeryType switch
                 {
@@ -460,8 +440,8 @@ public sealed class AutodocSystem : SharedAutodocSystem
                     _ => TimeSpan.FromSeconds(1)
                 };
                 var remaining = autodoc.Comp.SurgeryCompleteAt - _timing.CurTime;
-                surgeryProgress = 1f - (float)(remaining.TotalSeconds / totalTime.TotalSeconds);
-                surgeryProgress = Math.Clamp(surgeryProgress, 0f, 1f);
+                surgeryProgressTime = 1f - (float)(remaining.TotalSeconds / totalTime.TotalSeconds);
+                surgeryProgressTime = Math.Clamp(surgeryProgressTime, 0f, 1f);
             }
         }
 
@@ -480,6 +460,8 @@ public sealed class AutodocSystem : SharedAutodocSystem
             bloodPercent,
             pulse,
             autodoc.Comp.IsSurgeryInProgress,
+            autodoc.Comp.CurrentSurgeryType,
+            surgeryProgressTime,
             autodoc.Comp.HealingBrute,
             autodoc.Comp.HealingBurn,
             autodoc.Comp.HealingToxin,
@@ -491,9 +473,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
             autodoc.Comp.RemoveShrapnel,
             hasLarva,
             hasOpenIncisions,
-            hasShrapnel,
-            autodoc.Comp.CurrentSurgeryType,
-            surgeryProgress);
+            hasShrapnel);
 
         _ui.SetUiState(console.Owner, AutodocUIKey.Key, state);
     }
@@ -542,41 +522,49 @@ public sealed class AutodocSystem : SharedAutodocSystem
             }
 
             var anyTreatmentRemaining = false;
-            var rmcDamageable = EntityManager.System<SharedRMCDamageableSystem>();
             if (autodoc.HealingBrute)
             {
-                var healing = rmcDamageable.DistributeHealingCached(occupant, BruteGroup, autodoc.BruteHealAmount);
-                _damageable.TryChangeDamage(occupant, healing, true, false);
-                anyTreatmentRemaining = true;
-            }
-            else
-            {
-                autodoc.HealingBrute = false;
-                Dirty(uid, autodoc);
+                if (TryComp<DamageableComponent>(occupant, out var damageable) && damageable.DamagePerGroup.GetValueOrDefault("Brute") > 0)
+                {
+                    var healing = _rmcDamageable.DistributeHealingCached(occupant, "Brute", autodoc.BruteHealAmount);
+                    _damageable.TryChangeDamage(occupant, healing, true, false);
+                    anyTreatmentRemaining = true;
+                }
+                else
+                {
+                    autodoc.HealingBrute = false;
+                    Dirty(uid, autodoc);
+                }
             }
 
             if (autodoc.HealingBurn)
             {
-                var healing = rmcDamageable.DistributeHealingCached(occupant, BurnGroup, autodoc.BurnHealAmount);
-                _damageable.TryChangeDamage(occupant, healing, true, false);
-                anyTreatmentRemaining = true;
-            }
-            else
-            {
-                autodoc.HealingBurn = false;
-                Dirty(uid, autodoc);
+                if (TryComp<DamageableComponent>(occupant, out var damageable) && damageable.DamagePerGroup.GetValueOrDefault("Burn") > 0)
+                {
+                    var healing = _rmcDamageable.DistributeHealingCached(occupant, "Burn", autodoc.BurnHealAmount);
+                    _damageable.TryChangeDamage(occupant, healing, true, false);
+                    anyTreatmentRemaining = true;
+                }
+                else
+                {
+                    autodoc.HealingBurn = false;
+                    Dirty(uid, autodoc);
+                }
             }
 
             if (autodoc.HealingToxin)
             {
-                var healing = rmcDamageable.DistributeHealingCached(occupant, ToxinGroup, autodoc.ToxinHealAmount);
-                _damageable.TryChangeDamage(occupant, healing, true, false);
-                anyTreatmentRemaining = true;
-            }
-            else
-            {
-                autodoc.HealingToxin = false;
-                Dirty(uid, autodoc);
+                if (TryComp<DamageableComponent>(occupant, out var damageable) && damageable.DamagePerGroup.GetValueOrDefault("Toxin") > 0)
+                {
+                    var healing = _rmcDamageable.DistributeHealingCached(occupant, "Toxin", autodoc.ToxinHealAmount);
+                    _damageable.TryChangeDamage(occupant, healing, true, false);
+                    anyTreatmentRemaining = true;
+                }
+                else
+                {
+                    autodoc.HealingToxin = false;
+                    Dirty(uid, autodoc);
+                }
             }
 
             if (autodoc.BloodTransfusion)
@@ -601,13 +589,12 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 if (_rmcBloodstream.TryGetChemicalSolution(occupant, out _, out var chemSol))
                 {
                     var hasToxins = false;
-                    foreach (var content in chemSol.Contents)
+                    foreach (var toxinContent in chemSol.Contents)
                     {
-                        if (content.Quantity > 0)
-                        {
-                            hasToxins = true;
-                            break;
-                        }
+                        if (toxinContent.Quantity <= 0)
+                            continue;
+                        hasToxins = true;
+                        break;
                     }
 
                     if (hasToxins)
@@ -628,7 +615,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
             if (autodoc.CurrentSurgeryType != AutodocSurgeryType.None)
             {
                 anyTreatmentRemaining = true;
-
                 if (time >= autodoc.SurgeryCompleteAt)
                 {
                     switch (autodoc.CurrentSurgeryType)

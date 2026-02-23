@@ -19,6 +19,8 @@ public sealed class AutodocBuiState(
     float bloodPercent,
     int pulse,
     bool surgeryInProgress,
+    AutodocSurgeryType currentSurgeryType,
+    float surgeryProgressTime,
     bool healingBrute,
     bool healingBurn,
     bool healingToxin,
@@ -30,9 +32,7 @@ public sealed class AutodocBuiState(
     bool removeShrapnel,
     bool hasLarva,
     bool hasOpenIncisions,
-    bool hasShrapnel,
-    AutodocSurgeryType currentSurgeryType,
-    float surgeryProgressTime)
+    bool hasShrapnel)
     : BoundUserInterfaceState
 {
     public readonly NetEntity? Occupant = occupant;
@@ -49,6 +49,8 @@ public sealed class AutodocBuiState(
     public readonly float BloodPercent = bloodPercent;
     public readonly int Pulse = pulse;
     public readonly bool SurgeryInProgress = surgeryInProgress;
+    public readonly AutodocSurgeryType CurrentSurgeryType = currentSurgeryType;
+    public readonly float SurgeryProgressTime = surgeryProgressTime;
     public readonly bool HealingBrute = healingBrute;
     public readonly bool HealingBurn = healingBurn;
     public readonly bool HealingToxin = healingToxin;
@@ -61,8 +63,6 @@ public sealed class AutodocBuiState(
     public readonly bool HasLarva = hasLarva;
     public readonly bool HasOpenIncisions = hasOpenIncisions;
     public readonly bool HasShrapnel = hasShrapnel;
-    public readonly AutodocSurgeryType CurrentSurgeryType = currentSurgeryType;
-    public readonly float SurgeryProgressTime = surgeryProgressTime;
 }
 
 [Serializable, NetSerializable]

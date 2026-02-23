@@ -116,6 +116,7 @@ public abstract class SharedAutodocSystem : EntitySystem
         {
             autodoc.Comp.Occupant = null;
             autodoc.Comp.IsSurgeryInProgress = false;
+            autodoc.Comp.CurrentSurgeryType = AutodocSurgeryType.None;
             autodoc.Comp.HealingBrute = false;
             autodoc.Comp.HealingBurn = false;
             autodoc.Comp.HealingToxin = false;
@@ -124,7 +125,6 @@ public abstract class SharedAutodocSystem : EntitySystem
             autodoc.Comp.RemoveLarva = false;
             autodoc.Comp.CloseIncisions = false;
             autodoc.Comp.RemoveShrapnel = false;
-            autodoc.Comp.CurrentSurgeryType = AutodocSurgeryType.None;
             Dirty(autodoc);
         }
 

@@ -30,9 +30,6 @@ public sealed partial class AutodocComponent : Component
     [DataField]
     public Vector2 ConsoleSpawnOffset = new(0, 1);
 
-    [DataField, AutoNetworkedField]
-    public bool IsSurgeryInProgress;
-
     // External treatments (continuous)
     [DataField, AutoNetworkedField]
     public bool HealingBrute;
@@ -94,6 +91,9 @@ public sealed partial class AutodocComponent : Component
 
     [DataField, AutoNetworkedField]
     public TimeSpan ShrapnelRemovalTime = TimeSpan.FromSeconds(8);
+
+    [DataField, AutoNetworkedField]
+    public bool IsSurgeryInProgress;
 
     [DataField, AutoNetworkedField]
     public AutodocSurgeryType CurrentSurgeryType;
