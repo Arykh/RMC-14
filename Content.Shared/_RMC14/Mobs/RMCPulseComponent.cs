@@ -31,9 +31,5 @@ public enum PulseState : byte
     Normal = 2,   // 60-90 bpm
     Fast = 3,     // 90-120 bpm
     VeryFast = 4, // 120-160 bpm
-    /// <summary>
-    /// Thready pulse - extremely weak and fast, displayed as ">250".
-    /// Occurs when blood volume is critically low.
-    /// </summary>
-    Thready = 5
+    Thready = 5   // >250 bpm
 }

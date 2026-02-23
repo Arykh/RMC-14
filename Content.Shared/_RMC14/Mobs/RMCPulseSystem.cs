@@ -13,9 +13,13 @@ public sealed class RMCPulseSystem : EntitySystem
     [Dependency] private readonly SharedSolutionContainerSystem _solution = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
 
+    private EntityQuery<BloodstreamComponent> _bloodstreamQuery;
+
     public override void Initialize()
     {
         base.Initialize();
+
+        _bloodstreamQuery = GetEntityQuery<BloodstreamComponent>();
 
         SubscribeLocalEvent<RMCPulseComponent, MobStateChangedEvent>(OnMobStateChanged);
     }
@@ -75,9 +79,8 @@ public sealed class RMCPulseSystem : EntitySystem
         if (_mobState.IsDead(uid))
             return PulseState.None;
 
-        if (!TryComp<BloodstreamComponent>(uid, out var blood) ||
-            !_solution.TryGetSolution(uid, blood.BloodSolutionName, out _, out var bloodSol) ||
-            bloodSol.MaxVolume <= 0)
+        if (!_bloodstreamQuery.TryGetComponent(uid, out var blood) ||
+            !_solution.TryGetSolution(uid, blood.BloodSolutionName, out _, out var bloodSol))
         {
             return PulseState.Normal;
         }
@@ -88,16 +91,20 @@ public sealed class RMCPulseSystem : EntitySystem
 
     private int GeneratePulseValue(PulseState state, bool byMachine)
     {
-        var variation = byMachine ? 0 : _random.Next(-10, 11);
-        return state switch
+        var basePulse = state switch
         {
             PulseState.None => 0,
-            PulseState.Slow => _random.Next(40, 60) + variation,
-            PulseState.Normal => _random.Next(60, 90) + variation,
-            PulseState.Fast => _random.Next(90, 120) + variation,
-            PulseState.VeryFast => _random.Next(120, 160) + variation,
+            PulseState.Slow => _random.Next(40, 60),
+            PulseState.Normal => _random.Next(60, 90),
+            PulseState.Fast => _random.Next(90, 120),
+            PulseState.VeryFast => _random.Next(120, 160),
             PulseState.Thready => ThreadyPulseThreshold, // Always shows ">250"
             _ => 0
         };
+
+        var variation = byMachine ? 0 : _random.Next(-10, 11);
+        return state is PulseState.None or PulseState.Thready
+            ? basePulse
+            : Math.Max(0, basePulse + variation);
     }
 }
