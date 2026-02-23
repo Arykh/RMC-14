@@ -33,6 +33,7 @@ public sealed partial class AutodocComponent : Component
     [DataField, AutoNetworkedField]
     public bool IsSurgeryInProgress;
 
+    // External treatments (continuous)
     [DataField, AutoNetworkedField]
     public bool HealingBrute;
 
@@ -48,15 +49,22 @@ public sealed partial class AutodocComponent : Component
     [DataField, AutoNetworkedField]
     public bool Filtering;
 
-    /// <summary>
-    /// Amount to heal per tick for brute/burn.
-    /// </summary>
+    // Surgical procedures (queued)
     [DataField, AutoNetworkedField]
-    public FixedPoint2 HealAmount = FixedPoint2.New(3);
+    public bool RemoveLarva;
 
-    /// <summary>
-    /// Amount to heal per tick for toxin.
-    /// </summary>
+    [DataField, AutoNetworkedField]
+    public bool CloseIncisions;
+
+    [DataField, AutoNetworkedField]
+    public bool RemoveShrapnel;
+
+    [DataField, AutoNetworkedField]
+    public FixedPoint2 BruteHealAmount = FixedPoint2.New(3);
+
+    [DataField, AutoNetworkedField]
+    public FixedPoint2 BurnHealAmount = FixedPoint2.New(3);
+
     [DataField, AutoNetworkedField]
     public FixedPoint2 ToxinHealAmount = FixedPoint2.New(3);
 
@@ -79,6 +87,21 @@ public sealed partial class AutodocComponent : Component
     public TimeSpan NextTick;
 
     [DataField, AutoNetworkedField]
+    public TimeSpan LarvaExtractionTime = TimeSpan.FromSeconds(30);
+
+    [DataField, AutoNetworkedField]
+    public TimeSpan CloseIncisionTime = TimeSpan.FromSeconds(10);
+
+    [DataField, AutoNetworkedField]
+    public TimeSpan ShrapnelRemovalTime = TimeSpan.FromSeconds(8);
+
+    [DataField, AutoNetworkedField]
+    public AutodocSurgeryType CurrentSurgeryType;
+
+    [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoNetworkedField, AutoPausedField]
+    public TimeSpan SurgeryCompleteAt;
+
+    [DataField, AutoNetworkedField]
     public TimeSpan ExitStun = TimeSpan.FromSeconds(1);
 
     [DataField, AutoNetworkedField]
@@ -98,4 +121,15 @@ public sealed partial class AutodocComponent : Component
 
     [DataField]
     public SoundSpecifier SurgeryStartSound = new SoundPathSpecifier("/Audio/Machines/airlock_close.ogg");
+
+    [DataField]
+    public SoundSpecifier SurgeryStepSound = new SoundPathSpecifier("/Audio/Effects/beep1.ogg");
+}
+
+public enum AutodocSurgeryType : byte
+{
+    None = 0,
+    LarvaExtraction,
+    CloseIncision,
+    ShrapnelRemoval
 }

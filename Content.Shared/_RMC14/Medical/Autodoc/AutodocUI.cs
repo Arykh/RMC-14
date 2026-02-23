@@ -24,7 +24,15 @@ public sealed class AutodocBuiState(
     bool healingToxin,
     bool bloodTransfusion,
     bool filtering,
-    FixedPoint2 totalReagents)
+    FixedPoint2 totalReagents,
+    bool removeLarva,
+    bool closeIncisions,
+    bool removeShrapnel,
+    bool hasLarva,
+    bool hasOpenIncisions,
+    bool hasShrapnel,
+    AutodocSurgeryType currentSurgeryType,
+    float surgeryProgressTime)
     : BoundUserInterfaceState
 {
     public readonly NetEntity? Occupant = occupant;
@@ -47,6 +55,14 @@ public sealed class AutodocBuiState(
     public readonly bool BloodTransfusion = bloodTransfusion;
     public readonly bool Filtering = filtering;
     public readonly FixedPoint2 TotalReagents = totalReagents;
+    public readonly bool RemoveLarva = removeLarva;
+    public readonly bool CloseIncisions = closeIncisions;
+    public readonly bool RemoveShrapnel = removeShrapnel;
+    public readonly bool HasLarva = hasLarva;
+    public readonly bool HasOpenIncisions = hasOpenIncisions;
+    public readonly bool HasShrapnel = hasShrapnel;
+    public readonly AutodocSurgeryType CurrentSurgeryType = currentSurgeryType;
+    public readonly float SurgeryProgressTime = surgeryProgressTime;
 }
 
 [Serializable, NetSerializable]
@@ -98,6 +114,15 @@ public sealed class AutodocToggleBloodBuiMsg : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
 public sealed class AutodocToggleDialysisBuiMsg : BoundUserInterfaceMessage;
+
+[Serializable, NetSerializable]
+public sealed class AutodocToggleLarvaBuiMsg : BoundUserInterfaceMessage;
+
+[Serializable, NetSerializable]
+public sealed class AutodocToggleIncisionsBuiMsg : BoundUserInterfaceMessage;
+
+[Serializable, NetSerializable]
+public sealed class AutodocToggleShrapnelBuiMsg : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
 public sealed class AutodocStartSurgeryBuiMsg : BoundUserInterfaceMessage;

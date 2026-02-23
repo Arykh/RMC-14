@@ -121,6 +121,10 @@ public abstract class SharedAutodocSystem : EntitySystem
             autodoc.Comp.HealingToxin = false;
             autodoc.Comp.BloodTransfusion = false;
             autodoc.Comp.Filtering = false;
+            autodoc.Comp.RemoveLarva = false;
+            autodoc.Comp.CloseIncisions = false;
+            autodoc.Comp.RemoveShrapnel = false;
+            autodoc.Comp.CurrentSurgeryType = AutodocSurgeryType.None;
             Dirty(autodoc);
         }
 

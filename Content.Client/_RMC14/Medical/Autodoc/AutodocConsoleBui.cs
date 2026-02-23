@@ -55,6 +55,21 @@ public sealed class AutodocConsoleBui(EntityUid owner, Enum uiKey) : BoundUserIn
         SendMessage(new AutodocToggleDialysisBuiMsg());
     }
 
+    public void ToggleLarva()
+    {
+        SendMessage(new AutodocToggleLarvaBuiMsg());
+    }
+
+    public void ToggleIncisions()
+    {
+        SendMessage(new AutodocToggleIncisionsBuiMsg());
+    }
+
+    public void ToggleShrapnel()
+    {
+        SendMessage(new AutodocToggleShrapnelBuiMsg());
+    }
+
     public void StartSurgery()
     {
         SendMessage(new AutodocStartSurgeryBuiMsg());
@@ -68,10 +83,5 @@ public sealed class AutodocConsoleBui(EntityUid owner, Enum uiKey) : BoundUserIn
     public void Eject()
     {
         SendMessage(new AutodocEjectBuiMsg());
-    }
-
-    public void SetAutoEjectDead(bool enabled)
-    {
-        SendMessage(new AutodocAutoEjectDeadBuiMsg(enabled));
     }
 }

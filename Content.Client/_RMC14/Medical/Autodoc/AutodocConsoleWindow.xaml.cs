@@ -21,6 +21,9 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         ToxinToggleButton.OnPressed += _ => _bui?.ToggleToxin();
         BloodToggleButton.OnPressed += _ => _bui?.ToggleBlood();
         DialysisToggleButton.OnPressed += _ => _bui?.ToggleDialysis();
+        LarvaToggleButton.OnPressed += _ => _bui?.ToggleLarva();
+        IncisionsToggleButton.OnPressed += _ => _bui?.ToggleIncisions();
+        ShrapnelToggleButton.OnPressed += _ => _bui?.ToggleShrapnel();
         StartSurgeryButton.OnPressed += _ => _bui?.StartSurgery();
         ClearButton.OnPressed += _ => _bui?.Clear();
         EjectButton.OnPressed += _ => _bui?.Eject();
@@ -115,6 +118,16 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         BloodToggleButton.Pressed = state.BloodTransfusion;
         DialysisToggleButton.Pressed = state.Filtering;
 
+        // Surgical procedures toggles
+        LarvaToggleButton.Pressed = state.RemoveLarva;
+        IncisionsToggleButton.Pressed = state.CloseIncisions;
+        ShrapnelToggleButton.Pressed = state.RemoveShrapnel;
+
+        // Update availability indicators
+        UpdateSurgeryButtonAvailability(LarvaToggleButton, state.HasLarva, state.SurgeryInProgress);
+        UpdateSurgeryButtonAvailability(IncisionsToggleButton, state.HasOpenIncisions, state.SurgeryInProgress);
+        UpdateSurgeryButtonAvailability(ShrapnelToggleButton, state.HasShrapnel, state.SurgeryInProgress);
+
         // Disable buttons during surgery
         BruteToggleButton.Disabled = state.SurgeryInProgress;
         BurnToggleButton.Disabled = state.SurgeryInProgress;
@@ -127,12 +140,31 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         // Surgery status
         SurgeryStatusContainer.Visible = state.SurgeryInProgress;
 
+        // Surgery progress display
+        SurgeryProgressContainer.Visible = state.CurrentSurgeryType != AutodocSurgeryType.None;
+        if (state.CurrentSurgeryType != AutodocSurgeryType.None)
+        {
+            SurgeryTypeLabel.Text = state.CurrentSurgeryType switch
+            {
+                AutodocSurgeryType.LarvaExtraction => Loc.GetString("rmc-autodoc-surgery-larva-progress"),
+                AutodocSurgeryType.CloseIncision => Loc.GetString("rmc-autodoc-surgery-incisions-progress"),
+                AutodocSurgeryType.ShrapnelRemoval => Loc.GetString("rmc-autodoc-surgery-shrapnel-progress"),
+                _ => ""
+            };
+            SurgeryProgressBar.Value = state.SurgeryProgressTime;
+            SurgeryProgressText.Text = $"{state.SurgeryProgressTime * 100:F0}%";
+            SurgeryProgressBar.ForegroundStyleBoxOverride = new StyleBoxFlat(Color.FromHex("#4080C0"));
+        }
+
         // Update button styles based on selection
         UpdateToggleButtonStyle(BruteToggleButton, state.HealingBrute);
         UpdateToggleButtonStyle(BurnToggleButton, state.HealingBurn);
         UpdateToggleButtonStyle(ToxinToggleButton, state.HealingToxin);
         UpdateToggleButtonStyle(BloodToggleButton, state.BloodTransfusion);
         UpdateToggleButtonStyle(DialysisToggleButton, state.Filtering);
+        UpdateToggleButtonStyle(LarvaToggleButton, state.RemoveLarva);
+        UpdateToggleButtonStyle(IncisionsToggleButton, state.CloseIncisions);
+        UpdateToggleButtonStyle(ShrapnelToggleButton, state.RemoveShrapnel);
     }
 
     private static void UpdateDamageBar(ProgressBar bar, Label label, float damage)
@@ -151,5 +183,20 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
     private static void UpdateToggleButtonStyle(Button button, bool active)
     {
         button.Modulate = active ? Color.FromHex("#80FF80") : Color.White;
+    }
+
+    private static void UpdateSurgeryButtonAvailability(Button button, bool conditionPresent, bool surgeryInProgress)
+    {
+        button.Disabled = surgeryInProgress;
+
+        // Show visual indicator if condition is present
+        if (conditionPresent && !surgeryInProgress)
+        {
+            button.Modulate = button.Pressed ? Color.FromHex("#80FF80") : Color.FromHex("#FFFF80");
+        }
+        else if (!conditionPresent)
+        {
+            button.Modulate = Color.FromHex("#808080");
+        }
     }
 }
