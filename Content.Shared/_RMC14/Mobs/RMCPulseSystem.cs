@@ -1,5 +1,6 @@
 using Content.Shared.Body.Components;
 using Content.Shared.Chemistry.EntitySystems;
+using Content.Shared.FixedPoint;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.Random;
@@ -13,13 +14,9 @@ public sealed class RMCPulseSystem : EntitySystem
     [Dependency] private readonly SharedSolutionContainerSystem _solution = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
 
-    private EntityQuery<BloodstreamComponent> _bloodstreamQuery;
-
     public override void Initialize()
     {
         base.Initialize();
-
-        _bloodstreamQuery = GetEntityQuery<BloodstreamComponent>();
 
         SubscribeLocalEvent<RMCPulseComponent, MobStateChangedEvent>(OnMobStateChanged);
     }
@@ -76,14 +73,16 @@ public sealed class RMCPulseSystem : EntitySystem
 
     private PulseState CalculatePulseState(EntityUid uid)
     {
-        if (_mobState.IsDead(uid))
-            return PulseState.None;
-
-        if (!_bloodstreamQuery.TryGetComponent(uid, out var blood) ||
+        if (_mobState.IsDead(uid) ||
+            !TryComp<BloodstreamComponent>(uid, out var blood) ||
             !_solution.TryGetSolution(uid, blood.BloodSolutionName, out _, out var bloodSol))
         {
-            return PulseState.Normal;
+            return PulseState.None;
         }
+
+        // Guard against division by zero for uninitialized solutions.
+        if (bloodSol.MaxVolume <= FixedPoint2.Zero)
+            return PulseState.Normal;
 
         var bloodPercent = bloodSol.Volume / bloodSol.MaxVolume;
         return bloodPercent <= ThreadyBloodThreshold ? PulseState.Thready : PulseState.Normal;
