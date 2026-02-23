@@ -31,7 +31,7 @@ public sealed class RMCPulseSystem : EntitySystem
     /// </summary>
     /// <param name="uid">The entity to get a pulse value from.</param>
     /// <param name="byMachine">True for machine readings (more accurate), false for hand readings (less accurate with ±10 variation).</param>
-    /// <returns>Returns the pulse value in bpm, 0 if dead/no pulse, and <see cref="ThreadyPulseThreshold"/> for thready pulse.</returns>
+    /// <returns>Returns the pulse value in bpm, 0 if dead/no pulse.</returns>
     public int GetPulseValue(EntityUid uid, bool byMachine)
     {
         if (!TryComp<RMCPulseComponent>(uid, out var pulse))
@@ -47,7 +47,7 @@ public sealed class RMCPulseSystem : EntitySystem
     /// Use this method instead of manually formatting pulse values.
     /// </summary>
     /// <param name="pulseValue">The pulse value from <see cref="GetPulseValue"/>.</param>
-    /// <param name="byMachine">True for machine readings (shows ">250"), false for hand readings (shows descriptive text).</param>
+    /// <param name="byMachine">True for machine readings (shows {$value} bpm), false for hand readings (shows text).</param>
     /// <returns>A localized string representing the pulse reading.</returns>
     public static string GetPulseLocalizedDisplayString(int pulseValue, bool byMachine)
     {
