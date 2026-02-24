@@ -438,7 +438,7 @@
 - type: entity
   parent: [ RMCBaseFigurinePatron, CMCanteenBase ]
   id: RMCFigurinePatronNesartOnan
-  name: Nesert Onan figurine
+  name: Nesart Onan figurine
   description: "Blood loss is no joke! Come get some gauze from your local medbay today!"
   components:
   - type: Sprite
