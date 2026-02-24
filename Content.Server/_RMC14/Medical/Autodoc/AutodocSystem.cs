@@ -8,6 +8,7 @@ using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Damage;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Mobs;
@@ -17,6 +18,7 @@ using Content.Shared.Projectiles;
 using Content.Shared.UserInterface;
 using Robust.Server.Audio;
 using Robust.Server.GameObjects;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._RMC14.Medical.Autodoc;
@@ -36,6 +38,11 @@ public sealed class AutodocSystem : SharedAutodocSystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly SharedTransformSystem _xform = default!;
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
+
+    private static readonly ProtoId<DamageGroupPrototype> BruteGroup = "Brute";
+    private static readonly ProtoId<DamageGroupPrototype> BurnGroup = "Burn";
+    private static readonly ProtoId<DamageGroupPrototype> ToxinGroup = "Toxin";
+    private static readonly ProtoId<DamageGroupPrototype> AirlossGroup = "Airloss";
 
     public override void Initialize()
     {
@@ -518,15 +525,33 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 Dirty(uid, autodoc);
                 UpdateSurgeryVisuals((uid, autodoc));
                 _popup.PopupEntity(Loc.GetString("rmc-autodoc-patient-dead"), uid);
+                _audio.PlayPvs(autodoc.AutoEjectDeadSound, uid);
+                TryEjectOccupant((uid, autodoc), occupant);
                 continue;
+            }
+
+            // Life support: keep patient alive during surgery
+            if (TryComp<DamageableComponent>(occupant, out var damageable))
+            {
+                if (damageable.DamagePerGroup.GetValueOrDefault(ToxinGroup) > 0)
+                {
+                    var healing = _rmcDamageable.DistributeHealingCached(occupant, ToxinGroup, 0.25);
+                    _damageable.TryChangeDamage(occupant, healing, true, false);
+                }
+
+                if (damageable.DamagePerGroup.GetValueOrDefault(AirlossGroup) > 0)
+                {
+                    var healing = _rmcDamageable.DistributeHealingCached(occupant, AirlossGroup, damageable.DamagePerGroup.GetValueOrDefault(AirlossGroup));
+                    _damageable.TryChangeDamage(occupant, healing, true, false);
+                }
             }
 
             var anyTreatmentRemaining = false;
             if (autodoc.HealingBrute)
             {
-                if (TryComp<DamageableComponent>(occupant, out var damageable) && damageable.DamagePerGroup.GetValueOrDefault("Brute") > 0)
+                if (damageable != null && damageable.DamagePerGroup.GetValueOrDefault(BruteGroup) > 0)
                 {
-                    var healing = _rmcDamageable.DistributeHealingCached(occupant, "Brute", autodoc.BruteHealAmount);
+                    var healing = _rmcDamageable.DistributeHealingCached(occupant, BruteGroup, autodoc.BruteHealAmount);
                     _damageable.TryChangeDamage(occupant, healing, true, false);
                     anyTreatmentRemaining = true;
                 }
@@ -539,9 +564,9 @@ public sealed class AutodocSystem : SharedAutodocSystem
 
             if (autodoc.HealingBurn)
             {
-                if (TryComp<DamageableComponent>(occupant, out var damageable) && damageable.DamagePerGroup.GetValueOrDefault("Burn") > 0)
+                if (damageable != null && damageable.DamagePerGroup.GetValueOrDefault(BurnGroup) > 0)
                 {
-                    var healing = _rmcDamageable.DistributeHealingCached(occupant, "Burn", autodoc.BurnHealAmount);
+                    var healing = _rmcDamageable.DistributeHealingCached(occupant, BurnGroup, autodoc.BurnHealAmount);
                     _damageable.TryChangeDamage(occupant, healing, true, false);
                     anyTreatmentRemaining = true;
                 }
@@ -554,9 +579,9 @@ public sealed class AutodocSystem : SharedAutodocSystem
 
             if (autodoc.HealingToxin)
             {
-                if (TryComp<DamageableComponent>(occupant, out var damageable) && damageable.DamagePerGroup.GetValueOrDefault("Toxin") > 0)
+                if (damageable != null && damageable.DamagePerGroup.GetValueOrDefault(ToxinGroup) > 0)
                 {
-                    var healing = _rmcDamageable.DistributeHealingCached(occupant, "Toxin", autodoc.ToxinHealAmount);
+                    var healing = _rmcDamageable.DistributeHealingCached(occupant, ToxinGroup, autodoc.ToxinHealAmount);
                     _damageable.TryChangeDamage(occupant, healing, true, false);
                     anyTreatmentRemaining = true;
                 }
@@ -636,7 +661,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 if (autodoc.RemoveLarva && HasLarva(occupant))
                 {
                     autodoc.CurrentSurgeryType = AutodocSurgeryType.LarvaExtraction;
-                    autodoc.SurgeryCompleteAt = time + autodoc.LarvaExtractionTime;
+                    autodoc.SurgeryCompleteAt = time + TimeSpan.FromSeconds(14);
                     anyTreatmentRemaining = true;
                     _popup.PopupEntity(Loc.GetString("rmc-autodoc-larva-starting"), uid);
                     Dirty(uid, autodoc);
@@ -644,7 +669,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 else if (autodoc.CloseIncisions && HasOpenIncisions(occupant))
                 {
                     autodoc.CurrentSurgeryType = AutodocSurgeryType.CloseIncision;
-                    autodoc.SurgeryCompleteAt = time + autodoc.CloseIncisionTime;
+                    autodoc.SurgeryCompleteAt = time + TimeSpan.FromSeconds(6);
                     anyTreatmentRemaining = true;
                     _popup.PopupEntity(Loc.GetString("rmc-autodoc-incisions-starting"), uid);
                     Dirty(uid, autodoc);
@@ -652,7 +677,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 else if (autodoc.RemoveShrapnel && HasShrapnel(occupant))
                 {
                     autodoc.CurrentSurgeryType = AutodocSurgeryType.ShrapnelRemoval;
-                    autodoc.SurgeryCompleteAt = time + autodoc.ShrapnelRemovalTime;
+                    autodoc.SurgeryCompleteAt = time;
                     anyTreatmentRemaining = true;
                     _popup.PopupEntity(Loc.GetString("rmc-autodoc-shrapnel-starting"), uid);
                     Dirty(uid, autodoc);

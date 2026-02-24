@@ -132,9 +132,3 @@ public sealed class AutodocClearBuiMsg : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
 public sealed class AutodocEjectBuiMsg : BoundUserInterfaceMessage;
-
-[Serializable, NetSerializable]
-public sealed class AutodocAutoEjectDeadBuiMsg(bool enabled) : BoundUserInterfaceMessage
-{
-    public readonly bool Enabled = enabled;
-}
