@@ -33,7 +33,6 @@ public abstract class SharedAutodocSystem : EntitySystem
         SubscribeLocalEvent<AutodocComponent, EntRemovedFromContainerMessage>(OnAutodocEntRemoved);
         SubscribeLocalEvent<AutodocComponent, InteractHandEvent>(OnAutodocInteractHand);
 
-        SubscribeLocalEvent<AutodocConsoleComponent, ComponentShutdown>(OnConsoleShutdown);
         SubscribeLocalEvent<AutodocConsoleComponent, ActivatableUIOpenAttemptEvent>(OnConsoleUIOpenAttempt);
 
         SubscribeLocalEvent<InsideAutodocComponent, MoveInputEvent>(OnInsideAutodocMoveInput);
@@ -59,10 +58,8 @@ public abstract class SharedAutodocSystem : EntitySystem
 
             if (TryComp(consoleId, out AutodocConsoleComponent? console))
             {
-                autodoc.Comp.SpawnedConsole = consoleId;
                 autodoc.Comp.LinkedConsole = consoleId;
                 console.LinkedAutodoc = autodoc;
-                console.SpawnedByAutodoc = autodoc;
                 Dirty(autodoc);
                 Dirty(consoleId, console);
             }
@@ -76,17 +73,9 @@ public abstract class SharedAutodocSystem : EntitySystem
         {
             linkedConsole.LinkedAutodoc = null;
             Dirty(linkedConsoleId, linkedConsole);
-        }
 
-        // Only delete the console that was SPAWNED by this autodoc
-        if (_net.IsServer &&
-            autodoc.Comp.SpawnedConsole is { } spawnedConsoleId &&
-            TryComp(spawnedConsoleId, out AutodocConsoleComponent? spawnedConsole))
-        {
-            if (spawnedConsole.SpawnedByAutodoc == autodoc.Owner)
-            {
-                QueueDel(spawnedConsoleId);
-            }
+            if (_net.IsServer && linkedConsole.LinkedAutodoc == autodoc.Owner)
+                QueueDel(linkedConsoleId);
         }
     }
 
@@ -141,38 +130,6 @@ public abstract class SharedAutodocSystem : EntitySystem
         {
             TryEjectOccupant(autodoc, occupant, args.User);
             args.Handled = true;
-        }
-    }
-
-    private void OnConsoleShutdown(Entity<AutodocConsoleComponent> console, ref ComponentShutdown args)
-    {
-        // Clean up the autodoc's reference to this console
-        if (console.Comp.LinkedAutodoc is { } linkedAutodocId && TryComp(linkedAutodocId, out AutodocComponent? linkedAutodoc))
-        {
-            if (linkedAutodoc.LinkedConsole == console.Owner)
-            {
-                linkedAutodoc.LinkedConsole = null;
-                Dirty(linkedAutodocId, linkedAutodoc);
-            }
-
-            // Also clear SpawnedConsole if this console was spawned by that autodoc
-            if (linkedAutodoc.SpawnedConsole == console.Owner)
-            {
-                linkedAutodoc.SpawnedConsole = null;
-                Dirty(linkedAutodocId, linkedAutodoc);
-            }
-        }
-
-        // Also check SpawnedByAutodoc in case it's different from LinkedAutodoc
-        if (console.Comp.SpawnedByAutodoc is { } spawnedByAutodocId &&
-            spawnedByAutodocId != console.Comp.LinkedAutodoc &&
-            TryComp(spawnedByAutodocId, out AutodocComponent? spawnerAutodoc))
-        {
-            if (spawnerAutodoc.SpawnedConsole == console.Owner)
-            {
-                spawnerAutodoc.SpawnedConsole = null;
-                Dirty(spawnedByAutodocId, spawnerAutodoc);
-            }
         }
     }
 

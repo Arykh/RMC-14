@@ -9,9 +9,6 @@ public sealed partial class AutodocConsoleComponent : Component
     [DataField, AutoNetworkedField]
     public EntityUid? LinkedAutodoc;
 
-    [DataField, AutoNetworkedField]
-    public EntityUid? SpawnedByAutodoc;
-
     [DataField]
     public TimeSpan UpdateAt;
 
