@@ -9,9 +9,6 @@ public sealed partial class SleeperConsoleComponent : Component
     [DataField, AutoNetworkedField]
     public EntityUid? LinkedSleeper;
 
-    [DataField, AutoNetworkedField]
-    public EntityUid? SpawnedBySleeper;
-
     [DataField]
     public TimeSpan UpdateAt;
 
