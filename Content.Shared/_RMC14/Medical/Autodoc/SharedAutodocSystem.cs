@@ -1,4 +1,5 @@
 using Content.Shared._RMC14.Storage;
+using Content.Shared.Damage;
 using Content.Shared.Interaction;
 using Content.Shared.Movement.Events;
 using Content.Shared.Popups;
@@ -7,6 +8,7 @@ using Content.Shared.UserInterface;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
 using Robust.Shared.Network;
+using Robust.Shared.Random;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._RMC14.Medical.Autodoc;
@@ -16,8 +18,10 @@ public abstract class SharedAutodocSystem : EntitySystem
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
+    [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly INetManager _net = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly SharedStunSystem _stun = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
@@ -68,7 +72,7 @@ public abstract class SharedAutodocSystem : EntitySystem
 
     private void OnAutodocShutdown(Entity<AutodocComponent> autodoc, ref ComponentShutdown args)
     {
-        // Unlink the currently linked console (if any)
+        // Clean up linked console
         if (autodoc.Comp.LinkedConsole is { } linkedConsoleId && TryComp(linkedConsoleId, out AutodocConsoleComponent? linkedConsole))
         {
             linkedConsole.LinkedAutodoc = null;
@@ -145,23 +149,27 @@ public abstract class SharedAutodocSystem : EntitySystem
         }
     }
 
-    protected bool TryEjectOccupant(Entity<AutodocComponent> autodoc, EntityUid occupant, EntityUid? user = null)
+    protected void TryEjectOccupant(Entity<AutodocComponent> autodoc, EntityUid occupant, EntityUid? user = null)
     {
-        // If surgery is in progress and user is the occupant, deny
         if (autodoc.Comp.IsSurgeryInProgress && user == occupant)
         {
             _popup.PopupEntity(Loc.GetString("rmc-autodoc-cannot-exit-during-surgery"), autodoc, occupant);
-            return false;
+            return;
         }
 
-        // If surgery is in progress and someone else is ejecting, warn them but allow. This causes damage to the patient.
         if (autodoc.Comp.IsSurgeryInProgress && user != null && user != occupant)
         {
+            // TODO RMC14 Random limb damage
+            var damage = new DamageSpecifier
+            {
+                DamageDict = { ["Blunt"] = _random.Next(30, 50), ["Heat"] = _random.Next(30, 50) },
+            };
+
+            _damageable.TryChangeDamage(occupant, damage, true, false);
             _popup.PopupEntity(Loc.GetString("rmc-autodoc-surgery-aborted"), autodoc);
         }
 
         EjectOccupant(autodoc, occupant);
-        return true;
     }
 
     private void EjectOccupant(Entity<AutodocComponent> autodoc, EntityUid occupant)
