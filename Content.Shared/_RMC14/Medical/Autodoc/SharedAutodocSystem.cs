@@ -1,5 +1,6 @@
 using Content.Shared._RMC14.Marines.Skills;
 using Content.Shared._RMC14.Storage;
+using Content.Shared.Containers;
 using Content.Shared.Damage;
 using Content.Shared.DragDrop;
 using Content.Shared.Interaction;
@@ -39,8 +40,8 @@ public abstract class SharedAutodocSystem : EntitySystem
         SubscribeLocalEvent<AutodocComponent, EntInsertedIntoContainerMessage>(OnAutodocEntInserted);
         SubscribeLocalEvent<AutodocComponent, EntRemovedFromContainerMessage>(OnAutodocEntRemoved);
         SubscribeLocalEvent<AutodocComponent, InteractHandEvent>(OnAutodocInteractHand);
-        SubscribeLocalEvent<AutodocComponent, CanDropTargetEvent>(OnAutodocCanDropTarget);
-        SubscribeLocalEvent<AutodocComponent, DragDropTargetEvent>(OnAutodocDragDropTarget);
+        SubscribeLocalEvent<AutodocComponent, CanDropTargetEvent>(OnAutodocCanDropTarget, before: [typeof(DragInsertContainerSystem)]);
+        SubscribeLocalEvent<AutodocComponent, DragDropTargetEvent>(OnAutodocDragDropTarget, before: [typeof(DragInsertContainerSystem)]);
 
         SubscribeLocalEvent<AutodocConsoleComponent, ActivatableUIOpenAttemptEvent>(OnConsoleUIOpenAttempt);
 

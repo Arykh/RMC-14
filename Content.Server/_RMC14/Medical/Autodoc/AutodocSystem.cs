@@ -375,8 +375,8 @@ public sealed class AutodocSystem : SharedAutodocSystem
             {
                 var totalTime = autodoc.Comp.CurrentSurgeryType switch
                 {
-                    AutodocSurgeryType.LarvaExtraction => autodoc.Comp.LarvaExtractionTime,
-                    AutodocSurgeryType.CloseIncision => autodoc.Comp.CloseIncisionTime,
+                    AutodocSurgeryType.LarvaExtraction => autodoc.Comp.ScalpelDuration + autodoc.Comp.HemostatDuration + autodoc.Comp.RemoveObjectDuration,
+                    AutodocSurgeryType.CloseIncision => autodoc.Comp.CauteryDuration,
                     _ => TimeSpan.FromSeconds(1)
                 };
                 var remaining = autodoc.Comp.SurgeryCompleteAt - _timing.CurTime;
@@ -589,7 +589,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 if (autodoc.RemoveLarva && HasLarva(occupant))
                 {
                     autodoc.CurrentSurgeryType = AutodocSurgeryType.LarvaExtraction;
-                    autodoc.SurgeryCompleteAt = time + autodoc.LarvaExtractionTime;
+                    autodoc.SurgeryCompleteAt = time + autodoc.ScalpelDuration + autodoc.HemostatDuration + autodoc.RemoveObjectDuration;
                     anyTreatmentRemaining = true;
                     _popup.PopupEntity(Loc.GetString("rmc-autodoc-larva-starting"), uid);
                     Dirty(uid, autodoc);
@@ -597,7 +597,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 else if (autodoc.CloseIncisions && HasOpenIncisions(occupant))
                 {
                     autodoc.CurrentSurgeryType = AutodocSurgeryType.CloseIncision;
-                    autodoc.SurgeryCompleteAt = time + autodoc.CloseIncisionTime;
+                    autodoc.SurgeryCompleteAt = time + autodoc.CauteryDuration;
                     anyTreatmentRemaining = true;
                     _popup.PopupEntity(Loc.GetString("rmc-autodoc-incisions-starting"), uid);
                     Dirty(uid, autodoc);

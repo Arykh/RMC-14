@@ -81,6 +81,12 @@ public sealed partial class AutodocComponent : Component
     #region Surgery Step Durations
 
     [DataField]
+    public TimeSpan UnneededDelay = TimeSpan.FromSeconds(10);
+
+    [DataField]
+    public TimeSpan IncisionManagerDuration = TimeSpan.FromSeconds(6);
+
+    [DataField]
     public TimeSpan ScalpelDuration = TimeSpan.FromSeconds(4);
 
     [DataField]
@@ -100,21 +106,6 @@ public sealed partial class AutodocComponent : Component
 
     [DataField]
     public TimeSpan RemoveObjectDuration = TimeSpan.FromSeconds(6);
-
-    #endregion
-
-    #region Calculated Surgery Times
-
-    public TimeSpan LarvaExtractionTime =>
-        ScalpelDuration + HemostatDuration + RetractorDuration +
-        CircularSawDuration + RetractorDuration +
-        ScalpelDuration +
-        HemostatDuration;
-
-    public TimeSpan CloseIncisionTime =>
-        RetractorDuration +
-        BoneGelDuration +
-        CauteryDuration;
 
     #endregion
 
