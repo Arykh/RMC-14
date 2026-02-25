@@ -227,17 +227,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         return TryComp<VictimInfectedComponent>(occupant, out var infected) && !infected.IsBursting;
     }
 
-    private bool HasOpenIncisions(EntityUid occupant)
-    {
-        foreach (var part in _body.GetBodyChildren(occupant))
-        {
-            if (HasComp<CMIncisionOpenComponent>(part.Id))
-                return true;
-        }
-        return false;
-    }
-
-
     private void PerformLarvaExtraction(EntityUid uid, AutodocComponent autodoc, EntityUid occupant)
     {
         if (!TryComp<VictimInfectedComponent>(occupant, out var infected))
@@ -274,10 +263,19 @@ public sealed class AutodocSystem : SharedAutodocSystem
         Dirty(uid, autodoc);
     }
 
+    private bool HasOpenIncisions(EntityUid occupant)
+    {
+        foreach (var part in _body.GetBodyChildren(occupant))
+        {
+            if (HasComp<CMIncisionOpenComponent>(part.Id))
+                return true;
+        }
+        return false;
+    }
+
     private void PerformCloseIncisions(EntityUid uid, AutodocComponent autodoc, EntityUid occupant)
     {
         var closedAny = false;
-
         foreach (var part in _body.GetBodyChildren(occupant))
         {
             if (HasComp<CMIncisionOpenComponent>(part.Id))
