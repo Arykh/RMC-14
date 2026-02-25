@@ -29,10 +29,12 @@
         - MachineMask
         layer:
         - MachineLayer
-  - type: Autodoc
   - type: ApcPowerReceiver
     powerLoad: 450
     needsPower: false # TODO RMC14 power
+  - type: Autodoc
+    skillsRequired:
+      RMCSkillSurgery: 1
   - type: DragInsertContainer
     containerId: autodoc
     entryDelay: 2
@@ -94,6 +96,8 @@
         - MachineLayer
         hard: false
   - type: AutodocConsole
+    skillsRequired:
+      RMCSkillSurgery: 1
   - type: UserInterface
     interfaces:
       enum.AutodocUIKey.Key:
@@ -117,7 +121,7 @@
       - Xeno
   - type: RMCMesonsNonviewable
 
-# Unskilled Autodoc - anyone can use it
+# Unskilled Autodoc
 - type: entity
   parent: RMCAutodoc
   id: RMCAutodocUnskilled
@@ -125,4 +129,13 @@
   description: A much more expensive model of autodoc modified with an A.I. diagnostic unit. The result is a much simpler, point-and-click interface that anyone, regardless of training, can use.
   suffix: Unskilled, Spawns with Console
   components:
-  - type: Autodoc # todo unskilled bool or swappable skill component
+  - type: Autodoc
+    spawnConsolePrototype: RMCAutodocConsoleUnskilled
+    skillsRequired: {}
+
+- type: entity
+  parent: RMCAutodocConsole
+  id: RMCAutodocConsoleUnskilled
+  components:
+  - type: AutodocConsole
+    skillsRequired: {}

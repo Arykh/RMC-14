@@ -14,7 +14,6 @@ using Content.Shared.IdentityManagement;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
-using Content.Shared.Projectiles;
 using Content.Shared.UserInterface;
 using Robust.Server.Audio;
 using Robust.Server.GameObjects;
@@ -36,7 +35,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
     [Dependency] private readonly RMCPulseSystem _rmcPulse = default!;
     [Dependency] private readonly SharedSolutionContainerSystem _solution = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedTransformSystem _xform = default!;
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
 
     private static readonly ProtoId<DamageGroupPrototype> BruteGroup = "Brute";
@@ -56,7 +54,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleDialysisBuiMsg>(OnConsoleToggleDialysis);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleLarvaBuiMsg>(OnConsoleToggleLarva);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleIncisionsBuiMsg>(OnConsoleToggleIncisions);
-        SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleShrapnelBuiMsg>(OnConsoleToggleShrapnel);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocStartSurgeryBuiMsg>(OnConsoleStartSurgery);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocClearBuiMsg>(OnConsoleClear);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocEjectBuiMsg>(OnConsoleEject);
@@ -158,19 +155,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         UpdateUI(console);
     }
 
-    private void OnConsoleToggleShrapnel(Entity<AutodocConsoleComponent> console, ref AutodocToggleShrapnelBuiMsg args)
-    {
-        if (!TryGetLinkedAutodoc(console, out var autodoc))
-            return;
-
-        if (autodoc.Comp.IsSurgeryInProgress)
-            return;
-
-        autodoc.Comp.RemoveShrapnel = !autodoc.Comp.RemoveShrapnel;
-        Dirty(autodoc);
-        UpdateUI(console);
-    }
-
     private void OnConsoleStartSurgery(Entity<AutodocConsoleComponent> console, ref AutodocStartSurgeryBuiMsg args)
     {
         if (!TryGetLinkedAutodoc(console, out var autodoc))
@@ -183,7 +167,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
             return;
 
         // Check if any surgery is queued
-        if (autodoc.Comp is { HealingBrute: false, HealingBurn: false, HealingToxin: false, BloodTransfusion: false, Filtering: false, RemoveLarva: false, CloseIncisions: false, RemoveShrapnel: false })
+        if (autodoc.Comp is { HealingBrute: false, HealingBurn: false, HealingToxin: false, BloodTransfusion: false, Filtering: false, RemoveLarva: false, CloseIncisions: false })
         {
             return;
         }
@@ -193,7 +177,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
         autodoc.Comp.CurrentSurgeryType = AutodocSurgeryType.None;
         Dirty(autodoc);
         UpdateSurgeryVisuals(autodoc);
-        _audio.PlayPvs(autodoc.Comp.SurgeryStartSound, autodoc);
+        _audio.PlayPvs(autodoc.Comp.SurgeryStepSound, autodoc);
         UpdateUI(console);
     }
 
@@ -212,7 +196,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         autodoc.Comp.Filtering = false;
         autodoc.Comp.RemoveLarva = false;
         autodoc.Comp.CloseIncisions = false;
-        autodoc.Comp.RemoveShrapnel = false;
         Dirty(autodoc);
         UpdateUI(console);
     }
@@ -254,14 +237,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         return false;
     }
 
-    private bool HasShrapnel(EntityUid occupant)
-    {
-        if (TryComp<EmbeddedContainerComponent>(occupant, out var embedded))
-        {
-            return embedded.EmbeddedObjects.Count > 0;
-        }
-        return false;
-    }
 
     private void PerformLarvaExtraction(EntityUid uid, AutodocComponent autodoc, EntityUid occupant)
     {
@@ -326,43 +301,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         Dirty(uid, autodoc);
     }
 
-    private void PerformShrapnelRemoval(EntityUid uid, AutodocComponent autodoc, EntityUid occupant)
-    {
-        if (!TryComp<EmbeddedContainerComponent>(occupant, out var embedded) || embedded.EmbeddedObjects.Count == 0)
-        {
-            autodoc.RemoveShrapnel = false;
-            autodoc.CurrentSurgeryType = AutodocSurgeryType.None;
-            Dirty(uid, autodoc);
-            return;
-        }
-
-        EntityUid? toRemove = null;
-        foreach (var obj in embedded.EmbeddedObjects)
-        {
-            toRemove = obj;
-            break;
-        }
-
-        if (toRemove != null)
-        {
-            embedded.EmbeddedObjects.Remove(toRemove.Value);
-            _xform.SetCoordinates(toRemove.Value, Transform(uid).Coordinates);
-
-            _popup.PopupEntity(Loc.GetString("rmc-autodoc-shrapnel-removed"), uid);
-            _audio.PlayPvs(autodoc.SurgeryStepSound, uid);
-
-            if (embedded.EmbeddedObjects.Count > 0)
-            {
-                autodoc.SurgeryCompleteAt = _timing.CurTime + autodoc.ShrapnelRemovalTime;
-                return;
-            }
-        }
-
-        autodoc.RemoveShrapnel = false;
-        autodoc.CurrentSurgeryType = AutodocSurgeryType.None;
-        Dirty(uid, autodoc);
-    }
-
     private void UpdateUI(Entity<AutodocConsoleComponent> console)
     {
         if (!_ui.IsUiOpen(console.Owner, AutodocUIKey.Key))
@@ -388,7 +326,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         FixedPoint2 totalReagents = 0;
         var hasLarva = false;
         var hasOpenIncisions = false;
-        var hasShrapnel = false;
         var surgeryProgressTime = 0f;
 
         if (occupant != null)
@@ -412,10 +349,10 @@ public sealed class AutodocSystem : SharedAutodocSystem
                     health = (float) (critThreshold - totalDamage);
                 }
 
-                bruteLoss = damageable.DamagePerGroup.GetValueOrDefault("Brute").Float();
-                burnLoss = damageable.DamagePerGroup.GetValueOrDefault("Burn").Float();
-                toxinLoss = damageable.DamagePerGroup.GetValueOrDefault("Toxin").Float();
-                oxyLoss = damageable.DamagePerGroup.GetValueOrDefault("Airloss").Float();
+                bruteLoss = damageable.DamagePerGroup.GetValueOrDefault(BruteGroup).Float();
+                burnLoss = damageable.DamagePerGroup.GetValueOrDefault(BurnGroup).Float();
+                toxinLoss = damageable.DamagePerGroup.GetValueOrDefault(ToxinGroup).Float();
+                oxyLoss = damageable.DamagePerGroup.GetValueOrDefault(AirlossGroup).Float();
             }
 
             if (TryComp<BloodstreamComponent>(occupant, out var blood) &&
@@ -435,7 +372,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
 
             hasLarva = HasLarva(occupant.Value);
             hasOpenIncisions = HasOpenIncisions(occupant.Value);
-            hasShrapnel = HasShrapnel(occupant.Value);
 
             if (autodoc.Comp.CurrentSurgeryType != AutodocSurgeryType.None && autodoc.Comp.SurgeryCompleteAt > _timing.CurTime)
             {
@@ -443,7 +379,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 {
                     AutodocSurgeryType.LarvaExtraction => autodoc.Comp.LarvaExtractionTime,
                     AutodocSurgeryType.CloseIncision => autodoc.Comp.CloseIncisionTime,
-                    AutodocSurgeryType.ShrapnelRemoval => autodoc.Comp.ShrapnelRemovalTime,
                     _ => TimeSpan.FromSeconds(1)
                 };
                 var remaining = autodoc.Comp.SurgeryCompleteAt - _timing.CurTime;
@@ -477,10 +412,8 @@ public sealed class AutodocSystem : SharedAutodocSystem
             totalReagents,
             autodoc.Comp.RemoveLarva,
             autodoc.Comp.CloseIncisions,
-            autodoc.Comp.RemoveShrapnel,
             hasLarva,
-            hasOpenIncisions,
-            hasShrapnel);
+            hasOpenIncisions);
 
         _ui.SetUiState(console.Owner, AutodocUIKey.Key, state);
     }
@@ -650,9 +583,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
                         case AutodocSurgeryType.CloseIncision:
                             PerformCloseIncisions(uid, autodoc, occupant);
                             break;
-                        case AutodocSurgeryType.ShrapnelRemoval:
-                            PerformShrapnelRemoval(uid, autodoc, occupant);
-                            break;
                     }
                 }
             }
@@ -661,7 +591,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 if (autodoc.RemoveLarva && HasLarva(occupant))
                 {
                     autodoc.CurrentSurgeryType = AutodocSurgeryType.LarvaExtraction;
-                    autodoc.SurgeryCompleteAt = time + TimeSpan.FromSeconds(14);
+                    autodoc.SurgeryCompleteAt = time + autodoc.LarvaExtractionTime;
                     anyTreatmentRemaining = true;
                     _popup.PopupEntity(Loc.GetString("rmc-autodoc-larva-starting"), uid);
                     Dirty(uid, autodoc);
@@ -669,17 +599,9 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 else if (autodoc.CloseIncisions && HasOpenIncisions(occupant))
                 {
                     autodoc.CurrentSurgeryType = AutodocSurgeryType.CloseIncision;
-                    autodoc.SurgeryCompleteAt = time + TimeSpan.FromSeconds(6);
+                    autodoc.SurgeryCompleteAt = time + autodoc.CloseIncisionTime;
                     anyTreatmentRemaining = true;
                     _popup.PopupEntity(Loc.GetString("rmc-autodoc-incisions-starting"), uid);
-                    Dirty(uid, autodoc);
-                }
-                else if (autodoc.RemoveShrapnel && HasShrapnel(occupant))
-                {
-                    autodoc.CurrentSurgeryType = AutodocSurgeryType.ShrapnelRemoval;
-                    autodoc.SurgeryCompleteAt = time;
-                    anyTreatmentRemaining = true;
-                    _popup.PopupEntity(Loc.GetString("rmc-autodoc-shrapnel-starting"), uid);
                     Dirty(uid, autodoc);
                 }
                 else
@@ -688,8 +610,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
                         autodoc.RemoveLarva = false;
                     if (autodoc.CloseIncisions && !HasOpenIncisions(occupant))
                         autodoc.CloseIncisions = false;
-                    if (autodoc.RemoveShrapnel && !HasShrapnel(occupant))
-                        autodoc.RemoveShrapnel = false;
                 }
             }
 

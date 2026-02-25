@@ -65,11 +65,6 @@ public sealed class AutodocConsoleBui(EntityUid owner, Enum uiKey) : BoundUserIn
         SendMessage(new AutodocToggleIncisionsBuiMsg());
     }
 
-    public void ToggleShrapnel()
-    {
-        SendMessage(new AutodocToggleShrapnelBuiMsg());
-    }
-
     public void StartSurgery()
     {
         SendMessage(new AutodocStartSurgeryBuiMsg());

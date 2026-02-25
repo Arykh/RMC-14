@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Shared._RMC14.Marines.Skills;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
@@ -30,22 +31,40 @@ public sealed partial class AutodocComponent : Component
     [DataField]
     public Vector2 ConsoleSpawnOffset = new(-1, 0);
 
+    [DataField(required: true), AutoNetworkedField]
+    public Dictionary<EntProtoId<SkillDefinitionComponent>, int> SkillsRequired = new();
+
     #region External Treatments (Continuous)
 
     [DataField, AutoNetworkedField]
     public bool HealingBrute;
 
     [DataField, AutoNetworkedField]
+    public FixedPoint2 BruteHealAmount = FixedPoint2.New(3);
+
+    [DataField, AutoNetworkedField]
     public bool HealingBurn;
+
+    [DataField, AutoNetworkedField]
+    public FixedPoint2 BurnHealAmount = FixedPoint2.New(3);
 
     [DataField, AutoNetworkedField]
     public bool HealingToxin;
 
     [DataField, AutoNetworkedField]
+    public FixedPoint2 ToxinHealAmount = FixedPoint2.New(3);
+
+    [DataField, AutoNetworkedField]
     public bool BloodTransfusion;
 
     [DataField, AutoNetworkedField]
+    public FixedPoint2 BloodTransfusionAmount = FixedPoint2.New(8);
+
+    [DataField, AutoNetworkedField]
     public bool Filtering;
+
+    [DataField, AutoNetworkedField]
+    public FixedPoint2 DialysisAmount = FixedPoint2.New(3);
 
     #endregion
 
@@ -57,27 +76,45 @@ public sealed partial class AutodocComponent : Component
     [DataField, AutoNetworkedField]
     public bool CloseIncisions;
 
-    [DataField, AutoNetworkedField]
-    public bool RemoveShrapnel;
+    #endregion
+
+    #region Surgery Step Durations
+
+    [DataField]
+    public TimeSpan ScalpelDuration = TimeSpan.FromSeconds(4);
+
+    [DataField]
+    public TimeSpan RetractorDuration = TimeSpan.FromSeconds(2);
+
+    [DataField]
+    public TimeSpan HemostatDuration = TimeSpan.FromSeconds(4);
+
+    [DataField]
+    public TimeSpan CircularSawDuration = TimeSpan.FromSeconds(6);
+
+    [DataField]
+    public TimeSpan CauteryDuration = TimeSpan.FromSeconds(6);
+
+    [DataField]
+    public TimeSpan BoneGelDuration = TimeSpan.FromSeconds(4);
+
+    [DataField]
+    public TimeSpan RemoveObjectDuration = TimeSpan.FromSeconds(6);
 
     #endregion
 
-    #region External Treatments Healing Amounts
+    #region Calculated Surgery Times
 
-    [DataField, AutoNetworkedField]
-    public FixedPoint2 BruteHealAmount = FixedPoint2.New(3);
+    public TimeSpan LarvaExtractionTime =>
+        ScalpelDuration + HemostatDuration + RetractorDuration +
+        CircularSawDuration + RetractorDuration +
+        ScalpelDuration +
+        HemostatDuration;
 
-    [DataField, AutoNetworkedField]
-    public FixedPoint2 BurnHealAmount = FixedPoint2.New(3);
-
-    [DataField, AutoNetworkedField]
-    public FixedPoint2 ToxinHealAmount = FixedPoint2.New(3);
-
-    [DataField, AutoNetworkedField]
-    public FixedPoint2 DialysisAmount = FixedPoint2.New(3);
-
-    [DataField, AutoNetworkedField]
-    public FixedPoint2 BloodTransfusionAmount = FixedPoint2.New(8);
+    public TimeSpan CloseIncisionTime =>
+        RetractorDuration +
+        BoneGelDuration +
+        CauteryDuration;
 
     #endregion
 
@@ -108,8 +145,6 @@ public sealed partial class AutodocComponent : Component
     [DataField, AutoNetworkedField]
     public EntityUid? LinkedConsole;
 
-    #region Sounds
-
     [DataField]
     public SoundSpecifier EjectSound = new SoundPathSpecifier("/Audio/_RMC14/Machines/hydraulics_3.ogg");
 
@@ -120,12 +155,7 @@ public sealed partial class AutodocComponent : Component
     public SoundSpecifier SurgeryCompleteSound = new SoundPathSpecifier("/Audio/Effects/Cargo/ping.ogg");
 
     [DataField]
-    public SoundSpecifier SurgeryStartSound = new SoundPathSpecifier("/Audio/Machines/airlock_close.ogg");
-
-    [DataField]
-    public SoundSpecifier SurgeryStepSound = new SoundPathSpecifier("/Audio/Effects/beep1.ogg");
-
-    #endregion
+    public SoundSpecifier SurgeryStepSound = new SoundPathSpecifier("/Audio/Machines/twobeep.ogg");
 }
 
 public enum AutodocSurgeryType : byte
@@ -133,5 +163,4 @@ public enum AutodocSurgeryType : byte
     None = 0,
     LarvaExtraction,
     CloseIncision,
-    ShrapnelRemoval
 }

@@ -23,7 +23,6 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         DialysisToggleButton.OnPressed += _ => _bui?.ToggleDialysis();
         LarvaToggleButton.OnPressed += _ => _bui?.ToggleLarva();
         IncisionsToggleButton.OnPressed += _ => _bui?.ToggleIncisions();
-        ShrapnelToggleButton.OnPressed += _ => _bui?.ToggleShrapnel();
         StartSurgeryButton.OnPressed += _ => _bui?.StartSurgery();
         ClearButton.OnPressed += _ => _bui?.Clear();
         EjectButton.OnPressed += _ => _bui?.Eject();
@@ -121,12 +120,10 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         // Surgical procedures toggles
         LarvaToggleButton.Pressed = state.RemoveLarva;
         IncisionsToggleButton.Pressed = state.CloseIncisions;
-        ShrapnelToggleButton.Pressed = state.RemoveShrapnel;
 
         // Update availability indicators
         UpdateSurgeryButtonAvailability(LarvaToggleButton, state.HasLarva, state.SurgeryInProgress);
         UpdateSurgeryButtonAvailability(IncisionsToggleButton, state.HasOpenIncisions, state.SurgeryInProgress);
-        UpdateSurgeryButtonAvailability(ShrapnelToggleButton, state.HasShrapnel, state.SurgeryInProgress);
 
         // Disable buttons during surgery
         BruteToggleButton.Disabled = state.SurgeryInProgress;
@@ -148,7 +145,6 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
             {
                 AutodocSurgeryType.LarvaExtraction => Loc.GetString("rmc-autodoc-surgery-larva-progress"),
                 AutodocSurgeryType.CloseIncision => Loc.GetString("rmc-autodoc-surgery-incisions-progress"),
-                AutodocSurgeryType.ShrapnelRemoval => Loc.GetString("rmc-autodoc-surgery-shrapnel-progress"),
                 _ => ""
             };
             SurgeryProgressBar.Value = state.SurgeryProgressTime;
@@ -164,7 +160,6 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         UpdateToggleButtonStyle(DialysisToggleButton, state.Filtering);
         UpdateToggleButtonStyle(LarvaToggleButton, state.RemoveLarva);
         UpdateToggleButtonStyle(IncisionsToggleButton, state.CloseIncisions);
-        UpdateToggleButtonStyle(ShrapnelToggleButton, state.RemoveShrapnel);
     }
 
     private static void UpdateDamageBar(ProgressBar bar, Label label, float damage)

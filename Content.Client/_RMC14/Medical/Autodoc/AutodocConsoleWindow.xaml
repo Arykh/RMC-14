@@ -107,7 +107,6 @@
                 <GridContainer Columns="2" Margin="0 5 0 5">
                     <Button Name="LarvaToggleButton" Text="{Loc rmc-autodoc-larva-extraction}" ToggleMode="True" MinWidth="200" Margin="2" />
                     <Button Name="IncisionsToggleButton" Text="{Loc rmc-autodoc-close-incisions}" ToggleMode="True" MinWidth="200" Margin="2" />
-                    <Button Name="ShrapnelToggleButton" Text="{Loc rmc-autodoc-shrapnel-removal}" ToggleMode="True" MinWidth="200" Margin="2" />
                 </GridContainer>
 
                 <!-- Surgery Progress -->

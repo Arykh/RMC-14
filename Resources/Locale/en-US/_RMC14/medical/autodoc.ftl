@@ -31,7 +31,6 @@ rmc-autodoc-dialysis = Dialysis
 rmc-autodoc-surgical-procedures-header = Surgical Procedures
 rmc-autodoc-larva-extraction = Parasite Extraction
 rmc-autodoc-close-incisions = Close Incisions
-rmc-autodoc-shrapnel-removal = Shrapnel Removal
 
 rmc-autodoc-start-surgery = Begin Surgery
 rmc-autodoc-clear = Clear
@@ -40,7 +39,6 @@ rmc-autodoc-eject = Eject
 rmc-autodoc-surgery-in-progress = Surgery in progress...
 rmc-autodoc-surgery-larva-progress = Extracting parasite...
 rmc-autodoc-surgery-incisions-progress = Closing incisions...
-rmc-autodoc-surgery-shrapnel-progress = Removing shrapnel...
 
 rmc-autodoc-larva-starting = The autodoc begins parasite extraction surgery.
 rmc-autodoc-larva-removed = The autodoc successfully extracts the parasite.
@@ -49,12 +47,10 @@ rmc-autodoc-larva-bursting = Unable to extract parasite - emergency in progress!
 rmc-autodoc-incisions-starting = The autodoc begins closing surgical incisions.
 rmc-autodoc-incisions-closed = The autodoc successfully closes all incisions.
 
-rmc-autodoc-shrapnel-starting = The autodoc begins shrapnel removal surgery.
-rmc-autodoc-shrapnel-removed = The autodoc removes a piece of shrapnel.
-
 rmc-autodoc-complete = The autodoc has completed all requested procedures.
 rmc-autodoc-patient-dead = Patient has expired.
 
 rmc-autodoc-ejected = {CAPITALIZE($entity)} has been ejected from the autodoc.
 rmc-autodoc-cannot-exit-during-surgery = There's no way you're getting out while this thing is operating on you!
 rmc-autodoc-surgery-aborted = The autodoc malfunctions as surgery is aborted!
+rmc-autodoc-no-skill = You don't have the training required to operate this equipment.
