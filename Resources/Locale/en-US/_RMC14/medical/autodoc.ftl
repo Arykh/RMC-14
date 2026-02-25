@@ -36,19 +36,14 @@ rmc-autodoc-start-surgery = Begin Surgery
 rmc-autodoc-clear = Clear
 rmc-autodoc-eject = Eject
 
-rmc-autodoc-surgery-in-progress = Surgery in progress...
-rmc-autodoc-surgery-larva-progress = Extracting parasite...
-rmc-autodoc-surgery-incisions-progress = Closing incisions...
-
 rmc-autodoc-larva-starting = The autodoc begins parasite extraction surgery.
 rmc-autodoc-larva-removed = The autodoc successfully extracts the parasite.
 rmc-autodoc-larva-bursting = Unable to extract parasite - emergency in progress!
-rmc-autodoc-larva-unneeded = Procedure has been deemed unnecessary.
 
 rmc-autodoc-incisions-starting = The autodoc begins closing surgical incisions.
 rmc-autodoc-incisions-closed = The autodoc successfully closes all incisions.
-rmc-autodoc-incisions-unneeded = No open incisions detected.
 
+rmc-autodoc-unneeded = Procedure has been deemed unnecessary.
 rmc-autodoc-complete = The autodoc has completed all requested procedures.
 rmc-autodoc-patient-dead = Patient has expired.
 

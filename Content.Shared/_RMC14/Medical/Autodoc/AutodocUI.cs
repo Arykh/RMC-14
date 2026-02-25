@@ -20,7 +20,6 @@ public sealed class AutodocBuiState(
     int pulse,
     bool surgeryInProgress,
     AutodocSurgeryType currentSurgeryType,
-    float surgeryProgressTime,
     bool healingBrute,
     bool healingBurn,
     bool healingToxin,
@@ -48,7 +47,6 @@ public sealed class AutodocBuiState(
     public readonly int Pulse = pulse;
     public readonly bool SurgeryInProgress = surgeryInProgress;
     public readonly AutodocSurgeryType CurrentSurgeryType = currentSurgeryType;
-    public readonly float SurgeryProgressTime = surgeryProgressTime;
     public readonly bool HealingBrute = healingBrute;
     public readonly bool HealingBurn = healingBurn;
     public readonly bool HealingToxin = healingToxin;

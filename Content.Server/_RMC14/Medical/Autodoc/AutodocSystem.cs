@@ -231,6 +231,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
     {
         if (!TryComp<VictimInfectedComponent>(occupant, out var infected))
         {
+            _popup.PopupEntity(Loc.GetString("rmc-autodoc-unneeded"), uid);
             autodoc.RemoveLarva = false;
             autodoc.CurrentSurgeryType = AutodocSurgeryType.None;
             Dirty(uid, autodoc);
@@ -293,6 +294,10 @@ public sealed class AutodocSystem : SharedAutodocSystem
             _popup.PopupEntity(Loc.GetString("rmc-autodoc-incisions-closed"), uid);
             _audio.PlayPvs(autodoc.SurgeryStepSound, uid);
         }
+        else
+        {
+            _popup.PopupEntity(Loc.GetString("rmc-autodoc-unneeded"), uid);
+        }
 
         autodoc.CloseIncisions = false;
         autodoc.CurrentSurgeryType = AutodocSurgeryType.None;
@@ -324,7 +329,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         FixedPoint2 totalReagents = 0;
         var hasLarva = false;
         var hasOpenIncisions = false;
-        var surgeryProgressTime = 0f;
 
         if (occupant != null)
         {
@@ -370,19 +374,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
 
             hasLarva = HasLarva(occupant.Value);
             hasOpenIncisions = HasOpenIncisions(occupant.Value);
-
-            if (autodoc.Comp.CurrentSurgeryType != AutodocSurgeryType.None && autodoc.Comp.SurgeryCompleteAt > _timing.CurTime)
-            {
-                var totalTime = autodoc.Comp.CurrentSurgeryType switch
-                {
-                    AutodocSurgeryType.LarvaExtraction => autodoc.Comp.ScalpelDuration + autodoc.Comp.HemostatDuration + autodoc.Comp.RemoveObjectDuration,
-                    AutodocSurgeryType.CloseIncision => autodoc.Comp.CauteryDuration,
-                    _ => TimeSpan.FromSeconds(1)
-                };
-                var remaining = autodoc.Comp.SurgeryCompleteAt - _timing.CurTime;
-                surgeryProgressTime = 1f - (float)(remaining.TotalSeconds / totalTime.TotalSeconds);
-                surgeryProgressTime = Math.Clamp(surgeryProgressTime, 0f, 1f);
-            }
         }
 
         var state = new AutodocBuiState(
@@ -401,7 +392,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
             pulse,
             autodoc.Comp.IsSurgeryInProgress,
             autodoc.Comp.CurrentSurgeryType,
-            surgeryProgressTime,
             autodoc.Comp.HealingBrute,
             autodoc.Comp.HealingBurn,
             autodoc.Comp.HealingToxin,
@@ -570,9 +560,11 @@ public sealed class AutodocSystem : SharedAutodocSystem
 
             if (autodoc.CurrentSurgeryType != AutodocSurgeryType.None)
             {
+                // Surgery is in progress - waiting for completion
                 anyTreatmentRemaining = true;
                 if (time >= autodoc.SurgeryCompleteAt)
                 {
+                    // Time expired - perform the surgery
                     switch (autodoc.CurrentSurgeryType)
                     {
                         case AutodocSurgeryType.LarvaExtraction:
@@ -582,33 +574,37 @@ public sealed class AutodocSystem : SharedAutodocSystem
                             PerformCloseIncisions(uid, autodoc, occupant);
                             break;
                     }
+                    // Note: The Perform methods reset CurrentSurgeryType to None
                 }
             }
-            else
+            // If no surgery in progress, check if we should start one
+            else if (autodoc.RemoveLarva)
             {
-                if (autodoc.RemoveLarva && HasLarva(occupant))
-                {
-                    autodoc.CurrentSurgeryType = AutodocSurgeryType.LarvaExtraction;
-                    autodoc.SurgeryCompleteAt = time + autodoc.ScalpelDuration + autodoc.HemostatDuration + autodoc.RemoveObjectDuration;
-                    anyTreatmentRemaining = true;
+                var hasLarva = HasLarva(occupant);
+                autodoc.CurrentSurgeryType = AutodocSurgeryType.LarvaExtraction;
+                autodoc.SurgeryCompleteAt = time + (hasLarva
+                    ? autodoc.ScalpelDuration + autodoc.HemostatDuration + autodoc.RemoveObjectDuration
+                    : autodoc.UnneededDelay);
+                anyTreatmentRemaining = true;
+
+                if (hasLarva)
                     _popup.PopupEntity(Loc.GetString("rmc-autodoc-larva-starting"), uid);
-                    Dirty(uid, autodoc);
-                }
-                else if (autodoc.CloseIncisions && HasOpenIncisions(occupant))
-                {
-                    autodoc.CurrentSurgeryType = AutodocSurgeryType.CloseIncision;
-                    autodoc.SurgeryCompleteAt = time + autodoc.CauteryDuration;
-                    anyTreatmentRemaining = true;
+
+                Dirty(uid, autodoc);
+            }
+            else if (autodoc.CloseIncisions)
+            {
+                var hasIncisions = HasOpenIncisions(occupant);
+                autodoc.CurrentSurgeryType = AutodocSurgeryType.CloseIncision;
+                autodoc.SurgeryCompleteAt = time + (hasIncisions
+                    ? autodoc.CauteryDuration
+                    : autodoc.UnneededDelay);
+                anyTreatmentRemaining = true;
+
+                if (hasIncisions)
                     _popup.PopupEntity(Loc.GetString("rmc-autodoc-incisions-starting"), uid);
-                    Dirty(uid, autodoc);
-                }
-                else
-                {
-                    if (autodoc.RemoveLarva && !HasLarva(occupant))
-                        autodoc.RemoveLarva = false;
-                    if (autodoc.CloseIncisions && !HasOpenIncisions(occupant))
-                        autodoc.CloseIncisions = false;
-                }
+
+                Dirty(uid, autodoc);
             }
 
             if (!anyTreatmentRemaining)

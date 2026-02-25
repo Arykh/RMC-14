@@ -134,24 +134,6 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         StartSurgeryButton.Disabled = state.SurgeryInProgress;
         ClearButton.Disabled = state.SurgeryInProgress;
 
-        // Surgery status
-        SurgeryStatusContainer.Visible = state.SurgeryInProgress;
-
-        // Surgery progress display
-        SurgeryProgressContainer.Visible = state.CurrentSurgeryType != AutodocSurgeryType.None;
-        if (state.CurrentSurgeryType != AutodocSurgeryType.None)
-        {
-            SurgeryTypeLabel.Text = state.CurrentSurgeryType switch
-            {
-                AutodocSurgeryType.LarvaExtraction => Loc.GetString("rmc-autodoc-surgery-larva-progress"),
-                AutodocSurgeryType.CloseIncision => Loc.GetString("rmc-autodoc-surgery-incisions-progress"),
-                _ => ""
-            };
-            SurgeryProgressBar.Value = state.SurgeryProgressTime;
-            SurgeryProgressText.Text = $"{state.SurgeryProgressTime * 100:F0}%";
-            SurgeryProgressBar.ForegroundStyleBoxOverride = new StyleBoxFlat(Color.FromHex("#4080C0"));
-        }
-
         // Update button styles based on selection
         UpdateToggleButtonStyle(BruteToggleButton, state.HealingBrute);
         UpdateToggleButtonStyle(BurnToggleButton, state.HealingBurn);
@@ -183,8 +165,6 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
     private static void UpdateSurgeryButtonAvailability(Button button, bool conditionPresent, bool surgeryInProgress)
     {
         button.Disabled = surgeryInProgress;
-
-        // Show visual indicator if condition is present
         if (conditionPresent && !surgeryInProgress)
         {
             button.Modulate = button.Pressed ? Color.FromHex("#80FF80") : Color.FromHex("#FFFF80");

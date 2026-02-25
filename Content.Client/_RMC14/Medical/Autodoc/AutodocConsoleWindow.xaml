@@ -108,14 +108,6 @@
                     <Button Name="LarvaToggleButton" Text="{Loc rmc-autodoc-larva-extraction}" ToggleMode="True" MinWidth="200" Margin="2" />
                     <Button Name="IncisionsToggleButton" Text="{Loc rmc-autodoc-close-incisions}" ToggleMode="True" MinWidth="200" Margin="2" />
                 </GridContainer>
-
-                <!-- Surgery Progress -->
-                <BoxContainer Name="SurgeryProgressContainer" Orientation="Vertical" Margin="0 5 0 0" Visible="False">
-                    <Label Name="SurgeryTypeLabel" Text="" Modulate="#FFD700" />
-                    <ProgressBar Name="SurgeryProgressBar" MinHeight="16" MinValue="0" MaxValue="1">
-                        <Label Name="SurgeryProgressText" Align="Right" Margin="0 0 5 0" />
-                    </ProgressBar>
-                </BoxContainer>
             </BoxContainer>
 
             <!-- Control Buttons -->
@@ -124,9 +116,6 @@
                 <BoxContainer Orientation="Horizontal">
                     <Button Name="StartSurgeryButton" Text="{Loc rmc-autodoc-start-surgery}" HorizontalExpand="True" MinHeight="40" Margin="2" StyleClasses="ButtonColorGreen" />
                     <Button Name="ClearButton" Text="{Loc rmc-autodoc-clear}" MinWidth="100" MinHeight="40" Margin="2" />
-                </BoxContainer>
-                <BoxContainer Name="SurgeryStatusContainer" Orientation="Horizontal" Margin="0 5 0 0" Visible="False">
-                    <Label Name="SurgeryStatusLabel" Text="{Loc rmc-autodoc-surgery-in-progress}" Modulate="#FFD700" StyleClasses="LabelHeading" />
                 </BoxContainer>
             </BoxContainer>
         </BoxContainer>
