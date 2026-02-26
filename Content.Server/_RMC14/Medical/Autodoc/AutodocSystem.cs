@@ -7,6 +7,7 @@ using Content.Shared._RMC14.Xenonids.Parasite;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
 using Content.Shared.Chemistry.EntitySystems;
+using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
@@ -36,6 +37,9 @@ public sealed class AutodocSystem : SharedAutodocSystem
     [Dependency] private readonly SharedSolutionContainerSystem _solution = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
+
+    private readonly List<ProtoId<ReagentPrototype>> _reagentRemovalBuffer = [];
+    private readonly HashSet<string> _nonTransferableLookup = [];
 
     private static readonly ProtoId<DamageGroupPrototype> BruteGroup = "Brute";
     private static readonly ProtoId<DamageGroupPrototype> BurnGroup = "Burn";
@@ -340,7 +344,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
         var oxyLoss = 0f;
         FixedPoint2 bloodLevel = 0;
         var bloodPercent = 0f;
-        var pulse = 0;
+        var pulse = string.Empty;
         FixedPoint2 totalReagents = 0;
 
         if (occupant != null)
@@ -378,7 +382,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 var bloodMax = bloodSol.MaxVolume;
                 bloodPercent = bloodMax > 0 ? (bloodLevel / bloodMax).Float() * 100f : 0f;
 
-                pulse = _rmcPulse.GetPulseValue(occupant.Value, true);
+                pulse = _rmcPulse.TryGetPulseReading(occupant.Value, true, out _);
             }
 
             if (_solution.TryGetSolution(occupant.Value, "chemicals", out _, out var chemSol))
@@ -540,19 +544,39 @@ public sealed class AutodocSystem : SharedAutodocSystem
 
             if (autodoc.Filtering)
             {
-                _rmcBloodstream.RemoveBloodstreamToxins(occupant, autodoc.DialysisAmount);
-                if (_rmcBloodstream.TryGetChemicalSolution(occupant, out _, out var chemSol))
+                if (_rmcBloodstream.TryGetChemicalSolution(occupant, out var chemSolEnt, out var chemSol))
                 {
-                    var hasToxins = false;
-                    foreach (var toxinContent in chemSol.Contents)
+                    // Build non-transferable lookup for O(1) checks
+                    _nonTransferableLookup.Clear();
+                    foreach (var reagent in autodoc.NonTransferableReagents)
                     {
-                        if (toxinContent.Quantity <= 0)
-                            continue;
-                        hasToxins = true;
-                        break;
+                        _nonTransferableLookup.Add(reagent);
                     }
 
-                    if (hasToxins)
+                    _reagentRemovalBuffer.Clear();
+                    foreach (var reagentQuantity in chemSol.Contents)
+                    {
+                        if (!_nonTransferableLookup.Contains(reagentQuantity.Reagent.Prototype))
+                            _reagentRemovalBuffer.Add(reagentQuantity.Reagent.Prototype);
+                    }
+
+                    foreach (var reagent in _reagentRemovalBuffer)
+                    {
+                        _solution.RemoveReagent(chemSolEnt, reagent, autodoc.DialysisAmount);
+                    }
+
+                    // Check if dialysis is complete
+                    var hasTransferableReagents = false;
+                    foreach (var reagentQuantity in chemSol.Contents)
+                    {
+                        if (!_nonTransferableLookup.Contains(reagentQuantity.Reagent.Prototype) && reagentQuantity.Quantity > 0)
+                        {
+                            hasTransferableReagents = true;
+                            break;
+                        }
+                    }
+
+                    if (hasTransferableReagents)
                         anyTreatmentRemaining = true;
                     else
                     {

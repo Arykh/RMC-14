@@ -86,12 +86,7 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
             >= 60 => new StyleBoxFlat(Color.FromHex("#A0A030")),
             _ => new StyleBoxFlat(Color.FromHex("#A04040"))
         };
-        PulseLabel.Text = state.Pulse switch
-        {
-            0 => Loc.GetString("rmc-pulse-bpm", ("value", 0)),
-            >= 250 => Loc.GetString("rmc-pulse-thready-machine"),
-            _ => Loc.GetString("rmc-pulse-bpm", ("value", state.Pulse))
-        };
+        PulseLabel.Text = state.Pulse;
 
         // Damage bars
         UpdateDamageBar(BruteBar, BruteBarText, state.BruteLoss);

@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Shared._RMC14.Marines.Skills;
+using Content.Shared.Chemistry.Reagent;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
@@ -65,6 +66,9 @@ public sealed partial class AutodocComponent : Component
 
     [DataField, AutoNetworkedField]
     public FixedPoint2 DialysisAmount = FixedPoint2.New(3);
+
+    [DataField, AutoNetworkedField]
+    public ProtoId<ReagentPrototype>[] NonTransferableReagents = ["Blood"];
 
     #endregion
 

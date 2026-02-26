@@ -16,7 +16,7 @@ public sealed class AutodocBuiState(
     float oxyLoss,
     FixedPoint2 bloodLevel,
     float bloodPercent,
-    int pulse,
+    string pulse,
     bool surgeryInProgress,
     bool healingBrute,
     bool healingBurn,
@@ -43,7 +43,7 @@ public sealed class AutodocBuiState(
     public readonly float OxyLoss = oxyLoss;
     public readonly FixedPoint2 BloodLevel = bloodLevel;
     public readonly float BloodPercent = bloodPercent;
-    public readonly int Pulse = pulse;
+    public readonly string Pulse = pulse;
     public readonly bool SurgeryInProgress = surgeryInProgress;
     public readonly bool HealingBrute = healingBrute;
     public readonly bool HealingBurn = healingBurn;
