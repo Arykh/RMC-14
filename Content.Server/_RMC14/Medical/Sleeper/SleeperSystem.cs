@@ -158,7 +158,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
         var geneticLoss = 0f;
         FixedPoint2 bloodLevel = 0;
         var bloodPercent = 0f;
-        var pulse = 0;
+        var pulse = string.Empty;
         var bodyTemp = 0f;
         var emergencyHealthThreshold = 0f;
         FixedPoint2 totalReagents = 0;
@@ -203,7 +203,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
                 var bloodMax = bloodSol.MaxVolume;
                 bloodPercent = bloodMax > 0 ? (bloodLevel / bloodMax).Float() * 100f : 0f;
 
-                pulse = _rmcPulse.GetPulseValue(occupant.Value, true);
+                pulse = _rmcPulse.TryGetPulseReading(occupant.Value, true, out _);
             }
 
             _rmcTemperature.TryGetCurrentTemperature(occupant.Value, out bodyTemp);

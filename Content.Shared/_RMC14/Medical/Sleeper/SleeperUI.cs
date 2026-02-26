@@ -19,7 +19,7 @@ public sealed class SleeperBuiState(
     float geneticLoss,
     FixedPoint2 bloodLevel,
     float bloodPercent,
-    int pulse,
+    string pulse,
     float bodyTemperature,
     bool filtering,
     FixedPoint2 totalReagents,
@@ -43,7 +43,7 @@ public sealed class SleeperBuiState(
     public readonly float GeneticLoss = geneticLoss;
     public readonly FixedPoint2 BloodLevel = bloodLevel;
     public readonly float BloodPercent = bloodPercent;
-    public readonly int Pulse = pulse;
+    public readonly string Pulse = pulse;
     public readonly float BodyTemperature = bodyTemperature;
     public readonly bool Filtering = filtering;
     public readonly FixedPoint2 TotalReagents = totalReagents;
