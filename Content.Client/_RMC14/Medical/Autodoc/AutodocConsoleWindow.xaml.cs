@@ -16,16 +16,20 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
     {
         RobustXamlLoader.Load(this);
 
-        BruteToggleButton.OnPressed += _ => _bui?.ToggleBrute();
-        BurnToggleButton.OnPressed += _ => _bui?.ToggleBurn();
-        ToxinToggleButton.OnPressed += _ => _bui?.ToggleToxin();
-        BloodToggleButton.OnPressed += _ => _bui?.ToggleBlood();
-        DialysisToggleButton.OnPressed += _ => _bui?.ToggleDialysis();
-        LarvaToggleButton.OnPressed += _ => _bui?.ToggleLarva();
-        IncisionsToggleButton.OnPressed += _ => _bui?.ToggleIncisions();
         StartSurgeryButton.OnPressed += _ => _bui?.StartSurgery();
         ClearButton.OnPressed += _ => _bui?.Clear();
         EjectButton.OnPressed += _ => _bui?.Eject();
+        BruteToggleButton.OnPressed += _ => _bui?.ToggleBrute();
+        BurnToggleButton.OnPressed += _ => _bui?.ToggleBurn();
+        CloseIncisionsToggleButton.OnPressed += _ => _bui?.ToggleCloseIncisions();
+        RemoveShrapnelToggleButton.OnPressed += _ => _bui?.ToggleRemoveShrapnel();
+        BloodToggleButton.OnPressed += _ => _bui?.ToggleBlood();
+        DialysisToggleButton.OnPressed += _ => _bui?.ToggleDialysis();
+        ToxinToggleButton.OnPressed += _ => _bui?.ToggleToxin();
+        InternalBleedingToggleButton.OnPressed += _ => _bui?.ToggleInternalBleeding();
+        BrokenBoneToggleButton.OnPressed += _ => _bui?.ToggleBrokenBone();
+        OrganDamageToggleButton.OnPressed += _ => _bui?.ToggleOrganDamage();
+        LarvaToggleButton.OnPressed += _ => _bui?.ToggleLarva();
     }
 
     public void SetBui(AutodocConsoleBui bui)
@@ -72,27 +76,22 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
             _ => Color.White
         };
 
-        // Blood level
-        BloodSection.Visible = state.HasBlood;
-        if (state.HasBlood)
+        // Blood
+        BloodBar.Value = state.BloodPercent;
+        BloodBarText.Text = $"{state.BloodPercent:F2}%, {state.BloodLevel}cl";
+
+        BloodBar.ForegroundStyleBoxOverride = state.BloodPercent switch
         {
-            BloodBar.Value = state.BloodPercent;
-            BloodBarText.Text = $"{state.BloodPercent:F2}%, {state.BloodLevel}cl";
-
-            BloodBar.ForegroundStyleBoxOverride = state.BloodPercent switch
-            {
-                >= 90 => new StyleBoxFlat(Color.FromHex("#408040")),
-                >= 60 => new StyleBoxFlat(Color.FromHex("#A0A030")),
-                _ => new StyleBoxFlat(Color.FromHex("#A04040"))
-            };
-
-            PulseLabel.Text = state.Pulse switch
-            {
-                0 => Loc.GetString("rmc-pulse-bpm", ("value", 0)),
-                >= 250 => Loc.GetString("rmc-pulse-thready-machine"),
-                _ => Loc.GetString("rmc-pulse-bpm", ("value", state.Pulse))
-            };
-        }
+            >= 90 => new StyleBoxFlat(Color.FromHex("#408040")),
+            >= 60 => new StyleBoxFlat(Color.FromHex("#A0A030")),
+            _ => new StyleBoxFlat(Color.FromHex("#A04040"))
+        };
+        PulseLabel.Text = state.Pulse switch
+        {
+            0 => Loc.GetString("rmc-pulse-bpm", ("value", 0)),
+            >= 250 => Loc.GetString("rmc-pulse-thready-machine"),
+            _ => Loc.GetString("rmc-pulse-bpm", ("value", state.Pulse))
+        };
 
         // Damage bars
         UpdateDamageBar(BruteBar, BruteBarText, state.BruteLoss);
@@ -110,38 +109,50 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
             _ => new StyleBoxFlat(Color.FromHex("#A04040"))
         };
 
-        // Surgery queue toggles
+        // Trauma surgery toggles
         BruteToggleButton.Pressed = state.HealingBrute;
         BurnToggleButton.Pressed = state.HealingBurn;
-        ToxinToggleButton.Pressed = state.HealingToxin;
+        CloseIncisionsToggleButton.Pressed = state.CloseIncisions;
+        RemoveShrapnelToggleButton.Pressed = state.RemoveShrapnel;
+
+        // Hematology treatment toggles
         BloodToggleButton.Pressed = state.BloodTransfusion;
         DialysisToggleButton.Pressed = state.Filtering;
+        ToxinToggleButton.Pressed = state.HealingToxin;
 
-        // Surgical procedures toggles
+        // Orthopedic surgery toggles
+        InternalBleedingToggleButton.Pressed = state.InternalBleeding;
+        BrokenBoneToggleButton.Pressed = state.BrokenBone;
+        OrganDamageToggleButton.Pressed = state.OrganDamage;
         LarvaToggleButton.Pressed = state.RemoveLarva;
-        IncisionsToggleButton.Pressed = state.CloseIncisions;
-
-        // Update availability indicators
-        UpdateSurgeryButtonAvailability(LarvaToggleButton, state.HasLarva, state.SurgeryInProgress);
-        UpdateSurgeryButtonAvailability(IncisionsToggleButton, state.HasOpenIncisions, state.SurgeryInProgress);
 
         // Disable buttons during surgery
-        BruteToggleButton.Disabled = state.SurgeryInProgress;
-        BurnToggleButton.Disabled = state.SurgeryInProgress;
-        ToxinToggleButton.Disabled = state.SurgeryInProgress;
-        BloodToggleButton.Disabled = state.SurgeryInProgress;
-        DialysisToggleButton.Disabled = state.SurgeryInProgress;
         StartSurgeryButton.Disabled = state.SurgeryInProgress;
         ClearButton.Disabled = state.SurgeryInProgress;
+        BruteToggleButton.Disabled = state.SurgeryInProgress;
+        BurnToggleButton.Disabled = state.SurgeryInProgress;
+        CloseIncisionsToggleButton.Disabled = state.SurgeryInProgress;
+        RemoveShrapnelToggleButton.Disabled = state.SurgeryInProgress;
+        BloodToggleButton.Disabled = state.SurgeryInProgress;
+        DialysisToggleButton.Disabled = state.SurgeryInProgress;
+        ToxinToggleButton.Disabled = state.SurgeryInProgress;
+        InternalBleedingToggleButton.Disabled = state.SurgeryInProgress;
+        BrokenBoneToggleButton.Disabled = state.SurgeryInProgress;
+        OrganDamageToggleButton.Disabled = state.SurgeryInProgress;
+        LarvaToggleButton.Disabled = state.SurgeryInProgress;
 
         // Update button styles based on selection
         UpdateToggleButtonStyle(BruteToggleButton, state.HealingBrute);
         UpdateToggleButtonStyle(BurnToggleButton, state.HealingBurn);
-        UpdateToggleButtonStyle(ToxinToggleButton, state.HealingToxin);
+        UpdateToggleButtonStyle(CloseIncisionsToggleButton, state.CloseIncisions);
+        UpdateToggleButtonStyle(RemoveShrapnelToggleButton, state.RemoveShrapnel);
         UpdateToggleButtonStyle(BloodToggleButton, state.BloodTransfusion);
         UpdateToggleButtonStyle(DialysisToggleButton, state.Filtering);
+        UpdateToggleButtonStyle(ToxinToggleButton, state.HealingToxin);
+        UpdateToggleButtonStyle(InternalBleedingToggleButton, state.InternalBleeding);
+        UpdateToggleButtonStyle(BrokenBoneToggleButton, state.BrokenBone);
+        UpdateToggleButtonStyle(OrganDamageToggleButton, state.OrganDamage);
         UpdateToggleButtonStyle(LarvaToggleButton, state.RemoveLarva);
-        UpdateToggleButtonStyle(IncisionsToggleButton, state.CloseIncisions);
     }
 
     private static void UpdateDamageBar(ProgressBar bar, Label label, float damage)
@@ -160,18 +171,5 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
     private static void UpdateToggleButtonStyle(Button button, bool active)
     {
         button.Modulate = active ? Color.FromHex("#80FF80") : Color.White;
-    }
-
-    private static void UpdateSurgeryButtonAvailability(Button button, bool conditionPresent, bool surgeryInProgress)
-    {
-        button.Disabled = surgeryInProgress;
-        if (conditionPresent && !surgeryInProgress)
-        {
-            button.Modulate = button.Pressed ? Color.FromHex("#80FF80") : Color.FromHex("#FFFF80");
-        }
-        else if (!conditionPresent)
-        {
-            button.Modulate = Color.FromHex("#808080");
-        }
     }
 }

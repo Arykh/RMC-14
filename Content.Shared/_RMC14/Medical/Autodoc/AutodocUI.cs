@@ -14,12 +14,10 @@ public sealed class AutodocBuiState(
     float burnLoss,
     float toxinLoss,
     float oxyLoss,
-    bool hasBlood,
     FixedPoint2 bloodLevel,
     float bloodPercent,
     int pulse,
     bool surgeryInProgress,
-    AutodocSurgeryType currentSurgeryType,
     bool healingBrute,
     bool healingBurn,
     bool healingToxin,
@@ -28,8 +26,10 @@ public sealed class AutodocBuiState(
     FixedPoint2 totalReagents,
     bool removeLarva,
     bool closeIncisions,
-    bool hasLarva,
-    bool hasOpenIncisions)
+    bool removeShrapnel,
+    bool internalBleeding,
+    bool brokenBone,
+    bool organDamage)
     : BoundUserInterfaceState
 {
     public readonly NetEntity? Occupant = occupant;
@@ -41,12 +41,10 @@ public sealed class AutodocBuiState(
     public readonly float BurnLoss = burnLoss;
     public readonly float ToxinLoss = toxinLoss;
     public readonly float OxyLoss = oxyLoss;
-    public readonly bool HasBlood = hasBlood;
     public readonly FixedPoint2 BloodLevel = bloodLevel;
     public readonly float BloodPercent = bloodPercent;
     public readonly int Pulse = pulse;
     public readonly bool SurgeryInProgress = surgeryInProgress;
-    public readonly AutodocSurgeryType CurrentSurgeryType = currentSurgeryType;
     public readonly bool HealingBrute = healingBrute;
     public readonly bool HealingBurn = healingBurn;
     public readonly bool HealingToxin = healingToxin;
@@ -55,8 +53,10 @@ public sealed class AutodocBuiState(
     public readonly FixedPoint2 TotalReagents = totalReagents;
     public readonly bool RemoveLarva = removeLarva;
     public readonly bool CloseIncisions = closeIncisions;
-    public readonly bool HasLarva = hasLarva;
-    public readonly bool HasOpenIncisions = hasOpenIncisions;
+    public readonly bool RemoveShrapnel = removeShrapnel;
+    public readonly bool InternalBleeding = internalBleeding;
+    public readonly bool BrokenBone = brokenBone;
+    public readonly bool OrganDamage = organDamage;
 }
 
 [Serializable, NetSerializable]
@@ -113,7 +113,19 @@ public sealed class AutodocToggleDialysisBuiMsg : BoundUserInterfaceMessage;
 public sealed class AutodocToggleLarvaBuiMsg : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
-public sealed class AutodocToggleIncisionsBuiMsg : BoundUserInterfaceMessage;
+public sealed class AutodocToggleCloseIncisionsBuiMsg : BoundUserInterfaceMessage;
+
+[Serializable, NetSerializable]
+public sealed class AutodocToggleRemoveShrapnelBuiMsg : BoundUserInterfaceMessage;
+
+[Serializable, NetSerializable]
+public sealed class AutodocToggleInternalBleedingBuiMsg : BoundUserInterfaceMessage;
+
+[Serializable, NetSerializable]
+public sealed class AutodocToggleBrokenBoneBuiMsg : BoundUserInterfaceMessage;
+
+[Serializable, NetSerializable]
+public sealed class AutodocToggleOrganDamageBuiMsg : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
 public sealed class AutodocStartSurgeryBuiMsg : BoundUserInterfaceMessage;

@@ -76,6 +76,18 @@ public sealed partial class AutodocComponent : Component
     [DataField, AutoNetworkedField]
     public bool CloseIncisions;
 
+    [DataField, AutoNetworkedField]
+    public bool RemoveShrapnel;
+
+    [DataField, AutoNetworkedField]
+    public bool InternalBleeding;
+
+    [DataField, AutoNetworkedField]
+    public bool BrokenBone;
+
+    [DataField, AutoNetworkedField]
+    public bool OrganDamage;
+
     #endregion
 
     #region Surgery Step Durations
@@ -154,4 +166,8 @@ public enum AutodocSurgeryType : byte
     None = 0,
     LarvaExtraction,
     CloseIncision,
+    ShrapnelRemoval,
+    InternalBleeding,
+    BrokenBone,
+    OrganDamage,
 }

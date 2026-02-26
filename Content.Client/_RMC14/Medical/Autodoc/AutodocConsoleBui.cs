@@ -60,9 +60,29 @@ public sealed class AutodocConsoleBui(EntityUid owner, Enum uiKey) : BoundUserIn
         SendMessage(new AutodocToggleLarvaBuiMsg());
     }
 
-    public void ToggleIncisions()
+    public void ToggleCloseIncisions()
     {
-        SendMessage(new AutodocToggleIncisionsBuiMsg());
+        SendMessage(new AutodocToggleCloseIncisionsBuiMsg());
+    }
+
+    public void ToggleRemoveShrapnel()
+    {
+        SendMessage(new AutodocToggleRemoveShrapnelBuiMsg());
+    }
+
+    public void ToggleInternalBleeding()
+    {
+        SendMessage(new AutodocToggleInternalBleedingBuiMsg());
+    }
+
+    public void ToggleBrokenBone()
+    {
+        SendMessage(new AutodocToggleBrokenBoneBuiMsg());
+    }
+
+    public void ToggleOrganDamage()
+    {
+        SendMessage(new AutodocToggleOrganDamageBuiMsg());
     }
 
     public void StartSurgery()

@@ -49,11 +49,15 @@ public sealed class AutodocSystem : SharedAutodocSystem
         SubscribeLocalEvent<AutodocConsoleComponent, AfterActivatableUIOpenEvent>(OnConsoleUIOpened);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleBruteBuiMsg>(OnConsoleToggleBrute);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleBurnBuiMsg>(OnConsoleToggleBurn);
-        SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleToxinBuiMsg>(OnConsoleToggleToxin);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleBloodBuiMsg>(OnConsoleToggleBlood);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleDialysisBuiMsg>(OnConsoleToggleDialysis);
+        SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleToxinBuiMsg>(OnConsoleToggleToxin);
+        SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleCloseIncisionsBuiMsg>(OnConsoleToggleCloseIncisions);
+        SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleRemoveShrapnelBuiMsg>(OnConsoleToggleRemoveShrapnel);
+        SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleInternalBleedingBuiMsg>(OnConsoleToggleInternalBleeding);
+        SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleBrokenBoneBuiMsg>(OnConsoleToggleBrokenBone);
+        SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleOrganDamageBuiMsg>(OnConsoleToggleOrganDamage);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleLarvaBuiMsg>(OnConsoleToggleLarva);
-        SubscribeLocalEvent<AutodocConsoleComponent, AutodocToggleIncisionsBuiMsg>(OnConsoleToggleIncisions);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocStartSurgeryBuiMsg>(OnConsoleStartSurgery);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocClearBuiMsg>(OnConsoleClear);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocEjectBuiMsg>(OnConsoleEject);
@@ -66,10 +70,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
 
     private void OnConsoleToggleBrute(Entity<AutodocConsoleComponent> console, ref AutodocToggleBruteBuiMsg args)
     {
-        if (!TryGetLinkedAutodoc(console, out var autodoc))
-            return;
-
-        if (autodoc.Comp.IsSurgeryInProgress)
+        if (!TryGetLinkedAutodoc(console, out var autodoc, true))
             return;
 
         autodoc.Comp.HealingBrute = !autodoc.Comp.HealingBrute;
@@ -79,10 +80,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
 
     private void OnConsoleToggleBurn(Entity<AutodocConsoleComponent> console, ref AutodocToggleBurnBuiMsg args)
     {
-        if (!TryGetLinkedAutodoc(console, out var autodoc))
-            return;
-
-        if (autodoc.Comp.IsSurgeryInProgress)
+        if (!TryGetLinkedAutodoc(console, out var autodoc, true))
             return;
 
         autodoc.Comp.HealingBurn = !autodoc.Comp.HealingBurn;
@@ -90,25 +88,9 @@ public sealed class AutodocSystem : SharedAutodocSystem
         UpdateUI(console);
     }
 
-    private void OnConsoleToggleToxin(Entity<AutodocConsoleComponent> console, ref AutodocToggleToxinBuiMsg args)
-    {
-        if (!TryGetLinkedAutodoc(console, out var autodoc))
-            return;
-
-        if (autodoc.Comp.IsSurgeryInProgress)
-            return;
-
-        autodoc.Comp.HealingToxin = !autodoc.Comp.HealingToxin;
-        Dirty(autodoc);
-        UpdateUI(console);
-    }
-
     private void OnConsoleToggleBlood(Entity<AutodocConsoleComponent> console, ref AutodocToggleBloodBuiMsg args)
     {
-        if (!TryGetLinkedAutodoc(console, out var autodoc))
-            return;
-
-        if (autodoc.Comp.IsSurgeryInProgress)
+        if (!TryGetLinkedAutodoc(console, out var autodoc, true))
             return;
 
         autodoc.Comp.BloodTransfusion = !autodoc.Comp.BloodTransfusion;
@@ -118,10 +100,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
 
     private void OnConsoleToggleDialysis(Entity<AutodocConsoleComponent> console, ref AutodocToggleDialysisBuiMsg args)
     {
-        if (!TryGetLinkedAutodoc(console, out var autodoc))
-            return;
-
-        if (autodoc.Comp.IsSurgeryInProgress)
+        if (!TryGetLinkedAutodoc(console, out var autodoc, true))
             return;
 
         autodoc.Comp.Filtering = !autodoc.Comp.Filtering;
@@ -129,25 +108,19 @@ public sealed class AutodocSystem : SharedAutodocSystem
         UpdateUI(console);
     }
 
-    private void OnConsoleToggleLarva(Entity<AutodocConsoleComponent> console, ref AutodocToggleLarvaBuiMsg args)
+    private void OnConsoleToggleToxin(Entity<AutodocConsoleComponent> console, ref AutodocToggleToxinBuiMsg args)
     {
-        if (!TryGetLinkedAutodoc(console, out var autodoc))
+        if (!TryGetLinkedAutodoc(console, out var autodoc, true))
             return;
 
-        if (autodoc.Comp.IsSurgeryInProgress)
-            return;
-
-        autodoc.Comp.RemoveLarva = !autodoc.Comp.RemoveLarva;
+        autodoc.Comp.HealingToxin = !autodoc.Comp.HealingToxin;
         Dirty(autodoc);
         UpdateUI(console);
     }
 
-    private void OnConsoleToggleIncisions(Entity<AutodocConsoleComponent> console, ref AutodocToggleIncisionsBuiMsg args)
+    private void OnConsoleToggleCloseIncisions(Entity<AutodocConsoleComponent> console, ref AutodocToggleCloseIncisionsBuiMsg args)
     {
-        if (!TryGetLinkedAutodoc(console, out var autodoc))
-            return;
-
-        if (autodoc.Comp.IsSurgeryInProgress)
+        if (!TryGetLinkedAutodoc(console, out var autodoc, true))
             return;
 
         autodoc.Comp.CloseIncisions = !autodoc.Comp.CloseIncisions;
@@ -155,19 +128,71 @@ public sealed class AutodocSystem : SharedAutodocSystem
         UpdateUI(console);
     }
 
+    private void OnConsoleToggleRemoveShrapnel(Entity<AutodocConsoleComponent> console, ref AutodocToggleRemoveShrapnelBuiMsg args)
+    {
+        if (!TryGetLinkedAutodoc(console, out var autodoc, true))
+            return;
+
+        autodoc.Comp.RemoveShrapnel = !autodoc.Comp.RemoveShrapnel;
+        Dirty(autodoc);
+        UpdateUI(console);
+    }
+
+    private void OnConsoleToggleInternalBleeding(Entity<AutodocConsoleComponent> console, ref AutodocToggleInternalBleedingBuiMsg args)
+    {
+        if (!TryGetLinkedAutodoc(console, out var autodoc, true))
+            return;
+
+        autodoc.Comp.InternalBleeding = !autodoc.Comp.InternalBleeding;
+        Dirty(autodoc);
+        UpdateUI(console);
+    }
+
+    private void OnConsoleToggleBrokenBone(Entity<AutodocConsoleComponent> console, ref AutodocToggleBrokenBoneBuiMsg args)
+    {
+        if (!TryGetLinkedAutodoc(console, out var autodoc, true))
+            return;
+
+        autodoc.Comp.BrokenBone = !autodoc.Comp.BrokenBone;
+        Dirty(autodoc);
+        UpdateUI(console);
+    }
+
+    private void OnConsoleToggleOrganDamage(Entity<AutodocConsoleComponent> console, ref AutodocToggleOrganDamageBuiMsg args)
+    {
+        if (!TryGetLinkedAutodoc(console, out var autodoc, true))
+            return;
+
+        autodoc.Comp.OrganDamage = !autodoc.Comp.OrganDamage;
+        Dirty(autodoc);
+        UpdateUI(console);
+    }
+
+    private void OnConsoleToggleLarva(Entity<AutodocConsoleComponent> console, ref AutodocToggleLarvaBuiMsg args)
+    {
+        if (!TryGetLinkedAutodoc(console, out var autodoc, true))
+            return;
+
+        autodoc.Comp.RemoveLarva = !autodoc.Comp.RemoveLarva;
+        Dirty(autodoc);
+        UpdateUI(console);
+    }
+
     private void OnConsoleStartSurgery(Entity<AutodocConsoleComponent> console, ref AutodocStartSurgeryBuiMsg args)
     {
-        if (!TryGetLinkedAutodoc(console, out var autodoc))
+        if (!TryGetLinkedAutodoc(console, out var autodoc, true))
             return;
 
         if (autodoc.Comp.Occupant == null)
             return;
 
-        if (autodoc.Comp.IsSurgeryInProgress)
-            return;
-
         // Check if any surgery is queued
-        if (autodoc.Comp is { HealingBrute: false, HealingBurn: false, HealingToxin: false, BloodTransfusion: false, Filtering: false, RemoveLarva: false, CloseIncisions: false })
+        if (autodoc.Comp is
+            {
+                HealingBrute: false, HealingBurn: false, CloseIncisions: false, RemoveShrapnel: false,
+                BloodTransfusion: false, Filtering: false, HealingToxin: false,
+                InternalBleeding: false, BrokenBone: false, OrganDamage: false, RemoveLarva: false,
+            })
         {
             return;
         }
@@ -183,10 +208,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
 
     private void OnConsoleClear(Entity<AutodocConsoleComponent> console, ref AutodocClearBuiMsg args)
     {
-        if (!TryGetLinkedAutodoc(console, out var autodoc))
-            return;
-
-        if (autodoc.Comp.IsSurgeryInProgress)
+        if (!TryGetLinkedAutodoc(console, out var autodoc, true))
             return;
 
         autodoc.Comp.HealingBrute = false;
@@ -196,6 +218,10 @@ public sealed class AutodocSystem : SharedAutodocSystem
         autodoc.Comp.Filtering = false;
         autodoc.Comp.RemoveLarva = false;
         autodoc.Comp.CloseIncisions = false;
+        autodoc.Comp.RemoveShrapnel = false;
+        autodoc.Comp.InternalBleeding = false;
+        autodoc.Comp.BrokenBone = false;
+        autodoc.Comp.OrganDamage = false;
         Dirty(autodoc);
         UpdateUI(console);
     }
@@ -211,15 +237,15 @@ public sealed class AutodocSystem : SharedAutodocSystem
         UpdateUI(console);
     }
 
-    private bool TryGetLinkedAutodoc(Entity<AutodocConsoleComponent> console, out Entity<AutodocComponent> autodoc)
+    private bool TryGetLinkedAutodoc(Entity<AutodocConsoleComponent> console, out Entity<AutodocComponent> autodoc, bool checkSurgeryInProgress = false)
     {
         autodoc = default;
-        if (console.Comp.LinkedAutodoc is not { } autodocId ||
-            !TryComp(autodocId, out AutodocComponent? autodocComp))
+        if (console.Comp.LinkedAutodoc is not { } autodocId || !TryComp(autodocId, out AutodocComponent? autodocComp))
             return false;
 
         autodoc = (autodocId, autodocComp);
-        return true;
+
+        return !checkSurgeryInProgress || !autodoc.Comp.IsSurgeryInProgress;
     }
 
     private bool HasLarva(EntityUid occupant)
@@ -242,7 +268,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         {
             autodoc.RemoveLarva = false;
             autodoc.CurrentSurgeryType = AutodocSurgeryType.None;
-            _popup.PopupEntity(Loc.GetString("rmc-autodoc-larva-bursting"), uid);
             Dirty(uid, autodoc);
             return;
         }
@@ -250,13 +275,9 @@ public sealed class AutodocSystem : SharedAutodocSystem
         infected.RootsCut = true;
 
         if (infected.SpawnedLarva != null)
-        {
             QueueDel(infected.SpawnedLarva.Value);
-        }
 
         RemComp<VictimInfectedComponent>(occupant);
-
-        _popup.PopupEntity(Loc.GetString("rmc-autodoc-larva-removed"), uid);
         _audio.PlayPvs(autodoc.SurgeryStepSound, uid);
 
         autodoc.RemoveLarva = false;
@@ -290,14 +311,9 @@ public sealed class AutodocSystem : SharedAutodocSystem
         }
 
         if (closedAny)
-        {
-            _popup.PopupEntity(Loc.GetString("rmc-autodoc-incisions-closed"), uid);
             _audio.PlayPvs(autodoc.SurgeryStepSound, uid);
-        }
         else
-        {
             _popup.PopupEntity(Loc.GetString("rmc-autodoc-unneeded"), uid);
-        }
 
         autodoc.CloseIncisions = false;
         autodoc.CurrentSurgeryType = AutodocSurgeryType.None;
@@ -322,13 +338,10 @@ public sealed class AutodocSystem : SharedAutodocSystem
         var burnLoss = 0f;
         var toxinLoss = 0f;
         var oxyLoss = 0f;
-        var hasBlood = false;
         FixedPoint2 bloodLevel = 0;
         var bloodPercent = 0f;
         var pulse = 0;
         FixedPoint2 totalReagents = 0;
-        var hasLarva = false;
-        var hasOpenIncisions = false;
 
         if (occupant != null)
         {
@@ -361,7 +374,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 blood.BloodSolution != null &&
                 _solution.TryGetSolution(occupant.Value, blood.BloodSolutionName, out _, out var bloodSol))
             {
-                hasBlood = true;
                 bloodLevel = bloodSol.Volume;
                 var bloodMax = bloodSol.MaxVolume;
                 bloodPercent = bloodMax > 0 ? (bloodLevel / bloodMax).Float() * 100f : 0f;
@@ -371,9 +383,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
 
             if (_solution.TryGetSolution(occupant.Value, "chemicals", out _, out var chemSol))
                 totalReagents = chemSol.Volume;
-
-            hasLarva = HasLarva(occupant.Value);
-            hasOpenIncisions = HasOpenIncisions(occupant.Value);
         }
 
         var state = new AutodocBuiState(
@@ -386,12 +395,10 @@ public sealed class AutodocSystem : SharedAutodocSystem
             burnLoss,
             toxinLoss,
             oxyLoss,
-            hasBlood,
             bloodLevel,
             bloodPercent,
             pulse,
             autodoc.Comp.IsSurgeryInProgress,
-            autodoc.Comp.CurrentSurgeryType,
             autodoc.Comp.HealingBrute,
             autodoc.Comp.HealingBurn,
             autodoc.Comp.HealingToxin,
@@ -400,8 +407,10 @@ public sealed class AutodocSystem : SharedAutodocSystem
             totalReagents,
             autodoc.Comp.RemoveLarva,
             autodoc.Comp.CloseIncisions,
-            hasLarva,
-            hasOpenIncisions);
+            autodoc.Comp.RemoveShrapnel,
+            autodoc.Comp.InternalBleeding,
+            autodoc.Comp.BrokenBone,
+            autodoc.Comp.OrganDamage);
 
         _ui.SetUiState(console.Owner, AutodocUIKey.Key, state);
     }
