@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Shared._RMC14.Body;
 using Content.Shared._RMC14.Chemistry.Reagent;
 using Content.Shared._RMC14.Medical.Sleeper;
 using Content.Shared._RMC14.Mobs;
@@ -25,6 +26,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
     [Dependency] private readonly AudioSystem _audio = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly MobThresholdSystem _mobThreshold = default!;
+    [Dependency] private readonly SharedRMCBloodstreamSystem _rmcBloodstream = default!;
     [Dependency] private readonly RMCPulseSystem _rmcPulse = default!;
     [Dependency] private readonly RMCReagentSystem _rmcReagent = default!;
     [Dependency] private readonly SharedRMCTemperatureSystem _rmcTemperature = default!;
@@ -85,7 +87,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
                 return;
         }
 
-        if (!_solution.TryGetSolution(occupant, "chemicals", out var chemSolEnt, out var chemSol))
+        if (!_rmcBloodstream.TryGetChemicalSolution(occupant, out var chemSolEnt, out var chemSol))
             return;
 
         var reagent = new ReagentId(args.Chemical, null);
@@ -93,7 +95,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
         if (currentAmount + args.Amount > sleeper.MaxChemical)
             return;
 
-        _solution.TryAddReagent(chemSolEnt.Value, args.Chemical, args.Amount);
+        _solution.TryAddReagent(chemSolEnt, args.Chemical, args.Amount);
 
         UpdateUI(console);
     }
@@ -209,8 +211,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
             _rmcTemperature.TryGetCurrentTemperature(occupant.Value, out bodyTemp);
 
             // Cache chemical solution to avoid repeated lookups in the loop
-            _solution.TryGetSolution(occupant.Value, "chemicals", out _, out cachedChemSol);
-            if (cachedChemSol != null)
+            if (_rmcBloodstream.TryGetChemicalSolution(occupant.Value, out _, out cachedChemSol))
                 totalReagents = cachedChemSol.Volume;
         }
 
@@ -314,7 +315,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
             sleeper.NextDialysisTick = time + sleeper.DialysisTickDelay;
 
             // Perform dialysis
-            if (!_solution.TryGetSolution(sleeper.Occupant.Value, "chemicals", out var chemSolEnt, out var chemSol))
+            if (!_rmcBloodstream.TryGetChemicalSolution(sleeper.Occupant.Value, out var chemSolEnt, out var chemSol))
                 continue;
 
             if (sleeper.DialysisStartedReagentVolume == 0)
@@ -339,7 +340,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
 
             foreach (var reagent in _reagentRemovalBuffer)
             {
-                _solution.RemoveReagent(chemSolEnt.Value, reagent, sleeper.DialysisAmount);
+                _solution.RemoveReagent(chemSolEnt, reagent, sleeper.DialysisAmount);
             }
 
             // Check if dialysis is complete
