@@ -131,22 +131,17 @@ public sealed partial class SleeperConsoleWindow : DefaultWindow
             _ => new StyleBoxFlat(Color.FromHex("#408040"))
         };
 
-        // Blood level
-        BloodSection.Visible = state.HasBlood;
-        if (state.HasBlood)
+        // Blood
+        BloodBar.Value = state.BloodPercent;
+        BloodBarText.Text = $"{state.BloodPercent:F2}%, {state.BloodLevel}cl";
+
+        BloodBar.ForegroundStyleBoxOverride = state.BloodPercent switch
         {
-            BloodBar.Value = state.BloodPercent;
-            BloodBarText.Text = $"{state.BloodPercent:F2}%, {state.BloodLevel}cl";
-
-            BloodBar.ForegroundStyleBoxOverride = state.BloodPercent switch
-            {
-                >= 90 => new StyleBoxFlat(Color.FromHex("#408040")),
-                >= 60 => new StyleBoxFlat(Color.FromHex("#A0A030")),
-                _ => new StyleBoxFlat(Color.FromHex("#A04040"))
-            };
-
-            PulseLabel.Text = RMCPulseSystem.GetPulseLocalizedDisplayString(state.Pulse, true);
-        }
+            >= 90 => new StyleBoxFlat(Color.FromHex("#408040")),
+            >= 60 => new StyleBoxFlat(Color.FromHex("#A0A030")),
+            _ => new StyleBoxFlat(Color.FromHex("#A04040"))
+        };
+        PulseLabel.Text = RMCPulseSystem.GetPulseLocalizedDisplayString(state.Pulse, true);
 
         // Damage bars
         UpdateDamageBar(BruteBar, BruteBarText, state.BruteLoss);

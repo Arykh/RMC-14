@@ -17,7 +17,6 @@ public sealed class SleeperBuiState(
     float toxinLoss,
     float oxyLoss,
     float geneticLoss,
-    bool hasBlood,
     FixedPoint2 bloodLevel,
     float bloodPercent,
     int pulse,
@@ -42,7 +41,6 @@ public sealed class SleeperBuiState(
     public readonly float ToxinLoss = toxinLoss;
     public readonly float OxyLoss = oxyLoss;
     public readonly float GeneticLoss = geneticLoss;
-    public readonly bool HasBlood = hasBlood;
     public readonly FixedPoint2 BloodLevel = bloodLevel;
     public readonly float BloodPercent = bloodPercent;
     public readonly int Pulse = pulse;

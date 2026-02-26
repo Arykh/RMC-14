@@ -156,7 +156,6 @@ public sealed class SleeperSystem : SharedSleeperSystem
         var toxinLoss = 0f;
         var oxyLoss = 0f;
         var geneticLoss = 0f;
-        var hasBlood = false;
         FixedPoint2 bloodLevel = 0;
         var bloodPercent = 0f;
         var pulse = 0;
@@ -200,7 +199,6 @@ public sealed class SleeperSystem : SharedSleeperSystem
                 blood.BloodSolution != null &&
                 _solution.TryGetSolution(occupant.Value, blood.BloodSolutionName, out _, out var bloodSol))
             {
-                hasBlood = true;
                 bloodLevel = bloodSol.Volume;
                 var bloodMax = bloodSol.MaxVolume;
                 bloodPercent = bloodMax > 0 ? (bloodLevel / bloodMax).Float() * 100f : 0f;
@@ -258,7 +256,6 @@ public sealed class SleeperSystem : SharedSleeperSystem
             toxinLoss,
             oxyLoss,
             geneticLoss,
-            hasBlood,
             bloodLevel,
             bloodPercent,
             pulse,
