@@ -180,7 +180,7 @@ public sealed class HealthScannerSystem : EntitySystem
         _rmcBloodstream.TryGetChemicalSolution(target, out _, out var chemicals);
         _rmcTemperature.TryGetCurrentTemperature(target, out var temperature);
 
-        var pulse = _rmcPulse.GetPulseValue(target, true);
+        var pulse = _rmcPulse.TryGetPulseReading(target, true, out _);
         var bleeding = _rmcBloodstream.IsBleeding(target);
         var state = new HealthScannerBuiState(GetNetEntity(target), blood, maxBlood, temperature, pulse, chemicals, bleeding);
 

@@ -27,12 +27,12 @@ public sealed class RMCPulseSystem : EntitySystem
     }
 
     /// <summary>
-    /// Gets the pulse value for an entity that has RMCPulseComponent.
+    /// Gets the raw pulse value in beats per minute for an entity that has RMCPulseComponent.
     /// </summary>
     /// <param name="uid">The entity to get a pulse value from.</param>
     /// <param name="byMachine">True for machine readings (more accurate), false for hand readings (less accurate with ±10 variation).</param>
     /// <returns>Returns the pulse value in bpm, 0 if dead/no pulse.</returns>
-    public int GetPulseValue(EntityUid uid, bool byMachine)
+    public int TryGetPulseValue(EntityUid uid, bool byMachine)
     {
         if (!TryComp<RMCPulseComponent>(uid, out var pulse))
             return 0;
@@ -43,21 +43,23 @@ public sealed class RMCPulseSystem : EntitySystem
     }
 
     /// <summary>
-    /// Converts the pulse value into a localized display string.
-    /// Use this method instead of manually formatting pulse values.
+    /// Gets a localized pulse reading for display. The return value is the display string (e.g. "72 bpm").
+    /// Use <paramref name="bpm"/> when you also need the raw numeric value, or discard it with <c>out _</c> if not needed.
     /// </summary>
-    /// <param name="pulseValue">The pulse value from <see cref="GetPulseValue"/>.</param>
-    /// <param name="byMachine">True for machine readings (shows {$value} bpm), false for hand readings (shows text).</param>
+    /// <param name="uid">The entity to get a pulse reading from.</param>
+    /// <param name="byMachine">True for machine readings (shows numeric bpm), false for hand readings (shows descriptive text).</param>
+    /// <param name="bpm">The raw pulse value in beats per minute used to generate the display string. Zero if dead or no pulse.</param>
     /// <returns>A localized string representing the pulse reading.</returns>
-    public static string GetPulseLocalizedDisplayString(int pulseValue, bool byMachine)
+    public string TryGetPulseReading(EntityUid uid, bool byMachine, out int bpm)
     {
-        return pulseValue switch
+        bpm = TryGetPulseValue(uid, byMachine);
+        return bpm switch
         {
-            0 => Robust.Shared.Localization.Loc.GetString("rmc-pulse-bpm", ("value", 0)),
+            0 => Loc.GetString("rmc-pulse-bpm", ("value", 0)),
             >= ThreadyPulseThreshold => byMachine
-                ? Robust.Shared.Localization.Loc.GetString("rmc-pulse-thready-machine")
-                : Robust.Shared.Localization.Loc.GetString("rmc-pulse-thready-hand"),
-            _ => Robust.Shared.Localization.Loc.GetString("rmc-pulse-bpm", ("value", pulseValue))
+                ? Loc.GetString("rmc-pulse-thready-machine")
+                : Loc.GetString("rmc-pulse-thready-hand"),
+            _ => Loc.GetString("rmc-pulse-bpm", ("value", bpm))
         };
     }
 
