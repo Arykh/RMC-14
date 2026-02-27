@@ -546,11 +546,10 @@ public sealed class AutodocSystem : SharedAutodocSystem
             {
                 if (_rmcBloodstream.TryGetChemicalSolution(occupant, out var chemSolEnt, out var chemSol))
                 {
-                    var nonTransferable = autodoc.NonTransferableReagents;
                     _reagentRemovalBuffer.Clear();
                     foreach (var reagentQuantity in chemSol.Contents)
                     {
-                        if (!nonTransferable.Contains(reagentQuantity.Reagent.Prototype))
+                        if (!autodoc.NonTransferableReagents.Contains(reagentQuantity.Reagent.Prototype))
                             _reagentRemovalBuffer.Add(reagentQuantity.Reagent.Prototype);
                     }
 
@@ -563,7 +562,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
                     var hasTransferableReagents = false;
                     foreach (var reagentQuantity in chemSol.Contents)
                     {
-                        if (!nonTransferable.Contains(reagentQuantity.Reagent.Prototype) && reagentQuantity.Quantity > 0)
+                        if (!autodoc.NonTransferableReagents.Contains(reagentQuantity.Reagent.Prototype) && reagentQuantity.Quantity > 0)
                         {
                             hasTransferableReagents = true;
                             break;
