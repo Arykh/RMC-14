@@ -73,10 +73,11 @@ public abstract class SharedSleeperSystem : EntitySystem
         // Clean up linked console
         if (sleeper.Comp.LinkedConsole is { } linkedConsoleId && TryComp(linkedConsoleId, out SleeperConsoleComponent? linkedConsole))
         {
+            var spawnedBySleeper = linkedConsole.LinkedSleeper == sleeper.Owner;
             linkedConsole.LinkedSleeper = null;
             Dirty(linkedConsoleId, linkedConsole);
 
-            if (_net.IsServer && linkedConsole.LinkedSleeper == sleeper.Owner)
+            if (_net.IsServer && spawnedBySleeper)
                 QueueDel(linkedConsoleId);
         }
     }

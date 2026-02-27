@@ -35,8 +35,6 @@ public sealed class SleeperSystem : SharedSleeperSystem
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
 
     private readonly List<ProtoId<ReagentPrototype>> _reagentRemovalBuffer = [];
-    private readonly HashSet<string> _emergencyChemLookup = [];
-    private readonly HashSet<string> _nonTransferableLookup = [];
 
     public override void Initialize()
     {
@@ -56,8 +54,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
 
     private void OnConsoleInjectChemical(Entity<SleeperConsoleComponent> console, ref SleeperInjectChemicalBuiMsg args)
     {
-        if (console.Comp.LinkedSleeper is not { } sleeperId ||
-            !TryComp(sleeperId, out SleeperComponent? sleeper))
+        if (console.Comp.LinkedSleeper is not { } sleeperId || !TryComp(sleeperId, out SleeperComponent? sleeper))
             return;
 
         if (sleeper.Occupant is not { } occupant)
@@ -69,15 +66,8 @@ public sealed class SleeperSystem : SharedSleeperSystem
         if (!sleeper.InjectionAmounts.Contains(args.Amount))
             return;
 
-        // Build emergency chem lookup for O(1) checks
-        _emergencyChemLookup.Clear();
-        foreach (var chem in sleeper.EmergencyChemicals)
-        {
-            _emergencyChemLookup.Add(chem);
-        }
-
         var isAvailable = sleeper.AvailableChemicals.Contains(args.Chemical);
-        var isEmergency = _emergencyChemLookup.Contains(args.Chemical);
+        var isEmergency = sleeper.EmergencyChemicals.Contains(args.Chemical);
         if (!isAvailable && !isEmergency)
             return;
 
@@ -215,13 +205,6 @@ public sealed class SleeperSystem : SharedSleeperSystem
                 totalReagents = cachedChemSol.Volume;
         }
 
-        // Build emergency chem lookup for O(1) checks
-        _emergencyChemLookup.Clear();
-        foreach (var chem in sleeper.EmergencyChemicals)
-        {
-            _emergencyChemLookup.Add(chem);
-        }
-
         var isEmergency = totalDamage >= emergencyHealthThreshold;
         var totalChemCount = sleeper.AvailableChemicals.Length;
         if (isEmergency)
@@ -268,7 +251,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
             sleeper.MaxChemical,
             emergencyHealthThreshold,
             chemicals.ToArray(),
-            sleeper.InjectionAmounts.ToArray());
+            sleeper.InjectionAmounts);
 
         _ui.SetUiState(console.Owner, SleeperUIKey.Key, state);
     }
@@ -324,17 +307,10 @@ public sealed class SleeperSystem : SharedSleeperSystem
                 Dirty(uid, sleeper);
             }
 
-            // Build non-transferable lookup for O(1) checks
-            _nonTransferableLookup.Clear();
-            foreach (var reagent in sleeper.NonTransferableReagents)
-            {
-                _nonTransferableLookup.Add(reagent);
-            }
-
             _reagentRemovalBuffer.Clear();
             foreach (var reagentQuantity in chemSol.Contents)
             {
-                if (!_nonTransferableLookup.Contains(reagentQuantity.Reagent.Prototype))
+                if (!sleeper.NonTransferableReagents.Contains(reagentQuantity.Reagent.Prototype))
                     _reagentRemovalBuffer.Add(reagentQuantity.Reagent.Prototype);
             }
 
@@ -347,7 +323,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
             var hasTransferableReagents = false;
             foreach (var reagentQuantity in chemSol.Contents)
             {
-                if (!_nonTransferableLookup.Contains(reagentQuantity.Reagent.Prototype) && reagentQuantity.Quantity > 0)
+                if (!sleeper.NonTransferableReagents.Contains(reagentQuantity.Reagent.Prototype) && reagentQuantity.Quantity > 0)
                 {
                     hasTransferableReagents = true;
                     break;

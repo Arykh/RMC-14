@@ -20,6 +20,8 @@ public sealed partial class SleeperConsoleWindow : DefaultWindow
     /// Used to avoid recreating UI elements on every state update. This would cause button click events to be missed when updates occur.
     /// </summary>
     private readonly Dictionary<ProtoId<ReagentPrototype>, ChemicalRowControls> _chemicalRows = new();
+    private readonly HashSet<ProtoId<ReagentPrototype>> _currentChemicals = [];
+    private readonly List<ProtoId<ReagentPrototype>> _chemicalsToRemove = [];
 
     public SleeperConsoleWindow()
     {
@@ -107,9 +109,9 @@ public sealed partial class SleeperConsoleWindow : DefaultWindow
         };
         StatusLabel.Modulate = state.OccupantState switch
         {
-            SleeperOccupantMobState.Alive => Color.FromHex("#00FF00"),
-            SleeperOccupantMobState.Critical => Color.FromHex("#FFFF00"),
-            SleeperOccupantMobState.Dead => Color.FromHex("#FF0000"),
+            SleeperOccupantMobState.Alive => Color.Lime,
+            SleeperOccupantMobState.Critical => Color.Yellow,
+            SleeperOccupantMobState.Dead => Color.Red,
             _ => Color.White
         };
 
@@ -182,11 +184,10 @@ public sealed partial class SleeperConsoleWindow : DefaultWindow
     private void UpdateChemicalRows(SleeperBuiState state)
     {
         // Track which chemicals are in the current state
-        var currentChemicals = new HashSet<ProtoId<ReagentPrototype>>();
+        _currentChemicals.Clear();
         foreach (var (name, chemId, occupantAmount, injectable, overdosing, odWarning) in state.Chemicals)
         {
-            currentChemicals.Add(chemId);
-
+            _currentChemicals.Add(chemId);
             if (_chemicalRows.TryGetValue(chemId, out var existingRow))
             {
                 // Update existing row - preserve button instances to maintain click handlers
@@ -270,14 +271,14 @@ public sealed partial class SleeperConsoleWindow : DefaultWindow
             }
         }
 
-        var chemicalsToRemove = new List<ProtoId<ReagentPrototype>>();
+        _chemicalsToRemove.Clear();
         foreach (var chemId in _chemicalRows.Keys)
         {
-            if (!currentChemicals.Contains(chemId))
-                chemicalsToRemove.Add(chemId);
+            if (!_currentChemicals.Contains(chemId))
+                _chemicalsToRemove.Add(chemId);
         }
 
-        foreach (var chemId in chemicalsToRemove)
+        foreach (var chemId in _chemicalsToRemove)
         {
             if (_chemicalRows.TryGetValue(chemId, out var rowControls))
             {
