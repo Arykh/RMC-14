@@ -70,9 +70,9 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         };
         StatusLabel.Modulate = state.OccupantState switch
         {
-            AutodocOccupantMobState.Alive => Color.FromHex("#00FF00"),
-            AutodocOccupantMobState.Critical => Color.FromHex("#FFFF00"),
-            AutodocOccupantMobState.Dead => Color.FromHex("#FF0000"),
+            AutodocOccupantMobState.Alive => Color.Lime,
+            AutodocOccupantMobState.Critical => Color.Yellow,
+            AutodocOccupantMobState.Dead => Color.Red,
             _ => Color.White
         };
 
@@ -121,7 +121,8 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         OrganDamageToggleButton.Pressed = state.OrganDamage;
         LarvaToggleButton.Pressed = state.RemoveLarva;
 
-        // Disable buttons during surgery
+        // Disable buttons and turn eject red during surgery
+        EjectButton.Modulate = state.SurgeryInProgress ? Color.Red : Color.White;
         StartSurgeryButton.Disabled = state.SurgeryInProgress;
         ClearButton.Disabled = state.SurgeryInProgress;
         BruteToggleButton.Disabled = state.SurgeryInProgress;

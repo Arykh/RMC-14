@@ -1,3 +1,4 @@
+using System.Linq;
 using Content.Shared._RMC14.Body;
 using Content.Shared._RMC14.Damage;
 using Content.Shared._RMC14.Medical.Autodoc;
@@ -39,7 +40,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
 
     private readonly List<ProtoId<ReagentPrototype>> _reagentRemovalBuffer = [];
-    private readonly HashSet<string> _nonTransferableLookup = [];
 
     private static readonly ProtoId<DamageGroupPrototype> BruteGroup = "Brute";
     private static readonly ProtoId<DamageGroupPrototype> BurnGroup = "Burn";
@@ -546,17 +546,11 @@ public sealed class AutodocSystem : SharedAutodocSystem
             {
                 if (_rmcBloodstream.TryGetChemicalSolution(occupant, out var chemSolEnt, out var chemSol))
                 {
-                    // Build non-transferable lookup for O(1) checks
-                    _nonTransferableLookup.Clear();
-                    foreach (var reagent in autodoc.NonTransferableReagents)
-                    {
-                        _nonTransferableLookup.Add(reagent);
-                    }
-
+                    var nonTransferable = autodoc.NonTransferableReagents;
                     _reagentRemovalBuffer.Clear();
                     foreach (var reagentQuantity in chemSol.Contents)
                     {
-                        if (!_nonTransferableLookup.Contains(reagentQuantity.Reagent.Prototype))
+                        if (!nonTransferable.Contains(reagentQuantity.Reagent.Prototype))
                             _reagentRemovalBuffer.Add(reagentQuantity.Reagent.Prototype);
                     }
 
@@ -569,7 +563,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
                     var hasTransferableReagents = false;
                     foreach (var reagentQuantity in chemSol.Contents)
                     {
-                        if (!_nonTransferableLookup.Contains(reagentQuantity.Reagent.Prototype) && reagentQuantity.Quantity > 0)
+                        if (!nonTransferable.Contains(reagentQuantity.Reagent.Prototype) && reagentQuantity.Quantity > 0)
                         {
                             hasTransferableReagents = true;
                             break;
@@ -600,31 +594,39 @@ public sealed class AutodocSystem : SharedAutodocSystem
                     // Time expired - perform the surgery
                     switch (autodoc.CurrentSurgeryType)
                     {
-                        case AutodocSurgeryType.LarvaExtraction:
-                            PerformLarvaExtraction(uid, autodoc, occupant);
-                            break;
                         case AutodocSurgeryType.CloseIncision:
                             PerformCloseIncisions(uid, autodoc, occupant);
+                            break;
+                        // Stub procedures: not yet implemented; clear them so surgery can complete
+                        case AutodocSurgeryType.ShrapnelRemoval:
+                            autodoc.RemoveShrapnel = false;
+                            autodoc.CurrentSurgeryType = AutodocSurgeryType.None;
+                            Dirty(uid, autodoc);
+                            break;
+                        case AutodocSurgeryType.InternalBleeding:
+                            autodoc.InternalBleeding = false;
+                            autodoc.CurrentSurgeryType = AutodocSurgeryType.None;
+                            Dirty(uid, autodoc);
+                            break;
+                        case AutodocSurgeryType.BrokenBone:
+                            autodoc.BrokenBone = false;
+                            autodoc.CurrentSurgeryType = AutodocSurgeryType.None;
+                            Dirty(uid, autodoc);
+                            break;
+                        case AutodocSurgeryType.OrganDamage:
+                            autodoc.OrganDamage = false;
+                            autodoc.CurrentSurgeryType = AutodocSurgeryType.None;
+                            Dirty(uid, autodoc);
+                            break;
+                        // Stub procedures: not yet implemented; clear them so surgery can complete
+                        case AutodocSurgeryType.LarvaExtraction:
+                            PerformLarvaExtraction(uid, autodoc, occupant);
                             break;
                     }
                     // Note: The Perform methods reset CurrentSurgeryType to None
                 }
             }
             // If no surgery in progress, check if we should start one
-            else if (autodoc.RemoveLarva)
-            {
-                var hasLarva = HasLarva(occupant);
-                autodoc.CurrentSurgeryType = AutodocSurgeryType.LarvaExtraction;
-                autodoc.SurgeryCompleteAt = time + (hasLarva
-                    ? autodoc.ScalpelDuration + autodoc.HemostatDuration + autodoc.RemoveObjectDuration
-                    : autodoc.UnneededDelay);
-                anyTreatmentRemaining = true;
-
-                if (hasLarva)
-                    _popup.PopupEntity(Loc.GetString("rmc-autodoc-larva-starting"), uid);
-
-                Dirty(uid, autodoc);
-            }
             else if (autodoc.CloseIncisions)
             {
                 var hasIncisions = HasOpenIncisions(occupant);
@@ -636,6 +638,48 @@ public sealed class AutodocSystem : SharedAutodocSystem
 
                 if (hasIncisions)
                     _popup.PopupEntity(Loc.GetString("rmc-autodoc-incisions-starting"), uid);
+
+                Dirty(uid, autodoc);
+            }
+            else if (autodoc.RemoveShrapnel)
+            {
+                autodoc.CurrentSurgeryType = AutodocSurgeryType.ShrapnelRemoval;
+                autodoc.SurgeryCompleteAt = time + autodoc.UnneededDelay;
+                anyTreatmentRemaining = true;
+                Dirty(uid, autodoc);
+            }
+            else if (autodoc.InternalBleeding)
+            {
+                autodoc.CurrentSurgeryType = AutodocSurgeryType.InternalBleeding;
+                autodoc.SurgeryCompleteAt = time + autodoc.UnneededDelay;
+                anyTreatmentRemaining = true;
+                Dirty(uid, autodoc);
+            }
+            else if (autodoc.BrokenBone)
+            {
+                autodoc.CurrentSurgeryType = AutodocSurgeryType.BrokenBone;
+                autodoc.SurgeryCompleteAt = time + autodoc.UnneededDelay;
+                anyTreatmentRemaining = true;
+                Dirty(uid, autodoc);
+            }
+            else if (autodoc.OrganDamage)
+            {
+                autodoc.CurrentSurgeryType = AutodocSurgeryType.OrganDamage;
+                autodoc.SurgeryCompleteAt = time + autodoc.UnneededDelay;
+                anyTreatmentRemaining = true;
+                Dirty(uid, autodoc);
+            }
+            else if (autodoc.RemoveLarva)
+            {
+                var hasLarva = HasLarva(occupant);
+                autodoc.CurrentSurgeryType = AutodocSurgeryType.LarvaExtraction;
+                autodoc.SurgeryCompleteAt = time + (hasLarva
+                    ? autodoc.ScalpelDuration + autodoc.HemostatDuration + autodoc.RemoveObjectDuration
+                    : autodoc.UnneededDelay);
+                anyTreatmentRemaining = true;
+
+                if (hasLarva)
+                    _popup.PopupEntity(Loc.GetString("rmc-autodoc-larva-starting"), uid);
 
                 Dirty(uid, autodoc);
             }
