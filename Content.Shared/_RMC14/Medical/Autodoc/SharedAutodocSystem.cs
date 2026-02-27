@@ -81,10 +81,11 @@ public abstract class SharedAutodocSystem : EntitySystem
         // Clean up linked console
         if (autodoc.Comp.LinkedConsole is { } linkedConsoleId && TryComp(linkedConsoleId, out AutodocConsoleComponent? linkedConsole))
         {
+            var spawnedByAutodoc = linkedConsole.LinkedAutodoc == autodoc.Owner;
             linkedConsole.LinkedAutodoc = null;
             Dirty(linkedConsoleId, linkedConsole);
 
-            if (_net.IsServer && linkedConsole.LinkedAutodoc == autodoc.Owner)
+            if (_net.IsServer && spawnedByAutodoc)
                 QueueDel(linkedConsoleId);
         }
     }
@@ -121,8 +122,12 @@ public abstract class SharedAutodocSystem : EntitySystem
             autodoc.Comp.HealingToxin = false;
             autodoc.Comp.BloodTransfusion = false;
             autodoc.Comp.Filtering = false;
-            autodoc.Comp.RemoveLarva = false;
             autodoc.Comp.CloseIncisions = false;
+            autodoc.Comp.RemoveShrapnel = false;
+            autodoc.Comp.InternalBleeding = false;
+            autodoc.Comp.BrokenBone = false;
+            autodoc.Comp.OrganDamage = false;
+            autodoc.Comp.RemoveLarva = false;
             Dirty(autodoc);
         }
 
@@ -190,12 +195,11 @@ public abstract class SharedAutodocSystem : EntitySystem
 
         if (autodoc.Comp.IsSurgeryInProgress && user != null && user != occupant)
         {
-            // TODO RMC14 Random limb damage
             var damage = new DamageSpecifier
             {
                 DamageDict = { ["Blunt"] = _random.Next(30, 50), ["Heat"] = _random.Next(30, 50) },
             };
-
+            // TODO RMC14 Damage random limb
             _damageable.TryChangeDamage(occupant, damage, true, false);
             _popup.PopupEntity(Loc.GetString("rmc-autodoc-surgery-aborted"), autodoc);
         }
