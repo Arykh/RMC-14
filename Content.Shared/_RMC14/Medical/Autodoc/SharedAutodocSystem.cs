@@ -149,7 +149,7 @@ public abstract class SharedAutodocSystem : EntitySystem
 
     private void OnAutodocCanDropTarget(Entity<AutodocComponent> autodoc, ref CanDropTargetEvent args)
     {
-        if (!_skills.HasAllSkills(args.User, autodoc.Comp.SkillsRequired))
+        if (!_skills.HasAllSkills(args.User, autodoc.Comp.SkillRequired))
         {
             args.CanDrop = false;
             args.Handled = true;
@@ -161,7 +161,7 @@ public abstract class SharedAutodocSystem : EntitySystem
         if (args.Handled)
             return;
 
-        if (!_skills.HasAllSkills(args.User, autodoc.Comp.SkillsRequired))
+        if (!_skills.HasAllSkills(args.User, autodoc.Comp.SkillRequired))
         {
             _popup.PopupClient(Loc.GetString("rmc-autodoc-no-skill"), autodoc, args.User);
             args.Handled = true;
@@ -178,7 +178,7 @@ public abstract class SharedAutodocSystem : EntitySystem
             _popup.PopupClient(Loc.GetString("rmc-autodoc-no-autodoc-connected"), console, args.User);
             args.Cancel();
         }
-        else if (!_skills.HasAllSkills(args.User, console.Comp.SkillsRequired))
+        else if (!_skills.HasAllSkills(args.User, console.Comp.SkillRequired))
         {
             _popup.PopupClient(Loc.GetString("rmc-autodoc-no-skill"), console, args.User);
             args.Cancel();
@@ -217,9 +217,6 @@ public abstract class SharedAutodocSystem : EntitySystem
 
         if (autodoc.Comp.ExitStun > TimeSpan.Zero && !HasComp<NoStunOnExitComponent>(autodoc))
             _stun.TryStun(occupant, autodoc.Comp.ExitStun, true);
-
-        if (_net.IsServer)
-            _popup.PopupEntity(Loc.GetString("rmc-autodoc-ejected", ("entity", occupant)), autodoc);
     }
 
     private void UpdateAutodocVisuals(Entity<AutodocComponent> autodoc)

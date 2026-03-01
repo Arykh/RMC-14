@@ -101,16 +101,13 @@ public sealed class AutodocToggleBruteBuiMsg : BoundUserInterfaceMessage;
 public sealed class AutodocToggleBurnBuiMsg : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
-public sealed class AutodocToggleToxinBuiMsg : BoundUserInterfaceMessage;
-
-[Serializable, NetSerializable]
 public sealed class AutodocToggleBloodBuiMsg : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
 public sealed class AutodocToggleDialysisBuiMsg : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
-public sealed class AutodocToggleLarvaBuiMsg : BoundUserInterfaceMessage;
+public sealed class AutodocToggleToxinBuiMsg : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
 public sealed class AutodocToggleCloseIncisionsBuiMsg : BoundUserInterfaceMessage;
@@ -128,6 +125,9 @@ public sealed class AutodocToggleBrokenBoneBuiMsg : BoundUserInterfaceMessage;
 public sealed class AutodocToggleOrganDamageBuiMsg : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
+public sealed class AutodocToggleLarvaBuiMsg : BoundUserInterfaceMessage;
+
+[Serializable, NetSerializable]
 public sealed class AutodocStartSurgeryBuiMsg : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
@@ -135,3 +135,6 @@ public sealed class AutodocClearBuiMsg : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
 public sealed class AutodocEjectBuiMsg : BoundUserInterfaceMessage;
+
+[Serializable, NetSerializable]
+public sealed class AutodocImportScanBuiMsg : BoundUserInterfaceMessage;

@@ -99,4 +99,9 @@ public sealed class AutodocConsoleBui(EntityUid owner, Enum uiKey) : BoundUserIn
     {
         SendMessage(new AutodocEjectBuiMsg());
     }
+
+    public void ImportScan()
+    {
+        SendMessage(new AutodocImportScanBuiMsg());
+    }
 }

@@ -33,8 +33,6 @@
     powerLoad: 450
     needsPower: false # TODO RMC14 power
   - type: Autodoc
-    skillsRequired:
-      RMCSkillSurgery: 1
   - type: DragInsertContainer
     containerId: autodoc
     entryDelay: 2
@@ -96,8 +94,6 @@
         - MachineLayer
         hard: false
   - type: AutodocConsole
-    skillsRequired:
-      RMCSkillSurgery: 1
   - type: UserInterface
     interfaces:
       enum.AutodocUIKey.Key:
@@ -131,11 +127,11 @@
   components:
   - type: Autodoc
     spawnConsolePrototype: RMCAutodocConsoleUnskilled
-    skillsRequired: {}
+    skillRequired: {}
 
 - type: entity
   parent: RMCAutodocConsole
   id: RMCAutodocConsoleUnskilled
   components:
   - type: AutodocConsole
-    skillsRequired: {}
+    skillRequired: {}

@@ -65,6 +65,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocStartSurgeryBuiMsg>(OnConsoleStartSurgery);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocClearBuiMsg>(OnConsoleClear);
         SubscribeLocalEvent<AutodocConsoleComponent, AutodocEjectBuiMsg>(OnConsoleEject);
+        SubscribeLocalEvent<AutodocConsoleComponent, AutodocImportScanBuiMsg>(OnConsoleImportScan);
     }
 
     private void OnConsoleUIOpened(Entity<AutodocConsoleComponent> console, ref AfterActivatableUIOpenEvent args)
@@ -207,6 +208,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
         Dirty(autodoc);
         UpdateSurgeryVisuals(autodoc);
         _audio.PlayPvs(autodoc.Comp.SurgeryStepSound, autodoc);
+        _popup.PopupEntity(Loc.GetString("rmc-autodoc-surgery-starting"), autodoc);
         UpdateUI(console);
     }
 
@@ -238,6 +240,14 @@ public sealed class AutodocSystem : SharedAutodocSystem
         if (autodoc.Comp.Occupant is { } occupant)
             TryEjectOccupant(autodoc, occupant, args.Actor);
 
+        UpdateUI(console);
+    }
+
+    private void OnConsoleImportScan(Entity<AutodocConsoleComponent> console, ref AutodocImportScanBuiMsg args)
+    {
+        if (!TryGetLinkedAutodoc(console, out var autodoc))
+            return;
+        // TODO RMC14 Import latest surgery list generated from bodyscanner
         UpdateUI(console);
     }
 
@@ -526,7 +536,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 }
             }
 
-            if (autodoc.BloodTransfusion)
+            if (autodoc.BloodTransfusion) // TODO RMC14 blood type O-
             {
                 if (TryComp<BloodstreamComponent>(occupant, out var blood) &&
                     _solution.TryGetSolution(occupant, blood.BloodSolutionName, out var bloodSolEnt, out var bloodSol) &&
@@ -691,6 +701,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 UpdateSurgeryVisuals((uid, autodoc));
                 _audio.PlayPvs(autodoc.SurgeryCompleteSound, uid);
                 _popup.PopupEntity(Loc.GetString("rmc-autodoc-complete"), uid);
+                TryEjectOccupant((uid, autodoc), occupant);
             }
         }
     }

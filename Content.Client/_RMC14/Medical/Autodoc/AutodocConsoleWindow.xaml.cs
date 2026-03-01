@@ -19,6 +19,7 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         StartSurgeryButton.OnPressed += _ => _bui?.StartSurgery();
         ClearButton.OnPressed += _ => _bui?.Clear();
         EjectButton.OnPressed += _ => _bui?.Eject();
+        ImportScanButton.OnPressed += _ => _bui?.ImportScan();
         BruteToggleButton.OnPressed += _ => _bui?.ToggleBrute();
         BurnToggleButton.OnPressed += _ => _bui?.ToggleBurn();
         CloseIncisionsToggleButton.OnPressed += _ => _bui?.ToggleCloseIncisions();
@@ -122,9 +123,10 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         LarvaToggleButton.Pressed = state.RemoveLarva;
 
         // Disable buttons and turn eject red during surgery
-        EjectButton.Modulate = state.SurgeryInProgress ? Color.Red : Color.White;
         StartSurgeryButton.Disabled = state.SurgeryInProgress;
         ClearButton.Disabled = state.SurgeryInProgress;
+        EjectButton.Modulate = state.SurgeryInProgress ? Color.Red : Color.White;
+        ImportScanButton.Disabled = state.SurgeryInProgress;
         BruteToggleButton.Disabled = state.SurgeryInProgress;
         BurnToggleButton.Disabled = state.SurgeryInProgress;
         CloseIncisionsToggleButton.Disabled = state.SurgeryInProgress;

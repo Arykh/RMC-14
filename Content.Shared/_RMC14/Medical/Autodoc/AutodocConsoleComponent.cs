@@ -18,5 +18,5 @@ public sealed partial class AutodocConsoleComponent : Component
     public TimeSpan UpdateCooldown = TimeSpan.FromSeconds(1);
 
     [DataField(required: true), AutoNetworkedField]
-    public Dictionary<EntProtoId<SkillDefinitionComponent>, int> SkillsRequired = new();
+    public Dictionary<EntProtoId<SkillDefinitionComponent>, int> SkillRequired = new() { ["RMCSkillSurgery"] = 1 };
 }

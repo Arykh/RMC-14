@@ -82,10 +82,17 @@
             <BoxContainer Orientation="Vertical" Margin="0 5 0 5">
                 <cc:HSeparator Color="#4972A1" Margin="0 0 0 5" />
                 <BoxContainer Orientation="Horizontal" Margin="0 5 0 5">
-                    <Button Name="StartSurgeryButton" Text="{Loc rmc-autodoc-start-surgery}" MinWidth="120" MinHeight="32" Margin="2" StyleClasses="ButtonColorGreen" />
+                    <Button Name="StartSurgeryButton" Text="{Loc rmc-autodoc-start-surgery}" MinWidth="130" MinHeight="32" Margin="2" StyleClasses="ButtonColorGreen" />
                     <Control HorizontalExpand="True" />
-                    <Button Name="ClearButton" Text="{Loc rmc-autodoc-clear-selected}" MinWidth="100" Margin="2" />
-                    <Button Name="EjectButton" Text="{Loc rmc-autodoc-eject-patient}" MinWidth="100" Margin="2" />
+                    <BoxContainer Orientation="Vertical">
+                        <BoxContainer Orientation="Horizontal">
+                            <Button Name="ClearButton" Text="{Loc rmc-autodoc-clear-selected}" HorizontalExpand="True" Margin="2" />
+                            <Button Name="EjectButton" Text="{Loc rmc-autodoc-eject-patient}" HorizontalExpand="True" Margin="2" />
+                        </BoxContainer>
+                        <BoxContainer Orientation="Horizontal">
+                            <Button Name="ImportScanButton" Text="{Loc rmc-autodoc-import-bodyscan}" HorizontalExpand="True" Margin="2" Disabled="True" Visible="False" />
+                        </BoxContainer>
+                    </BoxContainer>
                 </BoxContainer>
             </BoxContainer>
 

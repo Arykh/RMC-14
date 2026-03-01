@@ -32,8 +32,35 @@ public sealed partial class AutodocComponent : Component
     [DataField]
     public Vector2 ConsoleSpawnOffset = new(-1, 0);
 
+    [DataField, AutoNetworkedField]
+    public EntityUid? LinkedConsole;
+
     [DataField(required: true), AutoNetworkedField]
-    public Dictionary<EntProtoId<SkillDefinitionComponent>, int> SkillsRequired = new();
+    public Dictionary<EntProtoId<SkillDefinitionComponent>, int> SkillRequired = new() { ["RMCSkillSurgery"] = 1 };
+
+    [DataField, AutoNetworkedField]
+    public TimeSpan ExitStun = TimeSpan.FromSeconds(1);
+
+    [DataField, AutoNetworkedField]
+    public bool IsSurgeryInProgress;
+
+    [DataField, AutoNetworkedField]
+    public AutodocSurgeryType CurrentSurgeryType;
+
+    /// <summary>
+    /// Delay between processing ticks.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public TimeSpan TickDelay = TimeSpan.FromSeconds(3);
+
+    /// <summary>
+    /// Time of next processing tick.
+    /// </summary>
+    [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoNetworkedField, AutoPausedField]
+    public TimeSpan NextTick;
+
+    [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoNetworkedField, AutoPausedField]
+    public TimeSpan SurgeryCompleteAt;
 
     #region External Treatments (Continuous)
 
@@ -59,7 +86,7 @@ public sealed partial class AutodocComponent : Component
     public bool BloodTransfusion;
 
     [DataField, AutoNetworkedField]
-    public FixedPoint2 BloodTransfusionAmount = FixedPoint2.New(8);
+    public FixedPoint2 BloodTransfusionAmount = FixedPoint2.New(9); // Double iv stand rate
 
     [DataField, AutoNetworkedField]
     public bool Filtering;
@@ -124,33 +151,6 @@ public sealed partial class AutodocComponent : Component
     public TimeSpan RemoveObjectDuration = TimeSpan.FromSeconds(6);
 
     #endregion
-
-    /// <summary>
-    /// Delay between processing ticks.
-    /// </summary>
-    [DataField, AutoNetworkedField]
-    public TimeSpan TickDelay = TimeSpan.FromSeconds(3.5);
-
-    /// <summary>
-    /// Time of next processing tick.
-    /// </summary>
-    [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoNetworkedField, AutoPausedField]
-    public TimeSpan NextTick;
-
-    [DataField, AutoNetworkedField]
-    public bool IsSurgeryInProgress;
-
-    [DataField, AutoNetworkedField]
-    public AutodocSurgeryType CurrentSurgeryType;
-
-    [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoNetworkedField, AutoPausedField]
-    public TimeSpan SurgeryCompleteAt;
-
-    [DataField, AutoNetworkedField]
-    public TimeSpan ExitStun = TimeSpan.FromSeconds(1);
-
-    [DataField, AutoNetworkedField]
-    public EntityUid? LinkedConsole;
 
     [DataField]
     public SoundSpecifier EjectSound = new SoundPathSpecifier("/Audio/_RMC14/Machines/hydraulics_3.ogg");
