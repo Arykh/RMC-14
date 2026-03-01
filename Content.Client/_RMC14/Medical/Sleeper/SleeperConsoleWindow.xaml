@@ -2,7 +2,7 @@
     xmlns="https://spacestation14.io"
     xmlns:cc="clr-namespace:Content.Client.Administration.UI.CustomControls"
     MinSize="500 800">
-    <BoxContainer Orientation="Vertical" Margin="5">
+    <BoxContainer Orientation="Vertical">
         <!-- Empty State -->
         <BoxContainer Name="EmptyPanel" Orientation="Vertical" VerticalExpand="True" HorizontalExpand="True">
             <Control VerticalExpand="True" />
@@ -13,13 +13,13 @@
         <!-- Occupant State -->
         <BoxContainer Name="OccupantPanel" Orientation="Vertical" Visible="False">
             <!-- Dialysis Section -->
-            <BoxContainer Orientation="Vertical" Margin="0 0 0 5">
+            <BoxContainer Orientation="Vertical">
                 <BoxContainer Orientation="Horizontal" Margin="0 0 0 5">
                     <Label Text="{Loc rmc-sleeper-dialysis-header}" StyleClasses="LabelHeading" />
                     <Control HorizontalExpand="True" />
                     <Button Name="DialysisToggleButton" Text="{Loc rmc-sleeper-dialysis-inactive}" ToggleMode="True" MinWidth="100" />
                 </BoxContainer>
-                <cc:HSeparator Color="#4972A1" Margin="0 0 0 3" />
+                <cc:HSeparator Color="#4972A1" Margin="0 0 0 4" />
                 <BoxContainer Orientation="Vertical" MinHeight="30">
                     <BoxContainer Name="DialysisProgressContainer" Orientation="Horizontal" Visible="False">
                         <ProgressBar Name="DialysisProgressBar" HorizontalExpand="True" MinValue="0" MaxValue="1" MinHeight="16">
@@ -33,7 +33,7 @@
             </BoxContainer>
 
             <!-- Occupant Section -->
-            <BoxContainer Orientation="Vertical" Margin="0 0 0 5">
+            <BoxContainer Orientation="Vertical" Margin="0 6 0 0">
                 <BoxContainer Orientation="Horizontal" Margin="0 0 0 5">
                     <Label Text="{Loc rmc-sleeper-occupant-header}" StyleClasses="LabelHeading" />
                     <Control HorizontalExpand="True" />
