@@ -9,6 +9,7 @@ using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Damage;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Mobs;
@@ -35,6 +36,11 @@ public sealed class SleeperSystem : SharedSleeperSystem
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
 
     private readonly List<ProtoId<ReagentPrototype>> _reagentRemovalBuffer = [];
+
+    private static readonly ProtoId<DamageGroupPrototype> BruteGroup = "Brute";
+    private static readonly ProtoId<DamageGroupPrototype> BurnGroup = "Burn";
+    private static readonly ProtoId<DamageGroupPrototype> ToxinGroup = "Toxin";
+    private static readonly ProtoId<DamageGroupPrototype> AirlossGroup = "Airloss";
 
     public override void Initialize()
     {
@@ -147,7 +153,6 @@ public sealed class SleeperSystem : SharedSleeperSystem
         var burnLoss = 0f;
         var toxinLoss = 0f;
         var oxyLoss = 0f;
-        var geneticLoss = 0f;
         FixedPoint2 bloodLevel = 0;
         var bloodPercent = 0f;
         var pulse = string.Empty;
@@ -175,16 +180,15 @@ public sealed class SleeperSystem : SharedSleeperSystem
                 if (_mobThreshold.TryGetThresholdForState(occupant.Value, MobState.Critical, out var critThreshold) &&
                     _mobThreshold.TryGetThresholdForState(occupant.Value, MobState.Dead, out var deadThreshold))
                 {
-                    maxHealth = (float) critThreshold;
-                    health = (float) (critThreshold - totalDamage);
-                    emergencyHealthThreshold = (float) (deadThreshold - deadThreshold * sleeper.PercentHealthThreshold);
+                    maxHealth = (float)critThreshold;
+                    health = (float)(critThreshold - totalDamage);
+                    emergencyHealthThreshold = (float)(deadThreshold - deadThreshold * sleeper.PercentHealthThreshold);
                 }
 
-                bruteLoss = damageable.DamagePerGroup.GetValueOrDefault("Brute").Float();
-                burnLoss = damageable.DamagePerGroup.GetValueOrDefault("Burn").Float();
-                toxinLoss = damageable.DamagePerGroup.GetValueOrDefault("Toxin").Float();
-                oxyLoss = damageable.DamagePerGroup.GetValueOrDefault("Airloss").Float();
-                geneticLoss = damageable.DamagePerGroup.GetValueOrDefault("Genetic").Float();
+                bruteLoss = damageable.DamagePerGroup.GetValueOrDefault(BruteGroup).Float();
+                burnLoss = damageable.DamagePerGroup.GetValueOrDefault(BurnGroup).Float();
+                toxinLoss = damageable.DamagePerGroup.GetValueOrDefault(ToxinGroup).Float();
+                oxyLoss = damageable.DamagePerGroup.GetValueOrDefault(AirlossGroup).Float();
             }
 
             if (TryComp<BloodstreamComponent>(occupant, out var blood) &&
@@ -239,7 +243,6 @@ public sealed class SleeperSystem : SharedSleeperSystem
             burnLoss,
             toxinLoss,
             oxyLoss,
-            geneticLoss,
             bloodLevel,
             bloodPercent,
             pulse,

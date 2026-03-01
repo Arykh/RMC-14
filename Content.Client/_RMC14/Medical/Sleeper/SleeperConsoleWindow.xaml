@@ -15,7 +15,7 @@
             <!-- Dialysis Section -->
             <BoxContainer Orientation="Vertical">
                 <BoxContainer Orientation="Horizontal" Margin="0 0 0 5">
-                    <Label Text="{Loc rmc-sleeper-dialysis-header}" StyleClasses="LabelHeading" />
+                    <RichTextLabel Text="[font=NotoSans-Bold size=12][color=#D7B200]{Loc rmc-sleeper-dialysis-header}[/color][/font]" />
                     <Control HorizontalExpand="True" />
                     <Button Name="DialysisToggleButton" Text="{Loc rmc-sleeper-dialysis-inactive}" ToggleMode="True" MinWidth="100" />
                 </BoxContainer>
@@ -35,7 +35,7 @@
             <!-- Occupant Section -->
             <BoxContainer Orientation="Vertical" Margin="0 6 0 0">
                 <BoxContainer Orientation="Horizontal" Margin="0 0 0 5">
-                    <Label Text="{Loc rmc-sleeper-occupant-header}" StyleClasses="LabelHeading" />
+                    <RichTextLabel Text="[font=NotoSans-Bold size=12][color=#D7B200]{Loc rmc-sleeper-occupant-header}[/color][/font]" />
                     <Control HorizontalExpand="True" />
                     <Label Text="{Loc rmc-sleeper-auto-eject-dead}" Margin="0 0 5 0" />
                     <Button Name="AutoEjectDeadButton" Text="{Loc rmc-sleeper-auto-eject-dead-off}" ToggleMode="True" MinWidth="60" />
@@ -76,7 +76,7 @@
 
             <!-- Damage Section -->
             <BoxContainer Orientation="Vertical">
-                <Label Text="{Loc rmc-sleeper-damage-header}" StyleClasses="LabelHeading" Margin="0 0 0 5" />
+                <RichTextLabel Text="[font=NotoSans-Bold size=12][color=#D7B200]{Loc rmc-sleeper-damage-header}[/color][/font]" Margin="0 0 0 5" />
                 <cc:HSeparator Color="#4972A1" Margin="0 0 0 5" />
                 <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
                     <Label Text="{Loc rmc-sleeper-brute}" MinWidth="80" Modulate="#5B88B0" />
@@ -102,17 +102,11 @@
                         <Label Name="OxygenBarText" Align="Right" Margin="0 0 5 0" />
                     </ProgressBar>
                 </BoxContainer>
-                <BoxContainer Name="GeneticSection" Orientation="Horizontal" Margin="0 2 0 2" Visible="False">
-                    <Label Text="{Loc rmc-sleeper-genetic}" MinWidth="80" Modulate="#5B88B0" />
-                    <ProgressBar Name="GeneticBar" HorizontalExpand="True" MinValue="0" MaxValue="100" MinHeight="16">
-                        <Label Name="GeneticBarText" Align="Right" Margin="0 0 5 0" />
-                    </ProgressBar>
-                </BoxContainer>
             </BoxContainer>
 
             <!-- Chemicals Section -->
             <BoxContainer Orientation="Vertical" VerticalExpand="True">
-                <Label Text="{Loc rmc-sleeper-chemicals-header}" StyleClasses="LabelHeading" Margin="0 5 0 5" />
+                <RichTextLabel Text="[font=NotoSans-Bold size=12][color=#D7B200]{Loc rmc-sleeper-chemicals-header}[/color][/font]" Margin="0 5 0 5" />
                 <cc:HSeparator Color="#4972A1" Margin="0 0 0 5" />
                 <ScrollContainer VerticalExpand="True" HScrollEnabled="False" MinHeight="200">
                     <BoxContainer Name="ChemicalsContainer" Orientation="Vertical" />

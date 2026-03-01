@@ -150,12 +150,6 @@ public sealed partial class SleeperConsoleWindow : DefaultWindow
         UpdateDamageBar(ToxinBar, ToxinBarText, state.ToxinLoss);
         UpdateDamageBar(OxygenBar, OxygenBarText, state.OxyLoss);
 
-        GeneticSection.Visible = state.GeneticLoss > 0;
-        if (state.GeneticLoss > 0)
-        {
-            UpdateDamageBar(GeneticBar, GeneticBarText, state.GeneticLoss);
-        }
-
         UpdateChemicalRows(state);
     }
 

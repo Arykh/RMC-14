@@ -1,5 +1,4 @@
 rmc-sleeper-window-title = Sleeper Console
-
 rmc-sleeper-no-sleeper-connected = No sleeper connected to this console.
 rmc-sleeper-ejected = {$entity} pops out of the sleeper!
 rmc-sleeper-no-occupant = No occupant detected.
@@ -29,7 +28,6 @@ rmc-sleeper-brute = Brute:
 rmc-sleeper-burn = Burn:
 rmc-sleeper-toxin = Toxin:
 rmc-sleeper-oxygen = Oxygen:
-rmc-sleeper-genetic = Clone:
 
 rmc-sleeper-blood-level = Blood Level:
 rmc-sleeper-pulse = Pulse:
