@@ -35,7 +35,7 @@ public sealed partial class AutodocComponent : Component
     [DataField, AutoNetworkedField]
     public EntityUid? LinkedConsole;
 
-    [DataField(required: true), AutoNetworkedField]
+    [DataField, AutoNetworkedField]
     public Dictionary<EntProtoId<SkillDefinitionComponent>, int> SkillRequired = new() { ["RMCSkillSurgery"] = 1 };
 
     [DataField, AutoNetworkedField]
