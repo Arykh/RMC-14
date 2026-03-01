@@ -24,7 +24,7 @@ rmc-autodoc-oxygen = Oxygen:
 rmc-autodoc-start-surgery = Begin Surgery
 rmc-autodoc-clear-selected = Clear selected
 rmc-autodoc-eject-patient = Eject patient
-rmc-autodoc-import-bodyscan = Import from latest bodyscan
+rmc-autodoc-import-scan = Import from latest bodyscan
 
 rmc-autodoc-trauma-surgeries-header = Trauma Surgeries
 rmc-autodoc-brute-treatment = Brute Damage Treatment

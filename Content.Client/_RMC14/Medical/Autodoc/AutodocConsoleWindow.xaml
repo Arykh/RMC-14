@@ -14,7 +14,7 @@
         <BoxContainer Name="OccupantPanel" Orientation="Vertical">
             <!-- Occupant Section -->
             <BoxContainer Orientation="Vertical">
-                <Label Text="{Loc rmc-autodoc-occupant-header}" StyleClasses="LabelHeading" Margin="0 0 0 5" />
+                <RichTextLabel Text="[font=NotoSans-Bold size=12][color=#D7B200]{Loc rmc-autodoc-occupant-header}[/color][/font]" Margin="0 0 0 5" />
                 <cc:HSeparator Color="#4972A1" Margin="0 0 0 5" />
                 <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
                     <Label Text="{Loc rmc-autodoc-name-label}" MinWidth="120" Modulate="#5B88B0" />
@@ -50,7 +50,7 @@
 
             <!-- Damage Section -->
             <BoxContainer Orientation="Vertical">
-                <Label Text="{Loc rmc-autodoc-damage-header}" StyleClasses="LabelHeading" Margin="0 0 0 5" />
+                <RichTextLabel Text="[font=NotoSans-Bold size=12][color=#D7B200]{Loc rmc-autodoc-damage-header}[/color][/font]" Margin="0 0 0 5" />
                 <cc:HSeparator Color="#4972A1" Margin="0 0 0 5" />
                 <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
                     <Label Text="{Loc rmc-autodoc-brute}" MinWidth="80" Modulate="#5B88B0" />
@@ -90,7 +90,7 @@
                             <Button Name="EjectButton" Text="{Loc rmc-autodoc-eject-patient}" HorizontalExpand="True" Margin="2" />
                         </BoxContainer>
                         <BoxContainer Orientation="Horizontal">
-                            <Button Name="ImportScanButton" Text="{Loc rmc-autodoc-import-bodyscan}" HorizontalExpand="True" Margin="2" />
+                            <Button Name="ImportScanButton" Text="{Loc rmc-autodoc-import-scan}" HorizontalExpand="True" Margin="2" />
                         </BoxContainer>
                     </BoxContainer>
                 </BoxContainer>
@@ -98,7 +98,7 @@
 
             <!-- Trauma Surgeries Section -->
             <BoxContainer Orientation="Vertical">
-                <Label Text="{Loc rmc-autodoc-trauma-surgeries-header}" StyleClasses="LabelHeading" Margin="0 0 0 5" />
+                <RichTextLabel Text="[font=NotoSans-Bold size=12][color=#D7B200]{Loc rmc-autodoc-trauma-surgeries-header}[/color][/font]" Margin="0 0 0 5" />
                 <cc:HSeparator Color="#4972A1" Margin="0 0 0 5" />
                 <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
                     <Button Name="BruteToggleButton" Text="{Loc rmc-autodoc-brute-treatment}" ToggleMode="True" HorizontalExpand="True" Margin="2" />
@@ -112,7 +112,7 @@
 
             <!-- Hematology Treatments Section -->
             <BoxContainer Orientation="Vertical">
-                <Label Text="{Loc rmc-autodoc-hematology-header}" StyleClasses="LabelHeading" Margin="0 0 0 5" />
+                <RichTextLabel Text="[font=NotoSans-Bold size=12][color=#D7B200]{Loc rmc-autodoc-hematology-header}[/color][/font]" Margin="0 0 0 5" />
                 <cc:HSeparator Color="#4972A1" Margin="0 0 0 5" />
                 <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
                     <Button Name="BloodToggleButton" Text="{Loc rmc-autodoc-blood-transfusion}" ToggleMode="True" MinWidth="150" Margin="2" />
@@ -123,7 +123,7 @@
 
             <!-- Orthopedic Surgeries Section -->
             <BoxContainer Orientation="Vertical" Visible="False">
-                <Label Text="{Loc rmc-autodoc-orthopedic-header}" StyleClasses="LabelHeading" Margin="0 0 0 5" />
+                <RichTextLabel Text="[font=NotoSans-Bold size=12][color=#D7B200]{Loc rmc-autodoc-orthopedic-header}}[/color][/font]" Margin="0 0 0 5" />
                 <cc:HSeparator Color="#4972A1" Margin="0 0 0 5" />
                 <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
                     <Button Name="InternalBleedingToggleButton" Text="{Loc rmc-autodoc-internal-bleeding}" ToggleMode="True" HorizontalExpand="True" Margin="2" />
