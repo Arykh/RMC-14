@@ -30,7 +30,7 @@
         layer:
         - MachineLayer
   - type: ApcPowerReceiver
-    powerLoad: 450
+    powerLoad: 450 # 15 idle, 450 active
     needsPower: false # TODO RMC14 power
   - type: Autodoc
   - type: DragInsertContainer
