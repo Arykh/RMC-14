@@ -15,7 +15,7 @@
             <!-- Dialysis Section -->
             <BoxContainer Orientation="Vertical">
                 <BoxContainer Orientation="Horizontal" Margin="0 0 0 5">
-                    <RichTextLabel Text="[font=NotoSans-Bold size=12][color=#D7B200]{Loc rmc-sleeper-dialysis-header}[/color][/font]" />
+                    <Label Text="{Loc rmc-sleeper-dialysis-header}" StyleClasses="LabelKeyText" />
                     <Control HorizontalExpand="True" />
                     <Button Name="DialysisToggleButton" Text="{Loc rmc-sleeper-dialysis-inactive}" ToggleMode="True" MinWidth="100" />
                 </BoxContainer>
@@ -35,7 +35,7 @@
             <!-- Occupant Section -->
             <BoxContainer Orientation="Vertical" Margin="0 6 0 0">
                 <BoxContainer Orientation="Horizontal" Margin="0 0 0 5">
-                    <RichTextLabel Text="[font=NotoSans-Bold size=12][color=#D7B200]{Loc rmc-sleeper-occupant-header}[/color][/font]" />
+                    <Label Text="{Loc rmc-sleeper-occupant-header}" StyleClasses="LabelKeyText" />
                     <Control HorizontalExpand="True" />
                     <Label Text="{Loc rmc-sleeper-auto-eject-dead}" Margin="0 0 5 0" />
                     <Button Name="AutoEjectDeadButton" Text="{Loc rmc-sleeper-auto-eject-dead-off}" ToggleMode="True" MinWidth="60" />
@@ -76,7 +76,7 @@
 
             <!-- Damage Section -->
             <BoxContainer Orientation="Vertical">
-                <RichTextLabel Text="[font=NotoSans-Bold size=12][color=#D7B200]{Loc rmc-sleeper-damage-header}[/color][/font]" Margin="0 0 0 5" />
+                <Label Text="{Loc rmc-sleeper-damage-header}" StyleClasses="LabelKeyText" Margin="0 0 0 5" />
                 <cc:HSeparator Color="#4972A1" Margin="0 0 0 5" />
                 <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
                     <Label Text="{Loc rmc-sleeper-brute}" MinWidth="80" Modulate="#5B88B0" />
@@ -106,7 +106,7 @@
 
             <!-- Chemicals Section -->
             <BoxContainer Orientation="Vertical" VerticalExpand="True">
-                <RichTextLabel Text="[font=NotoSans-Bold size=12][color=#D7B200]{Loc rmc-sleeper-chemicals-header}[/color][/font]" Margin="0 5 0 5" />
+                <Label Text="{Loc rmc-sleeper-chemicals-header}" StyleClasses="LabelKeyText" Margin="0 5 0 5" />
                 <cc:HSeparator Color="#4972A1" Margin="0 0 0 5" />
                 <ScrollContainer VerticalExpand="True" HScrollEnabled="False" MinHeight="200">
                     <BoxContainer Name="ChemicalsContainer" Orientation="Vertical" />
