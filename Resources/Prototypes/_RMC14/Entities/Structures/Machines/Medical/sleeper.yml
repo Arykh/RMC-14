@@ -71,7 +71,7 @@
 - type: entity
   parent: CMBaseStructureCorrodible
   id: RMCSleeperConsole
-  name: sleeper console # TODO RMC14 Insert upgrade into console /obj/item/research_upgrades/sleeper
+  name: sleeper console
   description: A console used to control the sleeper. Allows chemical injection and dialysis.
   placement:
     mode: SnapgridCenter
@@ -131,18 +131,12 @@
   suffix: Spawns with Console
   components:
   - type: Sleeper
-    dialysisAmount: 8
-    availableChemicals:
-    - CMInaprovaline
-    #- RMCTramadol
-    - CMDylovene
-    - CMDexalinPlus
-    - CMTricordrazine
-    #- RMCAlkysine
-    - CMImidazoline
-    emergencyChemicals:
-    #- RMCOxycodone
-    - CMBicaridine
-    - CMKelotane
-    - CMMeralyne
-    - CMDermaline
+    spawnConsolePrototype: RMCSleeperConsoleUpgraded
+
+- type: entity
+  parent: RMCSleeperConsole
+  id: RMCSleeperConsoleUpgraded
+  name: upgraded sleeper console
+  components:
+  - type: SleeperConsole
+    isUpgraded: true

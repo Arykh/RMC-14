@@ -55,6 +55,36 @@ public sealed partial class SleeperComponent : Component
         "CMKelotane"
     ];
 
+    /// <summary>
+    /// Chemicals available when the linked console has been upgraded via research disk.
+    /// Replaces <see cref="AvailableChemicals"/> when upgraded.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public ProtoId<ReagentPrototype>[] UpgradedChemicals =
+    [
+        "CMInaprovaline",
+        //"RMCTramadol",
+        "CMDylovene",
+        "CMDexalinPlus",
+        "CMTricordrazine",
+        //"RMCAlkysine",
+        "CMImidazoline"
+    ];
+
+    /// <summary>
+    /// Emergency chemicals available when the linked console has been upgraded via research disk.
+    /// Replaces <see cref="EmergencyChemicals"/> when upgraded.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public ProtoId<ReagentPrototype>[] UpgradedEmergencyChemicals =
+    [
+        //"RMCOxycodone",
+        "CMBicaridine",
+        "CMKelotane",
+        "CMMeralyne",
+        "CMDermaline"
+    ];
+
     [DataField, AutoNetworkedField]
     public int[] InjectionAmounts = [5, 10];
 
@@ -73,6 +103,9 @@ public sealed partial class SleeperComponent : Component
 
     [DataField, AutoNetworkedField]
     public FixedPoint2 DialysisAmount = FixedPoint2.New(3);
+
+    [DataField, AutoNetworkedField]
+    public FixedPoint2 UpgradedDialysisAmount = FixedPoint2.New(8);
 
     /// <summary>
     /// Delay between dialysis ticks.

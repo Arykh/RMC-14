@@ -14,4 +14,7 @@ public sealed partial class SleeperConsoleComponent : Component
 
     [DataField]
     public TimeSpan UpdateCooldown = TimeSpan.FromSeconds(1);
+
+    [DataField, AutoNetworkedField]
+    public bool IsUpgraded;
 }

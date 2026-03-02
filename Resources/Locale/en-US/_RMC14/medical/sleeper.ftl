@@ -34,3 +34,6 @@ rmc-sleeper-pulse = Pulse:
 
 rmc-sleeper-chemicals-header = Occupant Chemicals
 rmc-sleeper-inject = Inject {$amount}u
+
+rmc-sleeper-upgrade-installed = As you insert the disk into the console, you hear it whir to life as it reads the data.
+rmc-sleeper-upgrade-already-installed = This console has already been upgraded!

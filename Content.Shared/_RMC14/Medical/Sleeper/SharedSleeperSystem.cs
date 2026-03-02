@@ -36,6 +36,7 @@ public abstract class SharedSleeperSystem : EntitySystem
         SubscribeLocalEvent<SleeperComponent, InteractHandEvent>(OnSleeperInteractHand);
 
         SubscribeLocalEvent<SleeperConsoleComponent, ActivatableUIOpenAttemptEvent>(OnConsoleUIOpenAttempt);
+        SubscribeLocalEvent<SleeperConsoleComponent, InteractUsingEvent>(OnConsoleInteractUsing);
 
         SubscribeLocalEvent<InsideSleeperComponent, MoveInputEvent>(OnInsideSleeperMoveInput);
     }
@@ -138,6 +139,30 @@ public abstract class SharedSleeperSystem : EntitySystem
             _popup.PopupClient(Loc.GetString("rmc-sleeper-no-sleeper-connected"), console, args.User);
             args.Cancel();
         }
+    }
+
+    private void OnConsoleInteractUsing(Entity<SleeperConsoleComponent> console, ref InteractUsingEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        if (!HasComp<SleeperResearchUpgradeComponent>(args.Used))
+            return;
+
+        args.Handled = true;
+        if (console.Comp.IsUpgraded)
+        {
+            _popup.PopupClient(Loc.GetString("rmc-sleeper-upgrade-already-installed"), console, args.User);
+            return;
+        }
+
+        console.Comp.IsUpgraded = true;
+        Dirty(console);
+
+        _popup.PopupClient(Loc.GetString("rmc-sleeper-upgrade-installed"), console, args.User);
+
+        if (_net.IsServer)
+            QueueDel(args.Used);
     }
 
     protected void EjectOccupant(Entity<SleeperComponent> sleeper, EntityUid occupant)

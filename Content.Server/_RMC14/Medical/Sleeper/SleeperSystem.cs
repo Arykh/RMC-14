@@ -72,8 +72,11 @@ public sealed class SleeperSystem : SharedSleeperSystem
         if (!sleeper.InjectionAmounts.Contains(args.Amount))
             return;
 
-        var isAvailable = sleeper.AvailableChemicals.Contains(args.Chemical);
-        var isEmergency = sleeper.EmergencyChemicals.Contains(args.Chemical);
+        var availableChemicals = console.Comp.IsUpgraded ? sleeper.UpgradedChemicals : sleeper.AvailableChemicals;
+        var emergencyChemicals = console.Comp.IsUpgraded ? sleeper.UpgradedEmergencyChemicals : sleeper.EmergencyChemicals;
+
+        var isAvailable = availableChemicals.Contains(args.Chemical);
+        var isEmergency = emergencyChemicals.Contains(args.Chemical);
         if (!isAvailable && !isEmergency)
             return;
 
@@ -209,24 +212,28 @@ public sealed class SleeperSystem : SharedSleeperSystem
                 totalReagents = cachedChemSol.Volume;
         }
 
+        var isUpgraded = console.Comp.IsUpgraded;
+        var availableChemicals = isUpgraded ? sleeper.UpgradedChemicals : sleeper.AvailableChemicals;
+        var emergencyChemicals = isUpgraded ? sleeper.UpgradedEmergencyChemicals : sleeper.EmergencyChemicals;
+
         var isEmergency = totalDamage >= emergencyHealthThreshold;
-        var totalChemCount = sleeper.AvailableChemicals.Length;
+        var totalChemCount = availableChemicals.Length;
         if (isEmergency)
-            totalChemCount += sleeper.EmergencyChemicals.Length;
+            totalChemCount += emergencyChemicals.Length;
 
         // Build chemical list - always show AvailableChemicals
         var chemicals = new List<SleeperChemicalData>(totalChemCount);
-        foreach (var chemId in sleeper.AvailableChemicals)
+        foreach (var chemId in availableChemicals)
         {
             AddChemicalToList(chemicals, chemId, occupant, cachedChemSol, true);
         }
 
         if (isEmergency)
         {
-            foreach (var chemId in sleeper.EmergencyChemicals)
+            foreach (var chemId in emergencyChemicals)
             {
                 // Skip any duplicates in EmergencyChemicals that are already in AvailableChemicals
-                if (sleeper.AvailableChemicals.Contains(chemId))
+                if (availableChemicals.Contains(chemId))
                     continue;
 
                 AddChemicalToList(chemicals, chemId, occupant, cachedChemSol, true);
@@ -310,6 +317,14 @@ public sealed class SleeperSystem : SharedSleeperSystem
                 Dirty(uid, sleeper);
             }
 
+            var dialysisAmount = sleeper.DialysisAmount;
+            if (sleeper.LinkedConsole is { } linkedConsoleId &&
+                TryComp<SleeperConsoleComponent>(linkedConsoleId, out var linkedConsole) &&
+                linkedConsole.IsUpgraded)
+            {
+                dialysisAmount = sleeper.UpgradedDialysisAmount;
+            }
+
             _reagentRemovalBuffer.Clear();
             foreach (var reagentQuantity in chemSol.Contents)
             {
@@ -319,7 +334,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
 
             foreach (var reagent in _reagentRemovalBuffer)
             {
-                _solution.RemoveReagent(chemSolEnt, reagent, sleeper.DialysisAmount);
+                _solution.RemoveReagent(chemSolEnt, reagent, dialysisAmount);
             }
 
             // Check if dialysis is complete
