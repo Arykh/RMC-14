@@ -13,6 +13,10 @@ namespace Content.Client._RMC14.Medical.Sleeper;
 [GenerateTypedNameReferences]
 public sealed partial class SleeperConsoleWindow : DefaultWindow
 {
+    private static readonly StyleBoxFlat StyleGood = new(Color.FromHex("#408040"));
+    private static readonly StyleBoxFlat StyleWarning = new(Color.FromHex("#A0A030"));
+    private static readonly StyleBoxFlat StyleDanger = new(Color.FromHex("#A04040"));
+
     private SleeperConsoleBui? _bui;
 
     /// <summary>
@@ -52,7 +56,22 @@ public sealed partial class SleeperConsoleWindow : DefaultWindow
             return;
         }
 
-        // Dialysis
+        AutoEjectDeadButton.Pressed = state.AutoEjectDead;
+        AutoEjectDeadButton.Text = state.AutoEjectDead
+            ? Loc.GetString("rmc-sleeper-auto-eject-dead-on")
+            : Loc.GetString("rmc-sleeper-auto-eject-dead-off");
+
+        OccupantNameLabel.Text = state.OccupantName ?? "";
+        UpdateDialysisSection(state);
+        UpdateHealth(state);
+        UpdateTemperature(state);
+        UpdateBlood(state);
+        UpdateDamageBars(state);
+        UpdateChemicalRows(state);
+    }
+
+    private void UpdateDialysisSection(SleeperBuiState state)
+    {
         DialysisToggleButton.Pressed = state.Filtering;
         DialysisToggleButton.Text = state.Filtering
             ? Loc.GetString("rmc-sleeper-dialysis-active")
@@ -68,38 +87,26 @@ public sealed partial class SleeperConsoleWindow : DefaultWindow
         else
         {
             DialysisProgressContainer.Visible = false;
-            if (state.TotalReagents <= 0)
-            {
-                DialysisStatusContainer.Visible = true;
-                DialysisStatusLabel.Text = Loc.GetString("rmc-sleeper-dialysis-no-chemicals");
-            }
-            else
-            {
-                DialysisStatusContainer.Visible = true;
-                DialysisStatusLabel.Text = Loc.GetString("rmc-sleeper-dialysis-ready");
-            }
+            DialysisStatusContainer.Visible = true;
+            DialysisStatusLabel.Text = state.TotalReagents <= 0
+                ? Loc.GetString("rmc-sleeper-dialysis-no-chemicals")
+                : Loc.GetString("rmc-sleeper-dialysis-ready");
         }
+    }
 
-        // Auto-eject
-        AutoEjectDeadButton.Pressed = state.AutoEjectDead;
-        AutoEjectDeadButton.Text = state.AutoEjectDead
-            ? Loc.GetString("rmc-sleeper-auto-eject-dead-on")
-            : Loc.GetString("rmc-sleeper-auto-eject-dead-off");
-
-        OccupantNameLabel.Text = state.OccupantName ?? "";
-
-        // Health
+    private void UpdateHealth(SleeperBuiState state)
+    {
         HealthBar.Value = state.Health;
         HealthBar.MaxValue = state.MaxHealth;
-        HealthBar.MinValue = 0;
         HealthBarText.Text = $"{state.Health:F0}";
 
         HealthBar.ForegroundStyleBoxOverride = state.Health switch
         {
-            _ when state.Health >= state.EmergencyHealthThreshold => new StyleBoxFlat(Color.FromHex("#408040")),
-            >= 0 => new StyleBoxFlat(Color.FromHex("#A0A030")),
-            _ => new StyleBoxFlat(Color.FromHex("#A04040"))
+            _ when state.Health >= state.EmergencyHealthThreshold => StyleGood,
+            >= 0 => StyleWarning,
+            _ => StyleDanger
         };
+
         StatusLabel.Text = state.OccupantState switch
         {
             SleeperOccupantMobState.Alive => Loc.GetString("rmc-sleeper-status-alive"),
@@ -114,7 +121,10 @@ public sealed partial class SleeperConsoleWindow : DefaultWindow
             SleeperOccupantMobState.Dead => Color.Red,
             _ => Color.White
         };
+    }
 
+    private void UpdateTemperature(SleeperBuiState state)
+    {
         var tempCelsius = TemperatureHelpers.KelvinToCelsius(state.BodyTemperature);
         var tempFahrenheit = TemperatureHelpers.KelvinToFahrenheit(state.BodyTemperature);
         TemperatureBar.Value = state.BodyTemperature;
@@ -131,26 +141,28 @@ public sealed partial class SleeperConsoleWindow : DefaultWindow
             >= 373.15f => new StyleBoxFlat(Color.FromHex("#FFFF00")),
             _ => new StyleBoxFlat(Color.FromHex("#408040"))
         };
+    }
 
-        // Blood
+    private void UpdateBlood(SleeperBuiState state)
+    {
         BloodBar.Value = state.BloodPercent;
         BloodBarText.Text = $"{state.BloodPercent:F2}%, {state.BloodLevel}cl";
 
         BloodBar.ForegroundStyleBoxOverride = state.BloodPercent switch
         {
-            >= 90 => new StyleBoxFlat(Color.FromHex("#408040")),
-            >= 60 => new StyleBoxFlat(Color.FromHex("#A0A030")),
-            _ => new StyleBoxFlat(Color.FromHex("#A04040"))
+            >= 90 => StyleGood,
+            >= 60 => StyleWarning,
+            _ => StyleDanger
         };
         PulseLabel.Text = state.Pulse;
+    }
 
-        // Damage bars
+    private void UpdateDamageBars(SleeperBuiState state)
+    {
         UpdateDamageBar(BruteBar, BruteBarText, state.BruteLoss);
         UpdateDamageBar(BurnBar, BurnBarText, state.BurnLoss);
         UpdateDamageBar(ToxinBar, ToxinBarText, state.ToxinLoss);
         UpdateDamageBar(OxygenBar, OxygenBarText, state.OxyLoss);
-
-        UpdateChemicalRows(state);
     }
 
     private static void UpdateDamageBar(ProgressBar bar, Label label, float damage)
@@ -160,9 +172,9 @@ public sealed partial class SleeperConsoleWindow : DefaultWindow
 
         bar.ForegroundStyleBoxOverride = damage switch
         {
-            < 25 => new StyleBoxFlat(Color.FromHex("#408040")),
-            < 50 => new StyleBoxFlat(Color.FromHex("#A0A030")),
-            _ => new StyleBoxFlat(Color.FromHex("#A04040"))
+            < 25 => StyleGood,
+            < 50 => StyleWarning,
+            _ => StyleDanger
         };
     }
 
@@ -192,9 +204,9 @@ public sealed partial class SleeperConsoleWindow : DefaultWindow
 
                 // Update progress bar color
                 if (overdosing)
-                    existingRow.AmountBar.ForegroundStyleBoxOverride = new StyleBoxFlat(Color.FromHex("#A04040"));
+                    existingRow.AmountBar.ForegroundStyleBoxOverride = StyleDanger;
                 else if (odWarning)
-                    existingRow.AmountBar.ForegroundStyleBoxOverride = new StyleBoxFlat(Color.FromHex("#A0A030"));
+                    existingRow.AmountBar.ForegroundStyleBoxOverride = StyleWarning;
                 else
                     existingRow.AmountBar.ForegroundStyleBoxOverride = null;
 
@@ -239,9 +251,9 @@ public sealed partial class SleeperConsoleWindow : DefaultWindow
                 amountBar.AddChild(amountLabel);
 
                 if (overdosing)
-                    amountBar.ForegroundStyleBoxOverride = new StyleBoxFlat(Color.FromHex("#A04040"));
+                    amountBar.ForegroundStyleBoxOverride = StyleDanger;
                 else if (odWarning)
-                    amountBar.ForegroundStyleBoxOverride = new StyleBoxFlat(Color.FromHex("#A0A030"));
+                    amountBar.ForegroundStyleBoxOverride = StyleWarning;
 
                 row.AddChild(amountBar);
 

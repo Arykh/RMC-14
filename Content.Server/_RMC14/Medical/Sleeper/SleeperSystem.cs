@@ -36,6 +36,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
 
     private readonly List<ProtoId<ReagentPrototype>> _reagentRemovalBuffer = [];
+    private readonly List<SleeperChemicalData> _chemicalListBuffer = [];
 
     private static readonly ProtoId<DamageGroupPrototype> BruteGroup = "Brute";
     private static readonly ProtoId<DamageGroupPrototype> BurnGroup = "Burn";
@@ -60,20 +61,20 @@ public sealed class SleeperSystem : SharedSleeperSystem
 
     private void OnConsoleInjectChemical(Entity<SleeperConsoleComponent> console, ref SleeperInjectChemicalBuiMsg args)
     {
-        if (console.Comp.LinkedSleeper is not { } sleeperId || !TryComp(sleeperId, out SleeperComponent? sleeper))
+        if (!TryGetLinkedSleeper(console, out var sleeper))
             return;
 
-        if (sleeper.Occupant is not { } occupant)
+        if (sleeper.Comp.Occupant is not { } occupant)
             return;
 
         if (_mobState.IsDead(occupant))
             return;
 
-        if (!sleeper.InjectionAmounts.Contains(args.Amount))
+        if (!sleeper.Comp.InjectionAmounts.Contains(args.Amount))
             return;
 
-        var availableChemicals = console.Comp.IsUpgraded ? sleeper.UpgradedChemicals : sleeper.AvailableChemicals;
-        var emergencyChemicals = console.Comp.IsUpgraded ? sleeper.UpgradedEmergencyChemicals : sleeper.EmergencyChemicals;
+        var availableChemicals = console.Comp.IsUpgraded ? sleeper.Comp.UpgradedChemicals : sleeper.Comp.AvailableChemicals;
+        var emergencyChemicals = console.Comp.IsUpgraded ? sleeper.Comp.UpgradedEmergencyChemicals : sleeper.Comp.EmergencyChemicals;
 
         var isAvailable = availableChemicals.Contains(args.Chemical);
         var isEmergency = emergencyChemicals.Contains(args.Chemical);
@@ -82,7 +83,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
 
         if (isEmergency && !isAvailable)
         {
-            if (!TryComp<DamageableComponent>(occupant, out var damageable) || damageable.TotalDamage <= sleeper.PercentHealthThreshold)
+            if (!TryComp<DamageableComponent>(occupant, out var damageable) || damageable.TotalDamage <= sleeper.Comp.PercentHealthThreshold)
                 return;
         }
 
@@ -91,7 +92,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
 
         var reagent = new ReagentId(args.Chemical, null);
         var currentAmount = chemSol.GetReagentQuantity(reagent);
-        if (currentAmount + args.Amount > sleeper.MaxChemical)
+        if (currentAmount + args.Amount > sleeper.Comp.MaxChemical)
             return;
 
         _solution.TryAddReagent(chemSolEnt, args.Chemical, args.Amount);
@@ -101,36 +102,36 @@ public sealed class SleeperSystem : SharedSleeperSystem
 
     private void OnConsoleToggleFilter(Entity<SleeperConsoleComponent> console, ref SleeperToggleFilterBuiMsg args)
     {
-        if (console.Comp.LinkedSleeper is not { } sleeperId || !TryComp(sleeperId, out SleeperComponent? sleeper))
+        if (!TryGetLinkedSleeper(console, out var sleeper))
             return;
 
-        ToggleDialysis((sleeperId, sleeper));
+        ToggleDialysis(sleeper);
         UpdateUI(console);
     }
 
     private void OnConsoleEject(Entity<SleeperConsoleComponent> console, ref SleeperEjectBuiMsg args)
     {
-        if (console.Comp.LinkedSleeper is not { } sleeperId || !TryComp(sleeperId, out SleeperComponent? sleeper))
+        if (!TryGetLinkedSleeper(console, out var sleeper))
             return;
 
-        if (sleeper.Occupant is { } occupant)
-            EjectOccupant((sleeperId, sleeper), occupant);
+        if (sleeper.Comp.Occupant is { } occupant)
+            EjectOccupant(sleeper, occupant);
 
         UpdateUI(console);
     }
 
     private void OnConsoleAutoEjectDead(Entity<SleeperConsoleComponent> console, ref SleeperAutoEjectDeadBuiMsg args)
     {
-        if (console.Comp.LinkedSleeper is not { } sleeperId || !TryComp(sleeperId, out SleeperComponent? sleeper))
+        if (!TryGetLinkedSleeper(console, out var sleeper))
             return;
 
-        sleeper.AutoEjectDead = args.Enabled;
-        Dirty(sleeperId, sleeper);
+        sleeper.Comp.AutoEjectDead = args.Enabled;
+        Dirty(sleeper);
 
-        if (args.Enabled && sleeper.Occupant is { } occupant && _mobState.IsDead(occupant))
+        if (args.Enabled && sleeper.Comp.Occupant is { } occupant && _mobState.IsDead(occupant))
         {
-            _audio.PlayPvs(sleeper.AutoEjectDeadSound, sleeperId);
-            EjectOccupant((sleeperId, sleeper), occupant);
+            _audio.PlayPvs(sleeper.Comp.AutoEjectDeadSound, sleeper);
+            EjectOccupant(sleeper, occupant);
         }
 
         UpdateUI(console);
@@ -141,11 +142,10 @@ public sealed class SleeperSystem : SharedSleeperSystem
         if (!_ui.IsUiOpen(console.Owner, SleeperUIKey.Key))
             return;
 
-        // If no sleeper is connected, the UI shouldn't be open (handled by ActivatableUIOpenAttemptEvent)
-        if (console.Comp.LinkedSleeper is not { } sleeperId || !TryComp(sleeperId, out SleeperComponent? sleeper))
+        if (!TryGetLinkedSleeper(console, out var sleeper))
             return;
 
-        var occupant = sleeper.Occupant;
+        var occupant = sleeper.Comp.Occupant;
         NetEntity? netOccupant = null;
         string? occupantName = null;
         var occupantState = SleeperOccupantMobState.None;
@@ -185,7 +185,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
                 {
                     maxHealth = (float)critThreshold;
                     health = (float)(critThreshold - totalDamage);
-                    emergencyHealthThreshold = (float)(deadThreshold - deadThreshold * sleeper.PercentHealthThreshold);
+                    emergencyHealthThreshold = (float)(deadThreshold - deadThreshold * sleeper.Comp.PercentHealthThreshold);
                 }
 
                 bruteLoss = damageable.DamagePerGroup.GetValueOrDefault(BruteGroup).Float();
@@ -213,19 +213,15 @@ public sealed class SleeperSystem : SharedSleeperSystem
         }
 
         var isUpgraded = console.Comp.IsUpgraded;
-        var availableChemicals = isUpgraded ? sleeper.UpgradedChemicals : sleeper.AvailableChemicals;
-        var emergencyChemicals = isUpgraded ? sleeper.UpgradedEmergencyChemicals : sleeper.EmergencyChemicals;
-
+        var availableChemicals = isUpgraded ? sleeper.Comp.UpgradedChemicals : sleeper.Comp.AvailableChemicals;
+        var emergencyChemicals = isUpgraded ? sleeper.Comp.UpgradedEmergencyChemicals : sleeper.Comp.EmergencyChemicals;
         var isEmergency = totalDamage >= emergencyHealthThreshold;
-        var totalChemCount = availableChemicals.Length;
-        if (isEmergency)
-            totalChemCount += emergencyChemicals.Length;
 
         // Build chemical list - always show AvailableChemicals
-        var chemicals = new List<SleeperChemicalData>(totalChemCount);
+        _chemicalListBuffer.Clear();
         foreach (var chemId in availableChemicals)
         {
-            AddChemicalToList(chemicals, chemId, occupant, cachedChemSol, true);
+            AddChemicalToList(_chemicalListBuffer, chemId, occupant, cachedChemSol, true);
         }
 
         if (isEmergency)
@@ -236,7 +232,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
                 if (availableChemicals.Contains(chemId))
                     continue;
 
-                AddChemicalToList(chemicals, chemId, occupant, cachedChemSol, true);
+                AddChemicalToList(_chemicalListBuffer, chemId, occupant, cachedChemSol, true);
             }
         }
 
@@ -254,14 +250,14 @@ public sealed class SleeperSystem : SharedSleeperSystem
             bloodPercent,
             pulse,
             bodyTemp,
-            sleeper.IsFiltering,
+            sleeper.Comp.IsFiltering,
             totalReagents,
-            sleeper.DialysisStartedReagentVolume,
-            sleeper.AutoEjectDead,
-            sleeper.MaxChemical,
+            sleeper.Comp.DialysisStartedReagentVolume,
+            sleeper.Comp.AutoEjectDead,
+            sleeper.Comp.MaxChemical,
             emergencyHealthThreshold,
-            chemicals.ToArray(),
-            sleeper.InjectionAmounts);
+            _chemicalListBuffer.ToArray(),
+            sleeper.Comp.InjectionAmounts);
 
         _ui.SetUiState(console.Owner, SleeperUIKey.Key, state);
     }
@@ -356,6 +352,16 @@ public sealed class SleeperSystem : SharedSleeperSystem
                 Dirty(uid, sleeper);
             }
         }
+    }
+
+    private bool TryGetLinkedSleeper(Entity<SleeperConsoleComponent> console, out Entity<SleeperComponent> sleeper)
+    {
+        sleeper = default;
+        if (console.Comp.LinkedSleeper is not { } linkedId || !TryComp(linkedId, out SleeperComponent? comp))
+            return false;
+
+        sleeper = (linkedId, comp);
+        return true;
     }
 
     private void AddChemicalToList(
