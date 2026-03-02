@@ -29,7 +29,8 @@ public sealed class AutodocBuiState(
     bool removeShrapnel,
     bool internalBleeding,
     bool brokenBone,
-    bool organDamage)
+    bool organDamage,
+    HashSet<AutodocUpgradeTier> installedUpgrades)
     : BoundUserInterfaceState
 {
     public readonly NetEntity? Occupant = occupant;
@@ -57,6 +58,7 @@ public sealed class AutodocBuiState(
     public readonly bool InternalBleeding = internalBleeding;
     public readonly bool BrokenBone = brokenBone;
     public readonly bool OrganDamage = organDamage;
+    public readonly HashSet<AutodocUpgradeTier> InstalledUpgrades = installedUpgrades;
 }
 
 [Serializable, NetSerializable]

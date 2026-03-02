@@ -19,4 +19,11 @@ public sealed partial class AutodocConsoleComponent : Component
 
     [DataField, AutoNetworkedField]
     public Dictionary<EntProtoId<SkillDefinitionComponent>, int> SkillRequired = new() { ["RMCSkillSurgery"] = 1 };
+
+    /// <summary>
+    /// Set of research upgrade tiers currently installed on this console.
+    /// Each tier independently unlocks a specific surgery type.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public HashSet<AutodocUpgradeTier> InstalledUpgrades = new();
 }

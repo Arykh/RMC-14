@@ -44,6 +44,7 @@ public abstract class SharedAutodocSystem : EntitySystem
         SubscribeLocalEvent<AutodocComponent, DragDropTargetEvent>(OnAutodocDragDropTarget, before: [typeof(DragInsertContainerSystem)]);
 
         SubscribeLocalEvent<AutodocConsoleComponent, ActivatableUIOpenAttemptEvent>(OnConsoleUIOpenAttempt);
+        SubscribeLocalEvent<AutodocConsoleComponent, InteractUsingEvent>(OnConsoleInteractUsing);
 
         SubscribeLocalEvent<InsideAutodocComponent, MoveInputEvent>(OnInsideAutodocMoveInput);
     }
@@ -183,6 +184,31 @@ public abstract class SharedAutodocSystem : EntitySystem
             _popup.PopupClient(Loc.GetString("rmc-autodoc-no-skill"), console, args.User);
             args.Cancel();
         }
+    }
+
+    private void OnConsoleInteractUsing(Entity<AutodocConsoleComponent> console, ref InteractUsingEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        if (!TryComp<AutodocResearchUpgradeComponent>(args.Used, out var upgrade))
+            return;
+
+        args.Handled = true;
+
+        if (console.Comp.InstalledUpgrades.Contains(upgrade.Tier))
+        {
+            _popup.PopupClient(Loc.GetString("rmc-autodoc-upgrade-already-installed"), console, args.User);
+            return;
+        }
+
+        console.Comp.InstalledUpgrades.Add(upgrade.Tier);
+        Dirty(console);
+
+        _popup.PopupClient(Loc.GetString("rmc-autodoc-upgrade-installed"), console, args.User);
+
+        if (_net.IsServer)
+            QueueDel(args.Used);
     }
 
     protected void TryEjectOccupant(Entity<AutodocComponent> autodoc, EntityUid occupant, EntityUid? user = null)

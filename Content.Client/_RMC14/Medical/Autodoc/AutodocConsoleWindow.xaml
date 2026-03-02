@@ -122,7 +122,7 @@
             </BoxContainer>
 
             <!-- Orthopedic Surgeries Section -->
-            <BoxContainer Orientation="Vertical" Visible="False">
+            <BoxContainer Name="OrthopedicSection" Orientation="Vertical" Visible="False">
                 <Label Text="{Loc rmc-autodoc-orthopedic-header}" StyleClasses="LabelKeyText" Margin="0 0 0 5" />
                 <cc:HSeparator Color="#4972A1" Margin="0 0 0 5" />
                 <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">

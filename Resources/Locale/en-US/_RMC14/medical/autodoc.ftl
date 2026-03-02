@@ -43,6 +43,10 @@ rmc-autodoc-broken-bone = Broken Bone Surgery
 rmc-autodoc-organ-damage = Organ Damage Treatment
 rmc-autodoc-larva-extraction = Parasite Extraction
 
+rmc-autodoc-upgrade-installed = You insert the data disk into the console and the drive whirs to life, reading the data.
+rmc-autodoc-upgrade-already-installed = This upgrade data is already present in the console!
+rmc-autodoc-upgrade-required = The console requires a research upgrade to unlock this procedure.
+
 rmc-autodoc-surgery-starting = The autodoc begins to operate, loud audible clicks lock the pod.
 rmc-autodoc-incisions-starting = The autodoc begins closing surgical incisions.
 rmc-autodoc-larva-starting = The autodoc begins parasite extraction surgery.

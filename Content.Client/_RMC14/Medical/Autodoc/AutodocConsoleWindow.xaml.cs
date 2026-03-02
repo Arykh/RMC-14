@@ -117,7 +117,21 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         DialysisToggleButton.Pressed = state.Filtering;
         ToxinToggleButton.Pressed = state.HealingToxin;
 
-        // Orthopedic surgery toggles
+        // Orthopedic surgery toggles - visibility based on installed upgrade tiers
+        var upgrades = state.InstalledUpgrades;
+        var hasAnyUpgrade = upgrades.Count > 0;
+        OrthopedicSection.Visible = hasAnyUpgrade;
+
+        var hasIb = upgrades.Contains(AutodocUpgradeTier.InternalBleeding);
+        var hasBb = upgrades.Contains(AutodocUpgradeTier.BrokenBone);
+        var hasOd = upgrades.Contains(AutodocUpgradeTier.OrganDamage);
+        var hasLe = upgrades.Contains(AutodocUpgradeTier.LarvaExtraction);
+
+        InternalBleedingToggleButton.Visible = hasIb;
+        BrokenBoneToggleButton.Visible = hasBb;
+        OrganDamageToggleButton.Visible = hasOd;
+        LarvaToggleButton.Visible = hasLe;
+
         InternalBleedingToggleButton.Pressed = state.InternalBleeding;
         BrokenBoneToggleButton.Pressed = state.BrokenBone;
         OrganDamageToggleButton.Pressed = state.OrganDamage;
@@ -144,10 +158,10 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         BloodToggleButton.Disabled = state.SurgeryInProgress;
         DialysisToggleButton.Disabled = state.SurgeryInProgress;
         ToxinToggleButton.Disabled = state.SurgeryInProgress;
-        InternalBleedingToggleButton.Disabled = state.SurgeryInProgress;
-        BrokenBoneToggleButton.Disabled = state.SurgeryInProgress;
-        OrganDamageToggleButton.Disabled = state.SurgeryInProgress;
-        LarvaToggleButton.Disabled = state.SurgeryInProgress;
+        InternalBleedingToggleButton.Disabled = state.SurgeryInProgress || !hasIb;
+        BrokenBoneToggleButton.Disabled = state.SurgeryInProgress || !hasBb;
+        OrganDamageToggleButton.Disabled = state.SurgeryInProgress || !hasOd;
+        LarvaToggleButton.Disabled = state.SurgeryInProgress || !hasLe;
 
         // Update button styles based on selection
         UpdateToggleButtonStyle(BruteToggleButton, state.HealingBrute);

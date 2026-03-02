@@ -148,6 +148,12 @@ public sealed class AutodocSystem : SharedAutodocSystem
         if (!TryGetLinkedAutodoc(console, out var autodoc, true))
             return;
 
+        if (!console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.InternalBleeding))
+        {
+            _popup.PopupEntity(Loc.GetString("rmc-autodoc-upgrade-required"), console, args.Actor);
+            return;
+        }
+
         autodoc.Comp.InternalBleeding = !autodoc.Comp.InternalBleeding;
         Dirty(autodoc);
         UpdateUI(console);
@@ -157,6 +163,12 @@ public sealed class AutodocSystem : SharedAutodocSystem
     {
         if (!TryGetLinkedAutodoc(console, out var autodoc, true))
             return;
+
+        if (!console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.BrokenBone))
+        {
+            _popup.PopupEntity(Loc.GetString("rmc-autodoc-upgrade-required"), console, args.Actor);
+            return;
+        }
 
         autodoc.Comp.BrokenBone = !autodoc.Comp.BrokenBone;
         Dirty(autodoc);
@@ -168,6 +180,12 @@ public sealed class AutodocSystem : SharedAutodocSystem
         if (!TryGetLinkedAutodoc(console, out var autodoc, true))
             return;
 
+        if (!console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.OrganDamage))
+        {
+            _popup.PopupEntity(Loc.GetString("rmc-autodoc-upgrade-required"), console, args.Actor);
+            return;
+        }
+
         autodoc.Comp.OrganDamage = !autodoc.Comp.OrganDamage;
         Dirty(autodoc);
         UpdateUI(console);
@@ -177,6 +195,12 @@ public sealed class AutodocSystem : SharedAutodocSystem
     {
         if (!TryGetLinkedAutodoc(console, out var autodoc, true))
             return;
+
+        if (!console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.LarvaExtraction))
+        {
+            _popup.PopupEntity(Loc.GetString("rmc-autodoc-upgrade-required"), console, args.Actor);
+            return;
+        }
 
         autodoc.Comp.RemoveLarva = !autodoc.Comp.RemoveLarva;
         Dirty(autodoc);
@@ -424,7 +448,8 @@ public sealed class AutodocSystem : SharedAutodocSystem
             autodoc.Comp.RemoveShrapnel,
             autodoc.Comp.InternalBleeding,
             autodoc.Comp.BrokenBone,
-            autodoc.Comp.OrganDamage);
+            autodoc.Comp.OrganDamage,
+            console.Comp.InstalledUpgrades);
 
         _ui.SetUiState(console.Owner, AutodocUIKey.Key, state);
     }
