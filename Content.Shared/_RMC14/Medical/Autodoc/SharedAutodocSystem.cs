@@ -154,7 +154,7 @@ public abstract class SharedAutodocSystem : EntitySystem
 
         if (!_skills.HasAllSkills(args.User, autodoc.Comp.SkillRequired))
         {
-            _popup.PopupClient(Loc.GetString("rmc-autodoc-no-skill"), autodoc, args.User);
+            _popup.PopupEntity(Loc.GetString("rmc-autodoc-no-skill"), autodoc, args.User);
             args.Handled = true;
         }
     }
@@ -166,12 +166,12 @@ public abstract class SharedAutodocSystem : EntitySystem
 
         if (console.Comp.LinkedAutodoc is not { } autodocId || !TryComp<AutodocComponent>(autodocId, out var autodoc))
         {
-            _popup.PopupClient(Loc.GetString("rmc-autodoc-no-autodoc-connected"), console, args.User);
+            _popup.PopupEntity(Loc.GetString("rmc-autodoc-no-autodoc-connected"), console, args.User);
             args.Cancel();
         }
         else if (!_skills.HasAllSkills(args.User, autodoc.SkillRequired))
         {
-            _popup.PopupClient(Loc.GetString("rmc-autodoc-no-skill"), console, args.User);
+            _popup.PopupEntity(Loc.GetString("rmc-autodoc-no-skill"), console, args.User);
             args.Cancel();
         }
     }
@@ -187,13 +187,13 @@ public abstract class SharedAutodocSystem : EntitySystem
         args.Handled = true;
         if (!console.Comp.InstalledUpgrades.Add(upgrade.Tier))
         {
-            _popup.PopupClient(Loc.GetString("rmc-autodoc-upgrade-already-installed"), console, args.User);
+            _popup.PopupEntity(Loc.GetString("rmc-autodoc-upgrade-already-installed"), console, args.User);
             return;
         }
 
         Dirty(console);
 
-        _popup.PopupClient(Loc.GetString("rmc-autodoc-upgrade-installed"), console, args.User);
+        _popup.PopupEntity(Loc.GetString("rmc-autodoc-upgrade-installed"), console, args.User);
 
         if (_net.IsServer)
             QueueDel(args.Used);
