@@ -128,7 +128,7 @@
   id: RMCSleeperAdvanced
   name: advanced sleeper
   description: A more expensive model of the sleeper bed, comes with additional chemicals and an advanced dialysis machine, capable of removing chemicals much faster and more of them at the same time.
-  suffix: Spawns with Console
+  suffix: Upgraded Console
   components:
   - type: Sleeper
     spawnConsolePrototype: RMCSleeperConsoleUpgraded
