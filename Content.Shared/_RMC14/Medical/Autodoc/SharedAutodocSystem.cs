@@ -164,12 +164,12 @@ public abstract class SharedAutodocSystem : EntitySystem
         if (args.Cancelled)
             return;
 
-        if (console.Comp.LinkedAutodoc is not { } autodocId || !HasComp<AutodocComponent>(autodocId))
+        if (console.Comp.LinkedAutodoc is not { } autodocId || !TryComp<AutodocComponent>(autodocId, out var autodoc))
         {
             _popup.PopupClient(Loc.GetString("rmc-autodoc-no-autodoc-connected"), console, args.User);
             args.Cancel();
         }
-        else if (!_skills.HasAllSkills(args.User, console.Comp.SkillRequired))
+        else if (!_skills.HasAllSkills(args.User, autodoc.SkillRequired))
         {
             _popup.PopupClient(Loc.GetString("rmc-autodoc-no-skill"), console, args.User);
             args.Cancel();

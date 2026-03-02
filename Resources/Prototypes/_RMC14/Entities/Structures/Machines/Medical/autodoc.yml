@@ -117,26 +117,18 @@
       - Xeno
   - type: RMCMesonsNonviewable
 
-# Unskilled Autodoc
+# Unskilled, Upgraded Autodoc
 - type: entity
   parent: RMCAutodoc
   id: RMCAutodocUnskilled
   name: advanced autodoc emergency medical system
   description: A much more expensive model of autodoc modified with an A.I. diagnostic unit. The result is a much simpler, point-and-click interface that anyone, regardless of training, can use.
-  suffix: Unskilled, Spawns with Console
+  suffix: Unskilled, Upgraded
   components:
   - type: Autodoc
-    spawnConsolePrototype: RMCAutodocConsoleUnskilled
+    spawnConsolePrototype: RMCAutodocConsoleUpgraded
     skillRequired: {}
 
-- type: entity
-  parent: RMCAutodocConsole
-  id: RMCAutodocConsoleUnskilled
-  components:
-  - type: AutodocConsole
-    skillRequired: {}
-
-# Pre-upgraded Autodoc Console (all research tiers installed)
 - type: entity
   parent: RMCAutodocConsole
   id: RMCAutodocConsoleUpgraded
@@ -148,15 +140,3 @@
     - BrokenBone
     - OrganDamage
     - LarvaExtraction
-
-# Pre-upgraded Autodoc (spawns with fully upgraded console)
-- type: entity
-  parent: RMCAutodoc
-  id: RMCAutodocUpgraded
-  name: upgraded autodoc emergency medical system
-  description: A fully upgraded autodoc unit with all research modules pre-installed.
-  suffix: All Upgrades, Spawns with Console
-  components:
-  - type: Autodoc
-    spawnConsolePrototype: RMCAutodocConsoleUpgraded
-

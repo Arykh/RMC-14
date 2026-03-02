@@ -259,7 +259,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
 
     private void OnConsoleImportScan(Entity<AutodocConsoleComponent> console, ref AutodocImportScanBuiMsg args)
     {
-        if (!TryGetLinkedAutodoc(console, out var autodoc))
+        if (!TryGetLinkedAutodoc(console, out _))
             return;
         // TODO RMC14 Import latest surgery list generated from bodyscanner
         UpdateUI(console);
