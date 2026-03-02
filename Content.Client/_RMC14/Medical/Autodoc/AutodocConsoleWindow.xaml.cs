@@ -11,6 +11,10 @@ namespace Content.Client._RMC14.Medical.Autodoc;
 [GenerateTypedNameReferences]
 public sealed partial class AutodocConsoleWindow : DefaultWindow
 {
+    private static readonly StyleBoxFlat StyleGood = new(Color.FromHex("#408040"));
+    private static readonly StyleBoxFlat StyleWarning = new(Color.FromHex("#A0A030"));
+    private static readonly StyleBoxFlat StyleDanger = new(Color.FromHex("#A04040"));
+
     private AutodocConsoleBui? _bui;
 
     public AutodocConsoleWindow()
@@ -49,18 +53,25 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
             return;
 
         OccupantNameLabel.Text = state.OccupantName ?? "";
+        UpdateHealthStates(state);
+        UpdateBloodStates(state);
+        UpdateReagentsBar(state);
+        UpdateDamageBars(state);
+        UpdateToggleStates(state);
+        UpdateButtonStates(state);
+    }
 
-        // Health
+    private void UpdateHealthStates(AutodocBuiState state)
+    {
         HealthBar.Value = state.Health;
         HealthBar.MaxValue = state.MaxHealth;
-        HealthBar.MinValue = 0;
         HealthBarText.Text = $"{state.Health:F0}";
 
         HealthBar.ForegroundStyleBoxOverride = state.Health switch
         {
-            _ when state.Health >= state.MaxHealth * 0.5f => new StyleBoxFlat(Color.FromHex("#408040")),
-            >= 0 => new StyleBoxFlat(Color.FromHex("#A0A030")),
-            _ => new StyleBoxFlat(Color.FromHex("#A04040"))
+            _ when state.Health >= state.MaxHealth * 0.5f => StyleGood,
+            >= 0 => StyleWarning,
+            _ => StyleDanger
         };
 
         StatusLabel.Text = state.OccupantState switch
@@ -77,79 +88,83 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
             AutodocOccupantMobState.Dead => Color.Red,
             _ => Color.White
         };
+    }
 
-        // Blood
+    private void UpdateBloodStates(AutodocBuiState state)
+    {
         BloodBar.Value = state.BloodPercent;
         BloodBarText.Text = $"{state.BloodPercent:F2}%, {state.BloodLevel}cl";
 
         BloodBar.ForegroundStyleBoxOverride = state.BloodPercent switch
         {
-            >= 90 => new StyleBoxFlat(Color.FromHex("#408040")),
-            >= 60 => new StyleBoxFlat(Color.FromHex("#A0A030")),
-            _ => new StyleBoxFlat(Color.FromHex("#A04040"))
+            >= 90 => StyleGood,
+            >= 60 => StyleWarning,
+            _ => StyleDanger
         };
         PulseLabel.Text = state.Pulse;
+    }
 
-        // Damage bars
+    private void UpdateReagentsBar(AutodocBuiState state)
+    {
+        var reagents = state.TotalReagents.Float();
+        ReagentsBar.Value = reagents;
+        ReagentsBarText.Text = $"{state.TotalReagents:F1}u";
+        ReagentsBar.ForegroundStyleBoxOverride = reagents switch
+        {
+            < 10 => StyleGood,
+            < 30 => StyleWarning,
+            _ => StyleDanger
+        };
+    }
+
+    private void UpdateDamageBars(AutodocBuiState state)
+    {
         UpdateDamageBar(BruteBar, BruteBarText, state.BruteLoss);
         UpdateDamageBar(BurnBar, BurnBarText, state.BurnLoss);
         UpdateDamageBar(ToxinBar, ToxinBarText, state.ToxinLoss);
         UpdateDamageBar(OxygenBar, OxygenBarText, state.OxyLoss);
+    }
 
-        // Reagents bar
-        ReagentsBar.Value = state.TotalReagents.Float();
-        ReagentsBarText.Text = $"{state.TotalReagents:F1}u";
-        ReagentsBar.ForegroundStyleBoxOverride = state.TotalReagents.Float() switch
-        {
-            < 10 => new StyleBoxFlat(Color.FromHex("#408040")),
-            < 30 => new StyleBoxFlat(Color.FromHex("#A0A030")),
-            _ => new StyleBoxFlat(Color.FromHex("#A04040"))
-        };
-
+    private void UpdateToggleStates(AutodocBuiState state)
+    {
         // Trauma surgery toggles
-        BruteToggleButton.Pressed = state.HealingBrute;
-        BurnToggleButton.Pressed = state.HealingBurn;
-        CloseIncisionsToggleButton.Pressed = state.CloseIncisions;
-        RemoveShrapnelToggleButton.Pressed = state.RemoveShrapnel;
+        SetToggleState(BruteToggleButton, state.HealingBrute);
+        SetToggleState(BurnToggleButton, state.HealingBurn);
+        SetToggleState(CloseIncisionsToggleButton, state.CloseIncisions);
+        SetToggleState(RemoveShrapnelToggleButton, state.RemoveShrapnel);
 
         // Hematology treatment toggles
-        BloodToggleButton.Pressed = state.BloodTransfusion;
-        DialysisToggleButton.Pressed = state.Filtering;
-        ToxinToggleButton.Pressed = state.HealingToxin;
+        SetToggleState(BloodToggleButton, state.BloodTransfusion);
+        SetToggleState(DialysisToggleButton, state.Filtering);
+        SetToggleState(ToxinToggleButton, state.HealingToxin);
 
-        // Orthopedic surgery toggles - visibility based on installed upgrade tiers
+        // Orthopedic surgery toggles
         var upgrades = state.InstalledUpgrades;
-        var hasAnyUpgrade = upgrades.Count > 0;
-        OrthopedicSection.Visible = hasAnyUpgrade;
+        OrthopedicSection.Visible = upgrades.Count > 0;
+        InternalBleedingToggleButton.Visible = upgrades.Contains(AutodocUpgradeTier.InternalBleeding);
+        BrokenBoneToggleButton.Visible = upgrades.Contains(AutodocUpgradeTier.BrokenBone);
+        OrganDamageToggleButton.Visible = upgrades.Contains(AutodocUpgradeTier.OrganDamage);
+        LarvaToggleButton.Visible = upgrades.Contains(AutodocUpgradeTier.LarvaExtraction);
 
-        var hasIb = upgrades.Contains(AutodocUpgradeTier.InternalBleeding);
-        var hasBb = upgrades.Contains(AutodocUpgradeTier.BrokenBone);
-        var hasOd = upgrades.Contains(AutodocUpgradeTier.OrganDamage);
-        var hasLe = upgrades.Contains(AutodocUpgradeTier.LarvaExtraction);
+        SetToggleState(InternalBleedingToggleButton, state.InternalBleeding);
+        SetToggleState(BrokenBoneToggleButton, state.BrokenBone);
+        SetToggleState(OrganDamageToggleButton, state.OrganDamage);
+        SetToggleState(LarvaToggleButton, state.RemoveLarva);
+    }
 
-        InternalBleedingToggleButton.Visible = hasIb;
-        BrokenBoneToggleButton.Visible = hasBb;
-        OrganDamageToggleButton.Visible = hasOd;
-        LarvaToggleButton.Visible = hasLe;
-
-        InternalBleedingToggleButton.Pressed = state.InternalBleeding;
-        BrokenBoneToggleButton.Pressed = state.BrokenBone;
-        OrganDamageToggleButton.Pressed = state.OrganDamage;
-        LarvaToggleButton.Pressed = state.RemoveLarva;
-
-        // Green when at least one surgery is selected
+    private void UpdateButtonStates(AutodocBuiState state)
+    {
+        // Start Surgery button highlighted if any procedure is selected
         var anySelected = state.HealingBrute || state.HealingBurn || state.CloseIncisions || state.RemoveShrapnel ||
                           state.BloodTransfusion || state.Filtering || state.HealingToxin ||
                           state.InternalBleeding || state.BrokenBone || state.OrganDamage || state.RemoveLarva;
-        if (anySelected)
-            StartSurgeryButton.AddStyleClass(StyleNano.StyleClassButtonColorGreen);
-        else
-            StartSurgeryButton.RemoveStyleClass(StyleNano.StyleClassButtonColorGreen);
 
-        // Disable buttons and turn eject red during surgery
+        SetButtonStyleClass(StartSurgeryButton, StyleNano.StyleClassButtonColorGreen, anySelected);
+        SetButtonStyleClass(EjectButton, StyleNano.StyleClassButtonColorRed, state.SurgeryInProgress);
+
+        // Disable buttons except eject during surgery
         StartSurgeryButton.Disabled = state.SurgeryInProgress;
         ClearButton.Disabled = state.SurgeryInProgress;
-        EjectButton.Modulate = state.SurgeryInProgress ? Color.Red : Color.White;
         ImportScanButton.Disabled = state.SurgeryInProgress;
         BruteToggleButton.Disabled = state.SurgeryInProgress;
         BurnToggleButton.Disabled = state.SurgeryInProgress;
@@ -158,23 +173,10 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         BloodToggleButton.Disabled = state.SurgeryInProgress;
         DialysisToggleButton.Disabled = state.SurgeryInProgress;
         ToxinToggleButton.Disabled = state.SurgeryInProgress;
-        InternalBleedingToggleButton.Disabled = state.SurgeryInProgress || !hasIb;
-        BrokenBoneToggleButton.Disabled = state.SurgeryInProgress || !hasBb;
-        OrganDamageToggleButton.Disabled = state.SurgeryInProgress || !hasOd;
-        LarvaToggleButton.Disabled = state.SurgeryInProgress || !hasLe;
-
-        // Update button styles based on selection
-        UpdateToggleButtonStyle(BruteToggleButton, state.HealingBrute);
-        UpdateToggleButtonStyle(BurnToggleButton, state.HealingBurn);
-        UpdateToggleButtonStyle(CloseIncisionsToggleButton, state.CloseIncisions);
-        UpdateToggleButtonStyle(RemoveShrapnelToggleButton, state.RemoveShrapnel);
-        UpdateToggleButtonStyle(BloodToggleButton, state.BloodTransfusion);
-        UpdateToggleButtonStyle(DialysisToggleButton, state.Filtering);
-        UpdateToggleButtonStyle(ToxinToggleButton, state.HealingToxin);
-        UpdateToggleButtonStyle(InternalBleedingToggleButton, state.InternalBleeding);
-        UpdateToggleButtonStyle(BrokenBoneToggleButton, state.BrokenBone);
-        UpdateToggleButtonStyle(OrganDamageToggleButton, state.OrganDamage);
-        UpdateToggleButtonStyle(LarvaToggleButton, state.RemoveLarva);
+        InternalBleedingToggleButton.Disabled = state.SurgeryInProgress;
+        BrokenBoneToggleButton.Disabled = state.SurgeryInProgress;
+        OrganDamageToggleButton.Disabled = state.SurgeryInProgress;
+        LarvaToggleButton.Disabled = state.SurgeryInProgress;
     }
 
     private static void UpdateDamageBar(ProgressBar bar, Label label, float damage)
@@ -184,14 +186,23 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
 
         bar.ForegroundStyleBoxOverride = damage switch
         {
-            < 25 => new StyleBoxFlat(Color.FromHex("#408040")),
-            < 50 => new StyleBoxFlat(Color.FromHex("#A0A030")),
-            _ => new StyleBoxFlat(Color.FromHex("#A04040"))
+            < 25 => StyleGood,
+            < 50 => StyleWarning,
+            _ => StyleDanger
         };
     }
 
-    private static void UpdateToggleButtonStyle(Button button, bool active)
+    private static void SetToggleState(Button button, bool toggled)
     {
-        button.Modulate = active ? Color.FromHex("#80FF80") : Color.White;
+        button.Pressed = toggled;
+        SetButtonStyleClass(button, StyleNano.StyleClassButtonColorGreen, toggled);
+    }
+
+    private static void SetButtonStyleClass(Button button, string styleClass, bool active)
+    {
+        if (active)
+            button.AddStyleClass(styleClass);
+        else
+            button.RemoveStyleClass(styleClass);
     }
 }

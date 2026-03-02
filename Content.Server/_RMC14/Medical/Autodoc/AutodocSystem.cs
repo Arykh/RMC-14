@@ -230,7 +230,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
         autodoc.Comp.NextTick = _timing.CurTime + autodoc.Comp.TickDelay;
         autodoc.Comp.CurrentSurgeryType = AutodocSurgeryType.None;
         Dirty(autodoc);
-        UpdateSurgeryVisuals(autodoc);
+        UpdateAutodocVisuals(autodoc);
         _audio.PlayPvs(autodoc.Comp.SurgeryStepSound, autodoc);
         _popup.PopupEntity(Loc.GetString("rmc-autodoc-surgery-starting"), autodoc);
         UpdateUI(console);
@@ -241,17 +241,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
         if (!TryGetLinkedAutodoc(console, out var autodoc, true))
             return;
 
-        autodoc.Comp.HealingBrute = false;
-        autodoc.Comp.HealingBurn = false;
-        autodoc.Comp.HealingToxin = false;
-        autodoc.Comp.BloodTransfusion = false;
-        autodoc.Comp.Filtering = false;
-        autodoc.Comp.RemoveLarva = false;
-        autodoc.Comp.CloseIncisions = false;
-        autodoc.Comp.RemoveShrapnel = false;
-        autodoc.Comp.InternalBleeding = false;
-        autodoc.Comp.BrokenBone = false;
-        autodoc.Comp.OrganDamage = false;
+        ResetAllTreatments(autodoc.Comp);
         Dirty(autodoc);
         UpdateUI(console);
     }
@@ -492,7 +482,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 autodoc.IsSurgeryInProgress = false;
                 autodoc.CurrentSurgeryType = AutodocSurgeryType.None;
                 Dirty(uid, autodoc);
-                UpdateSurgeryVisuals((uid, autodoc));
+                UpdateAutodocVisuals((uid, autodoc));
                 _popup.PopupEntity(Loc.GetString("rmc-autodoc-patient-dead"), uid);
                 _audio.PlayPvs(autodoc.AutoEjectDeadSound, uid);
                 TryEjectOccupant((uid, autodoc), occupant);
@@ -723,7 +713,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 autodoc.IsSurgeryInProgress = false;
                 autodoc.CurrentSurgeryType = AutodocSurgeryType.None;
                 Dirty(uid, autodoc);
-                UpdateSurgeryVisuals((uid, autodoc));
+                UpdateAutodocVisuals((uid, autodoc));
                 _audio.PlayPvs(autodoc.SurgeryCompleteSound, uid);
                 _popup.PopupEntity(Loc.GetString("rmc-autodoc-complete"), uid);
                 TryEjectOccupant((uid, autodoc), occupant);

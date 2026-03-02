@@ -118,17 +118,7 @@ public abstract class SharedAutodocSystem : EntitySystem
             autodoc.Comp.Occupant = null;
             autodoc.Comp.IsSurgeryInProgress = false;
             autodoc.Comp.CurrentSurgeryType = AutodocSurgeryType.None;
-            autodoc.Comp.HealingBrute = false;
-            autodoc.Comp.HealingBurn = false;
-            autodoc.Comp.HealingToxin = false;
-            autodoc.Comp.BloodTransfusion = false;
-            autodoc.Comp.Filtering = false;
-            autodoc.Comp.CloseIncisions = false;
-            autodoc.Comp.RemoveShrapnel = false;
-            autodoc.Comp.InternalBleeding = false;
-            autodoc.Comp.BrokenBone = false;
-            autodoc.Comp.OrganDamage = false;
-            autodoc.Comp.RemoveLarva = false;
+            ResetAllTreatments(autodoc.Comp);
             Dirty(autodoc);
         }
 
@@ -245,7 +235,7 @@ public abstract class SharedAutodocSystem : EntitySystem
             _stun.TryStun(occupant, autodoc.Comp.ExitStun, true);
     }
 
-    private void UpdateAutodocVisuals(Entity<AutodocComponent> autodoc)
+    protected void UpdateAutodocVisuals(Entity<AutodocComponent> autodoc)
     {
         AutodocVisualState state;
         if (autodoc.Comp.Occupant == null)
@@ -258,9 +248,19 @@ public abstract class SharedAutodocSystem : EntitySystem
         _appearance.SetData(autodoc, AutodocVisuals.State, state);
     }
 
-    protected void UpdateSurgeryVisuals(Entity<AutodocComponent> autodoc)
+    protected static void ResetAllTreatments(AutodocComponent comp)
     {
-        UpdateAutodocVisuals(autodoc);
+        comp.HealingBrute = false;
+        comp.HealingBurn = false;
+        comp.HealingToxin = false;
+        comp.BloodTransfusion = false;
+        comp.Filtering = false;
+        comp.CloseIncisions = false;
+        comp.RemoveShrapnel = false;
+        comp.InternalBleeding = false;
+        comp.BrokenBone = false;
+        comp.OrganDamage = false;
+        comp.RemoveLarva = false;
     }
 
     private void OnInsideAutodocMoveInput(Entity<InsideAutodocComponent> ent, ref MoveInputEvent args)

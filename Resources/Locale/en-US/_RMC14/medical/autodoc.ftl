@@ -35,7 +35,7 @@ rmc-autodoc-shrapnel-removal = Shrapnel Removal Surgery
 rmc-autodoc-hematology-header = Hematology Treatments
 rmc-autodoc-blood-transfusion = Blood Transfusion
 rmc-autodoc-dialysis = Dialysis
-rmc-autodoc-toxin-treatment = Toxin Damage Chelation
+rmc-autodoc-toxin-treatment = Toxin Damage Treatment
 
 rmc-autodoc-orthopedic-header = Orthopedic Surgeries
 rmc-autodoc-internal-bleeding = Internal Bleeding Surgery

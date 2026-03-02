@@ -22,7 +22,7 @@
                 </BoxContainer>
                 <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
                     <Label Text="{Loc rmc-autodoc-health-label}" MinWidth="120" Modulate="#5B88B0" />
-                    <ProgressBar Name="HealthBar" HorizontalExpand="True" MinHeight="16">
+                    <ProgressBar Name="HealthBar" HorizontalExpand="True" MinValue="0" MinHeight="16">
                         <Label Name="HealthBarText" Align="Right" Margin="0 0 5 0" />
                     </ProgressBar>
                 </BoxContainer>
@@ -126,12 +126,12 @@
                 <Label Text="{Loc rmc-autodoc-orthopedic-header}" StyleClasses="LabelKeyText" Margin="0 0 0 5" />
                 <cc:HSeparator Color="#4972A1" Margin="0 0 0 5" />
                 <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
-                    <Button Name="InternalBleedingToggleButton" Text="{Loc rmc-autodoc-internal-bleeding}" ToggleMode="True" HorizontalExpand="True" Margin="2" />
-                    <Button Name="BrokenBoneToggleButton" Text="{Loc rmc-autodoc-broken-bone}" ToggleMode="True" HorizontalExpand="True" Margin="2" />
+                    <Button Name="InternalBleedingToggleButton" Text="{Loc rmc-autodoc-internal-bleeding}" ToggleMode="True" HorizontalExpand="True" Margin="2" Visible="False" />
+                    <Button Name="BrokenBoneToggleButton" Text="{Loc rmc-autodoc-broken-bone}" ToggleMode="True" HorizontalExpand="True" Margin="2" Visible="False" />
                 </BoxContainer>
                 <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
-                    <Button Name="OrganDamageToggleButton" Text="{Loc rmc-autodoc-organ-damage}" ToggleMode="True" HorizontalExpand="True" Margin="2" />
-                    <Button Name="LarvaToggleButton" Text="{Loc rmc-autodoc-larva-extraction}" ToggleMode="True" HorizontalExpand="True" Margin="2" />
+                    <Button Name="OrganDamageToggleButton" Text="{Loc rmc-autodoc-organ-damage}" ToggleMode="True" HorizontalExpand="True" Margin="2" Visible="False" />
+                    <Button Name="LarvaToggleButton" Text="{Loc rmc-autodoc-larva-extraction}" ToggleMode="True" HorizontalExpand="True" Margin="2" Visible="False" />
                 </BoxContainer>
             </BoxContainer>
         </BoxContainer>
