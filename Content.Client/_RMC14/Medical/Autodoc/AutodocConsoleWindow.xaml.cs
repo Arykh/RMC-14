@@ -195,7 +195,7 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
     private static void SetToggleState(Button button, bool toggled)
     {
         button.Pressed = toggled;
-        SetButtonStyleClass(button, StyleNano.StyleClassButtonColorGreen, toggled);
+        SetButtonStyleClass(button, "ButtonAccept", toggled);
     }
 
     private static void SetButtonStyleClass(Button button, string styleClass, bool active)
