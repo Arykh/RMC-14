@@ -136,7 +136,7 @@ public abstract class SharedSleeperSystem : EntitySystem
 
         if (console.Comp.LinkedSleeper is not { } sleeperId || !HasComp<SleeperComponent>(sleeperId))
         {
-            _popup.PopupClient(Loc.GetString("rmc-sleeper-no-sleeper-connected"), console, args.User);
+            _popup.PopupEntity(Loc.GetString("rmc-sleeper-no-sleeper-connected"), console, args.User);
             args.Cancel();
         }
     }
@@ -152,14 +152,14 @@ public abstract class SharedSleeperSystem : EntitySystem
         args.Handled = true;
         if (console.Comp.IsUpgraded)
         {
-            _popup.PopupClient(Loc.GetString("rmc-sleeper-upgrade-already-installed"), console, args.User);
+            _popup.PopupEntity(Loc.GetString("rmc-sleeper-upgrade-already-installed"), console, args.User);
             return;
         }
 
         console.Comp.IsUpgraded = true;
         Dirty(console);
 
-        _popup.PopupClient(Loc.GetString("rmc-sleeper-upgrade-installed"), console, args.User);
+        _popup.PopupEntity(Loc.GetString("rmc-sleeper-upgrade-installed"), console, args.User);
 
         if (_net.IsServer)
             QueueDel(args.Used);
