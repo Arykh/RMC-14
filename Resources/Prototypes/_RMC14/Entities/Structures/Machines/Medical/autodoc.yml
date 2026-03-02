@@ -117,7 +117,7 @@
       - Xeno
   - type: RMCMesonsNonviewable
 
-# Unskilled, Upgraded Autodoc
+# Upgraded, Unskilled, Autodoc
 - type: entity
   parent: RMCAutodoc
   id: RMCAutodocUnskilled

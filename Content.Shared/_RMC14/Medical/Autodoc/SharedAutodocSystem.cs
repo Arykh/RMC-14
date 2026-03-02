@@ -185,14 +185,12 @@ public abstract class SharedAutodocSystem : EntitySystem
             return;
 
         args.Handled = true;
-
-        if (console.Comp.InstalledUpgrades.Contains(upgrade.Tier))
+        if (!console.Comp.InstalledUpgrades.Add(upgrade.Tier))
         {
             _popup.PopupClient(Loc.GetString("rmc-autodoc-upgrade-already-installed"), console, args.User);
             return;
         }
 
-        console.Comp.InstalledUpgrades.Add(upgrade.Tier);
         Dirty(console);
 
         _popup.PopupClient(Loc.GetString("rmc-autodoc-upgrade-installed"), console, args.User);
