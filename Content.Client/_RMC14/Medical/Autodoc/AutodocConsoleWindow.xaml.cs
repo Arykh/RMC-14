@@ -53,15 +53,15 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
             return;
 
         OccupantNameLabel.Text = state.OccupantName ?? "";
-        UpdateHealthStates(state);
-        UpdateBloodStates(state);
+        UpdateHealth(state);
+        UpdateBlood(state);
         UpdateReagentsBar(state);
         UpdateDamageBars(state);
         UpdateToggleStates(state);
         UpdateButtonStates(state);
     }
 
-    private void UpdateHealthStates(AutodocBuiState state)
+    private void UpdateHealth(AutodocBuiState state)
     {
         HealthBar.Value = state.Health;
         HealthBar.MaxValue = state.MaxHealth;
@@ -90,7 +90,7 @@ public sealed partial class AutodocConsoleWindow : DefaultWindow
         };
     }
 
-    private void UpdateBloodStates(AutodocBuiState state)
+    private void UpdateBlood(AutodocBuiState state)
     {
         BloodBar.Value = state.BloodPercent;
         BloodBarText.Text = $"{state.BloodPercent:F2}%, {state.BloodLevel}cl";
