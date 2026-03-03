@@ -2,6 +2,7 @@ using System.Numerics;
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared._RMC14.Medical.BodyScanner;
 
@@ -36,4 +37,22 @@ public sealed partial class BodyScannerComponent : Component
 
     [DataField]
     public SoundSpecifier EjectSound = new SoundPathSpecifier("/Audio/_RMC14/Machines/hydraulics_3.ogg");
+
+    [DataField] // TODO RMC14 sound/machines/scanning_pod1.ogg
+    public SoundSpecifier InsertSound = new SoundPathSpecifier("/Audio/_RMC14/Machines/hydraulics_3.ogg");
+
+    [DataField] // TODO RMC14 sound/machines/screen_output1.ogg
+    public SoundSpecifier ScanSound = new SoundPathSpecifier("/Audio/_RMC14/Machines/hydraulics_3.ogg");
+}
+
+[Serializable, NetSerializable]
+public enum BodyScannerVisuals : byte
+{
+    Occupied
+}
+
+[Serializable, NetSerializable]
+public enum BodyScannerVisualLayers
+{
+    Base
 }

@@ -185,7 +185,7 @@ public sealed class HealthScannerBui : BoundUserInterface
                 if (!_prototype.TryIndexReagent(reagent.Reagent.Prototype, out ReagentPrototype? prototype))
                     continue;
 
-                if (prototype.Unknown)
+                if (prototype.Unknown && uiState.DetailLevel < HealthScanDetailLevel.BodyScan)
                 {
                     // TODO RMC14 these shouldn't be setting sent to the client
                     anyUnknown = true;

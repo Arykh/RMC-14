@@ -11,7 +11,8 @@ public sealed class HealthScannerBuiState(
     FixedPoint2 maxBlood,
     float? temperature,
     Solution? chemicals,
-    bool bleeding)
+    bool bleeding,
+    HealthScanDetailLevel detailLevel = HealthScanDetailLevel.HealthAnalyzer)
     : BoundUserInterfaceState
 {
     public readonly NetEntity Target = target;
@@ -20,10 +21,19 @@ public sealed class HealthScannerBuiState(
     public readonly float? Temperature = temperature;
     public readonly Solution? Chemicals = chemicals;
     public readonly bool Bleeding = bleeding;
+    public readonly HealthScanDetailLevel DetailLevel = detailLevel;
 }
 
 [Serializable, NetSerializable]
 public enum HealthScannerUIKey
 {
     Key
+}
+
+[Serializable, NetSerializable]
+public enum HealthScanDetailLevel : byte
+{
+    HealthAnalyzer = 0,
+    BodyScan = 1,
+    Full = 2,
 }
