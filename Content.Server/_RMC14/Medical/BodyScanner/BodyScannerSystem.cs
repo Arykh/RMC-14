@@ -7,6 +7,7 @@ using Content.Shared._RMC14.Temperature;
 using Content.Shared.FixedPoint;
 using Content.Shared.UserInterface;
 using Robust.Server.GameObjects;
+using Robust.Shared.Timing;
 
 namespace Content.Server._RMC14.Medical.BodyScanner;
 
@@ -15,6 +16,7 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
     [Dependency] private readonly SharedRMCBloodstreamSystem _rmcBloodstream = default!;
     [Dependency] private readonly RMCPulseSystem _rmcPulse = default!;
     [Dependency] private readonly SharedRMCTemperatureSystem _rmcTemperature = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
 
     public override void Initialize()
@@ -27,7 +29,6 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
 
     private void OnConsoleUIOpened(Entity<BodyScannerConsoleComponent> console, ref AfterActivatableUIOpenEvent args)
     {
-        // Snapshot scan of the occupant's health data and send it once
         UpdateUI(console);
     }
 
@@ -40,10 +41,22 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
 
     private void UpdateUI(Entity<BodyScannerConsoleComponent> console)
     {
+        if (!_ui.IsUiOpen(console.Owner, HealthScannerUIKey.Key))
+            return;
+
         if (!TryGetLinkedScanner(console, out var scanner))
             return;
 
-        if (scanner.Comp.Occupant is not { } target || TerminatingOrDeleted(target))
+        if (scanner.Comp.Occupant is not { } target)
+        {
+            _ui.SetUiState(
+                console.Owner,
+                HealthScannerUIKey.Key,
+                new HealthScannerBuiState(NetEntity.Invalid, 0, 0, null, string.Empty, null, false));
+            return;
+        }
+
+        if (TerminatingOrDeleted(target))
             return;
 
         FixedPoint2 blood = 0;
@@ -71,6 +84,25 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
             HealthScanDetailLevel.BodyScan);
 
         _ui.SetUiState(console.Owner, HealthScannerUIKey.Key, state);
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        var time = _timing.CurTime;
+        var consoles = EntityQueryEnumerator<BodyScannerConsoleComponent>();
+        while (consoles.MoveNext(out var uid, out var console))
+        {
+            if (!_ui.IsUiOpen(uid, HealthScannerUIKey.Key))
+                continue;
+
+            if (time < console.UpdateAt)
+                continue;
+
+            console.UpdateAt = time + console.UpdateCooldown;
+            UpdateUI((uid, console));
+        }
     }
 
     private bool TryGetLinkedScanner(Entity<BodyScannerConsoleComponent> console, out Entity<BodyScannerComponent> scanner)

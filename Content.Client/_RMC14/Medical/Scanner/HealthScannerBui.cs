@@ -187,7 +187,7 @@ public sealed class HealthScannerBui : BoundUserInterface
 
                 if (prototype.Unknown && uiState.DetailLevel < HealthScanDetailLevel.BodyScan)
                 {
-                    // TODO RMC14 these shouldn't be setting sent to the client
+                    // TODO RMC14 these shouldn't be getting sent to the client
                     anyUnknown = true;
                     continue;
                 }
@@ -256,7 +256,6 @@ public sealed class HealthScannerBui : BoundUserInterface
             _window.MedicalAdviceLabel.Visible = false;
             _window.MedicalAdviceSeparator.Visible = false;
         }
-
 
         if (!_window.IsOpen)
         {
