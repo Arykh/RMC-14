@@ -90,7 +90,7 @@
                             <Button Name="EjectButton" Text="{Loc rmc-autodoc-eject-patient}" HorizontalExpand="True" Margin="2" />
                         </BoxContainer>
                         <BoxContainer Orientation="Horizontal">
-                            <Button Name="ImportScanButton" Text="{Loc rmc-autodoc-import-scan}" HorizontalExpand="True" Margin="2" Disabled="True" />
+                            <Button Name="ImportScanButton" Text="{Loc rmc-autodoc-import-scan}" HorizontalExpand="True" Margin="2" Visible="False" />
                         </BoxContainer>
                     </BoxContainer>
                 </BoxContainer>
