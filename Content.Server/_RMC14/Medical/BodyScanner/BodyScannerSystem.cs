@@ -1,5 +1,6 @@
 using Content.Shared._RMC14.Body;
 using Content.Shared._RMC14.Medical.BodyScanner;
+using Content.Shared._RMC14.Medical.HUD;
 using Content.Shared._RMC14.Medical.Scanner;
 using Content.Shared._RMC14.Mobs;
 using Content.Shared._RMC14.Temperature;
@@ -23,7 +24,7 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
         base.Initialize();
 
         SubscribeLocalEvent<BodyScannerConsoleComponent, AfterActivatableUIOpenEvent>(OnConsoleUIOpened);
-        SubscribeLocalEvent<BodyScannerConsoleComponent, BodyScannerEjectBuiMsg>(OnConsoleEject);
+        SubscribeLocalEvent<BodyScannerConsoleComponent, OpenChangeHolocardUIEvent>(OnConsoleOpenChangeHolocard);
     }
 
     private void OnConsoleUIOpened(Entity<BodyScannerConsoleComponent> console, ref AfterActivatableUIOpenEvent args)
@@ -31,20 +32,16 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
         UpdateUI(console);
     }
 
-    private void OnConsoleEject(Entity<BodyScannerConsoleComponent> console, ref BodyScannerEjectBuiMsg args)
+    private void OnConsoleOpenChangeHolocard(Entity<BodyScannerConsoleComponent> console, ref OpenChangeHolocardUIEvent args)
     {
-        if (!TryGetLinkedScanner(console, out var scanner))
-            return;
-
-        if (scanner.Comp.Occupant is { } occupant)
-            EjectOccupant(scanner, occupant);
-
-        UpdateUI(console);
+        var localOwner = GetEntity(args.Owner);
+        var localTarget = GetEntity(args.Target);
+        _ui.OpenUi(localTarget, HolocardChangeUIKey.Key, localOwner);
     }
 
     private void UpdateUI(Entity<BodyScannerConsoleComponent> console)
     {
-        if (!_ui.IsUiOpen(console.Owner, BodyScannerUIKey.Key))
+        if (!_ui.IsUiOpen(console.Owner, HealthScannerUIKey.Key))
             return;
 
         if (!TryGetLinkedScanner(console, out var scanner))
@@ -54,7 +51,7 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
         {
             _ui.SetUiState(
                 console.Owner,
-                BodyScannerUIKey.Key,
+                HealthScannerUIKey.Key,
                 new HealthScannerBuiState(NetEntity.Invalid, 0, 0, null, string.Empty, null, false));
             return;
         }
@@ -85,7 +82,7 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
             chemicals,
             bleeding);
 
-        _ui.SetUiState(console.Owner, BodyScannerUIKey.Key, state);
+        _ui.SetUiState(console.Owner, HealthScannerUIKey.Key, state);
     }
 
     public override void Update(float frameTime)
@@ -96,7 +93,7 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
         var consoles = EntityQueryEnumerator<BodyScannerConsoleComponent>();
         while (consoles.MoveNext(out var uid, out var console))
         {
-            if (!_ui.IsUiOpen(uid, BodyScannerUIKey.Key))
+            if (!_ui.IsUiOpen(uid, HealthScannerUIKey.Key))
                 continue;
 
             if (time < console.UpdateAt)
@@ -107,13 +104,10 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
         }
     }
 
-    private bool TryGetLinkedScanner(
-        Entity<BodyScannerConsoleComponent> console,
-        out Entity<BodyScannerComponent> scanner)
+    private bool TryGetLinkedScanner(Entity<BodyScannerConsoleComponent> console, out Entity<BodyScannerComponent> scanner)
     {
         scanner = default;
-        if (console.Comp.LinkedBodyScanner is not { } linkedId ||
-            !TryComp(linkedId, out BodyScannerComponent? comp))
+        if (console.Comp.LinkedBodyScanner is not { } linkedId || !TryComp(linkedId, out BodyScannerComponent? comp))
         {
             return false;
         }

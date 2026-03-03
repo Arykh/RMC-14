@@ -34,8 +34,6 @@
     needsPower: false # TODO RMC14 power
   - type: DragInsertContainer
     containerId: body_scanner
-    entryDelay: 2
-    delaySelfEntry: true
   - type: NoStunOnExit # Custom stun exit behavior + sound in SharedBodyScannerSystem
   - type: ContainerContainer
     containers:
@@ -94,10 +92,10 @@
   - type: BodyScannerConsole
   - type: UserInterface
     interfaces:
-      enum.BodyScannerUIKey.Key:
-        type: BodyScannerConsoleBui
+      enum.HealthScannerUIKey.Key:
+        type: HealthScannerBui
   - type: ActivatableUI
-    key: enum.BodyScannerUIKey.Key
+    key: enum.HealthScannerUIKey.Key
   - type: ActivatableUIRequiresPower
   - type: ApcPowerReceiver
     powerLoad: 0 # No power usage WOT THA SOD

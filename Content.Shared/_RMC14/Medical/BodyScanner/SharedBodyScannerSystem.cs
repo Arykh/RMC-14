@@ -1,5 +1,7 @@
 using Content.Shared._RMC14.Storage;
+using Content.Shared.Damage;
 using Content.Shared.Interaction;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Movement.Events;
 using Content.Shared.Popups;
 using Content.Shared.Stunnable;
@@ -66,8 +68,7 @@ public abstract class SharedBodyScannerSystem : EntitySystem
 
     private void OnBodyScannerShutdown(Entity<BodyScannerComponent> scanner, ref ComponentShutdown args)
     {
-        if (scanner.Comp.LinkedConsole is { } linkedConsoleId &&
-            TryComp(linkedConsoleId, out BodyScannerConsoleComponent? linkedConsole))
+        if (scanner.Comp.LinkedConsole is { } linkedConsoleId && TryComp(linkedConsoleId, out BodyScannerConsoleComponent? linkedConsole))
         {
             var spawnedByScanner = linkedConsole.LinkedBodyScanner == scanner.Owner;
             linkedConsole.LinkedBodyScanner = null;
@@ -127,14 +128,28 @@ public abstract class SharedBodyScannerSystem : EntitySystem
         if (args.Cancelled)
             return;
 
-        if (console.Comp.LinkedBodyScanner is not { } scannerId || !HasComp<BodyScannerComponent>(scannerId))
+        if (console.Comp.LinkedBodyScanner is not { } scannerId || !TryComp<BodyScannerComponent>(scannerId, out var scanner))
         {
             _popup.PopupEntity(Loc.GetString("rmc-body-scanner-no-scanner-connected"), console, args.User);
+            args.Cancel();
+            return;
+        }
+
+        if (scanner.Occupant is not { } occupant)
+        {
+            _popup.PopupEntity(Loc.GetString("rmc-body-scanner-no-lifeform"), console, args.User);
+            args.Cancel();
+            return;
+        }
+
+        if (!HasComp<DamageableComponent>(occupant) || !HasComp<MobStateComponent>(occupant) || !HasComp<MobThresholdsComponent>(occupant))
+        {
+            _popup.PopupEntity(Loc.GetString("rmc-body-scanner-incompatible-lifeform"), console, args.User);
             args.Cancel();
         }
     }
 
-    protected void EjectOccupant(Entity<BodyScannerComponent> scanner, EntityUid occupant)
+    private void EjectOccupant(Entity<BodyScannerComponent> scanner, EntityUid occupant)
     {
         if (!_container.TryGetContainer(scanner, scanner.Comp.ContainerId, out var container))
             return;
