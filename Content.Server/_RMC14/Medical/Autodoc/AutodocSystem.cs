@@ -261,7 +261,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
     {
         if (!TryGetLinkedAutodoc(console, out _))
             return;
-        // TODO RMC14 Import latest surgery list generated from bodyscanner
+        // TODO RMC14 Medical Records? Import latest body scan. Copy from medical record if available.
         UpdateUI(console);
     }
 
