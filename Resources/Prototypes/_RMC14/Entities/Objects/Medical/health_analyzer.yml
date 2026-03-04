@@ -43,7 +43,7 @@
   parent: CMHealthAnalyzer
   id: RMCAdminHealthAnalyzer
   name: HF2 advanced health analyzer
-  description: An advanced hand-held body scanner with full diagnostic capabilities. Admin use only.
+  description: A highly advanced hand-held body scanner capable of providing a detailed health readout of the subject.
   suffix: RMC14, Admin
   components:
   - type: HealthScanner
