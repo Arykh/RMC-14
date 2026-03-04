@@ -41,7 +41,7 @@
 
 - type: entity
   parent: CMHealthAnalyzer
-  id: CMAdminHealthAnalyzer
+  id: RMCAdminHealthAnalyzer
   name: HF2 advanced health analyzer
   description: An advanced hand-held body scanner with full diagnostic capabilities. Admin use only.
   suffix: RMC14, Admin
