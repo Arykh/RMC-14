@@ -36,6 +36,7 @@ public abstract class SharedBodyScannerSystem : EntitySystem
         SubscribeLocalEvent<BodyScannerComponent, InteractHandEvent>(OnBodyScannerInteractHand);
 
         SubscribeLocalEvent<BodyScannerConsoleComponent, ActivatableUIOpenAttemptEvent>(OnConsoleUIOpenAttempt);
+        SubscribeLocalEvent<BodyScannerConsoleComponent, BoundUserInterfaceCheckRangeEvent>(OnConsoleRangeCheck);
 
         SubscribeLocalEvent<InsideBodyScannerComponent, MoveInputEvent>(OnInsideBodyScannerMoveInput);
     }
@@ -148,6 +149,12 @@ public abstract class SharedBodyScannerSystem : EntitySystem
             _popup.PopupEntity(Loc.GetString("rmc-body-scanner-incompatible-lifeform"), console, args.User);
             args.Cancel();
         }
+    }
+
+    private static void OnConsoleRangeCheck(Entity<BodyScannerConsoleComponent> console, ref BoundUserInterfaceCheckRangeEvent args)
+    {
+        // Keep UI open to show the last scan results.
+        args.Result = BoundUserInterfaceRangeResult.Pass;
     }
 
     private void EjectOccupant(Entity<BodyScannerComponent> scanner, EntityUid occupant)

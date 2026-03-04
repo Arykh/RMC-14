@@ -54,8 +54,7 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
 
         if (scanner.Comp.Occupant is not { } target)
         {
-            _ui.SetUiState(
-                console.Owner,
+            _ui.SetUiState(console.Owner,
                 HealthScannerUIKey.Key,
                 new HealthScannerBuiState(NetEntity.Invalid, 0, 0, null, string.Empty, null, false));
             return;
@@ -78,8 +77,7 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
         var pulse = _rmcPulse.TryGetPulseReading(target, true, out _);
         var bleeding = _rmcBloodstream.IsBleeding(target);
 
-        var state = new HealthScannerBuiState(
-            GetNetEntity(target),
+        var state = new HealthScannerBuiState(GetNetEntity(target),
             blood,
             maxBlood,
             temperature,
@@ -87,6 +85,8 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
             chemicals,
             bleeding,
             HealthScanDetailLevel.BodyScan);
+
+        console.Comp.LastScanSnapshot = state;
 
         _ui.SetUiState(console.Owner, HealthScannerUIKey.Key, state);
     }

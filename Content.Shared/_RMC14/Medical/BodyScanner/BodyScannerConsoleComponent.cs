@@ -1,3 +1,4 @@
+using Content.Shared._RMC14.Medical.Scanner;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._RMC14.Medical.BodyScanner;
@@ -14,4 +15,7 @@ public sealed partial class BodyScannerConsoleComponent : Component
 
     [DataField]
     public TimeSpan UpdateCooldown = TimeSpan.FromSeconds(1);
+
+    [DataField]
+    public HealthScannerBuiState? LastScanSnapshot;
 }

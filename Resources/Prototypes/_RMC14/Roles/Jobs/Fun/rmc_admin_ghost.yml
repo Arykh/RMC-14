@@ -22,7 +22,7 @@
     back:
     - RMCAdminAccessConfigurator
     - HandheldHealthAnalyzerUnpowered
-    - CMHealthAnalyzer
+    - CMAdminHealthAnalyzer
     - DoorRemoteAll
     - AdminHypo
     - MeleeDebug200
