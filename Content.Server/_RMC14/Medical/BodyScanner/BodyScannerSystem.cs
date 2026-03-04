@@ -84,7 +84,7 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
             pulse,
             chemicals,
             bleeding,
-            HealthScanDetailLevel.BodyScan);
+            scanner.Comp.DetailLevel);
 
         console.Comp.LastScanSnapshot = state;
 
