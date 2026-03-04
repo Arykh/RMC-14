@@ -45,7 +45,7 @@ public sealed class CPRSystem : EntitySystem
     [ValidatePrototypeId<DamageTypePrototype>]
     private const string HealType = "Asphyxiation";
 
-    private static readonly TimeSpan CPRCoolDownSeconds = TimeSpan.FromSeconds(7);
+    private static readonly TimeSpan CPRCooldownSeconds = TimeSpan.FromSeconds(7);
     private static readonly FixedPoint2 HealAmount = FixedPoint2.New(10);
     private static readonly EntProtoId<SkillDefinitionComponent> SkillType = "RMCSkillMedical";
 
@@ -100,7 +100,7 @@ public sealed class CPRSystem : EntitySystem
             return;
         }
 
-        _unrevivable.AddRevivableTime(target, CPRCoolDownSeconds);
+        _unrevivable.AddRevivableTime(target, CPRCooldownSeconds);
 
         if (!TryComp(target, out DamageableComponent? damageable) ||
             !damageable.Damage.DamageDict.TryGetValue(HealType, out damage))
@@ -119,7 +119,7 @@ public sealed class CPRSystem : EntitySystem
         if (_net.IsClient)
             return;
 
-        var selfPopup = Loc.GetString("cm-cpr-self-perform", ("target", target), ("seconds", CPRCoolDownSeconds));
+        var selfPopup = Loc.GetString("cm-cpr-self-perform", ("target", target), ("seconds", CPRCooldownSeconds));
         _popups.PopupEntity(selfPopup, target, performer, PopupType.Medium);
 
         var othersPopup = Loc.GetString("cm-cpr-other-perform", ("performer", performer), ("target", target));
@@ -129,7 +129,7 @@ public sealed class CPRSystem : EntitySystem
 
     private void OnReceivingCPRAttempt(Entity<ReceivingCPRComponent> ent, ref ReceiveCPRAttemptEvent args)
     {
-        var isStale = _timing.CurTime - ent.Comp.StartTime > CPRCoolDownSeconds;
+        var isStale = _timing.CurTime - ent.Comp.StartTime > CPRCooldownSeconds;
         if (isStale) // If stale, remove the component and allow the new CPR attempt
         {
             RemCompDeferred<ReceivingCPRComponent>(ent);
@@ -154,7 +154,7 @@ public sealed class CPRSystem : EntitySystem
         var performer = args.Performer;
 
         if (!_mobState.IsDead(ent) ||
-            ent.Comp.Last <= _timing.CurTime - CPRCoolDownSeconds)
+            ent.Comp.Last <= _timing.CurTime - CPRCooldownSeconds)
         {
             return;
         }
@@ -274,7 +274,7 @@ public sealed class CPRSystem : EntitySystem
     private void HandleDummyCPR(Entity<CPRDummyComponent> ent, EntityUid user)
     {
         var currentTime = _timing.CurTime;
-        var tooSoon = TryComp(ent, out CPRReceivedComponent? received) && received.Last > currentTime - CPRCoolDownSeconds;
+        var tooSoon = TryComp(ent, out CPRReceivedComponent? received) && received.Last > currentTime - CPRCooldownSeconds;
 
         if (tooSoon)
             ent.Comp.CPRFailed++;
