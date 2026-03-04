@@ -36,6 +36,7 @@ public abstract class SharedBodyScannerSystem : EntitySystem
         SubscribeLocalEvent<BodyScannerComponent, InteractHandEvent>(OnBodyScannerInteractHand);
 
         SubscribeLocalEvent<BodyScannerConsoleComponent, ActivatableUIOpenAttemptEvent>(OnConsoleUIOpenAttempt);
+        SubscribeLocalEvent<BodyScannerConsoleComponent, AfterActivatableUIOpenEvent>(OnConsoleUIOpened);
 
         SubscribeLocalEvent<InsideBodyScannerComponent, MoveInputEvent>(OnInsideBodyScannerMoveInput);
     }
@@ -85,6 +86,7 @@ public abstract class SharedBodyScannerSystem : EntitySystem
             return;
 
         scanner.Comp.Occupant = args.Entity;
+        _audio.PlayPvs(scanner.Comp.InsertSound, scanner);
         Dirty(scanner);
         UpdateBodyScannerVisuals(scanner);
 
@@ -147,6 +149,14 @@ public abstract class SharedBodyScannerSystem : EntitySystem
             _popup.PopupEntity(Loc.GetString("rmc-body-scanner-incompatible-lifeform"), console, args.User);
             args.Cancel();
         }
+    }
+
+    private void OnConsoleUIOpened(Entity<BodyScannerConsoleComponent> console, ref AfterActivatableUIOpenEvent args)
+    {
+        if (console.Comp.LinkedBodyScanner is not { } scannerId || !TryComp<BodyScannerComponent>(scannerId, out var scanner))
+            return;
+
+        _audio.PlayPvs(scanner.ScanSound, console);
     }
 
     private void EjectOccupant(Entity<BodyScannerComponent> scanner, EntityUid occupant)

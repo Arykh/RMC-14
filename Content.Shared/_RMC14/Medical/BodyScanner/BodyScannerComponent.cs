@@ -38,11 +38,11 @@ public sealed partial class BodyScannerComponent : Component
     [DataField]
     public SoundSpecifier EjectSound = new SoundPathSpecifier("/Audio/_RMC14/Machines/hydraulics_3.ogg");
 
-    [DataField] // TODO RMC14 sound/machines/scanning_pod1.ogg
-    public SoundSpecifier InsertSound = new SoundPathSpecifier("/Audio/_RMC14/Machines/hydraulics_3.ogg");
+    [DataField]
+    public SoundSpecifier InsertSound = new SoundPathSpecifier("/Audio/_RMC14/Machines/scanning_pod1.ogg");
 
-    [DataField] // TODO RMC14 sound/machines/screen_output1.ogg
-    public SoundSpecifier ScanSound = new SoundPathSpecifier("/Audio/_RMC14/Machines/hydraulics_3.ogg");
+    [DataField]
+    public SoundSpecifier ScanSound = new SoundPathSpecifier("/Audio/_RMC14/Machines/screen_output1.ogg");
 }
 
 [Serializable, NetSerializable]
