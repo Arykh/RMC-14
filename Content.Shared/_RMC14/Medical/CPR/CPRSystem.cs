@@ -41,7 +41,7 @@ public sealed class CPRSystem : EntitySystem
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly RMCUnrevivableSystem _unrevivable = default!;
 
-    // TODO RMC14 move this to a component
+    // TODO RMC14 move these to a component
     [ValidatePrototypeId<DamageTypePrototype>]
     private const string HealType = "Asphyxiation";
 
