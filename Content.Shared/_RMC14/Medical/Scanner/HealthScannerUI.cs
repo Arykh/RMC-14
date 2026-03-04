@@ -10,7 +10,6 @@ public sealed class HealthScannerBuiState(
     FixedPoint2 blood,
     FixedPoint2 maxBlood,
     float? temperature,
-    string pulse,
     Solution? chemicals,
     bool bleeding,
     HealthScanDetailLevel detailLevel = HealthScanDetailLevel.HealthAnalyzer)
@@ -20,7 +19,6 @@ public sealed class HealthScannerBuiState(
     public readonly FixedPoint2 Blood = blood;
     public readonly FixedPoint2 MaxBlood = maxBlood;
     public readonly float? Temperature = temperature;
-    public readonly string Pulse = pulse;
     public readonly Solution? Chemicals = chemicals;
     public readonly bool Bleeding = bleeding;
     public readonly HealthScanDetailLevel DetailLevel = detailLevel;
