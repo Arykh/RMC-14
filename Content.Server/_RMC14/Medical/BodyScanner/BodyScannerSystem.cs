@@ -7,12 +7,14 @@ using Content.Shared._RMC14.Temperature;
 using Content.Shared.FixedPoint;
 using Content.Shared.UserInterface;
 using Robust.Server.GameObjects;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Timing;
 
 namespace Content.Server._RMC14.Medical.BodyScanner;
 
 public sealed class BodyScannerSystem : SharedBodyScannerSystem
 {
+    [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedRMCBloodstreamSystem _rmcBloodstream = default!;
     [Dependency] private readonly RMCPulseSystem _rmcPulse = default!;
     [Dependency] private readonly SharedRMCTemperatureSystem _rmcTemperature = default!;
@@ -29,6 +31,9 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
 
     private void OnConsoleUIOpened(Entity<BodyScannerConsoleComponent> console, ref AfterActivatableUIOpenEvent args)
     {
+        if (TryGetLinkedScanner(console, out var scanner))
+            _audio.PlayPvs(scanner.Comp.ScanSound, console);
+
         UpdateUI(console);
     }
 
