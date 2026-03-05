@@ -153,7 +153,7 @@ public abstract class SharedBodyScannerSystem : EntitySystem
 
     private static void OnConsoleRangeCheck(Entity<BodyScannerConsoleComponent> console, ref BoundUserInterfaceCheckRangeEvent args)
     {
-        // Keep UI open to show the last scan results.
+        // Keep UI open to show the last scan results
         args.Result = BoundUserInterfaceRangeResult.Pass;
     }
 

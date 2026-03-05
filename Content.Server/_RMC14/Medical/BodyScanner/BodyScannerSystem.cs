@@ -8,6 +8,7 @@ using Content.Shared.FixedPoint;
 using Content.Shared.UserInterface;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Containers;
 using Robust.Shared.Timing;
 
 namespace Content.Server._RMC14.Medical.BodyScanner;
@@ -27,14 +28,16 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
 
         SubscribeLocalEvent<BodyScannerConsoleComponent, AfterActivatableUIOpenEvent>(OnConsoleUIOpened);
         SubscribeLocalEvent<BodyScannerConsoleComponent, OpenChangeHolocardUIEvent>(OnConsoleOpenChangeHolocard);
+        SubscribeLocalEvent<BodyScannerComponent, EntRemovedFromContainerMessage>(OnOccupantRemoved);
     }
 
     private void OnConsoleUIOpened(Entity<BodyScannerConsoleComponent> console, ref AfterActivatableUIOpenEvent args)
     {
-        if (TryGetLinkedScanner(console, out var scanner))
-            _audio.PlayPvs(scanner.Comp.ScanSound, console);
+        if (!TryGetLinkedScanner(console, out var scanner))
+            return;
 
-        UpdateUI(console);
+        _audio.PlayPvs(scanner.Comp.ScanSound, console);
+        UpdateUI(console, scanner);
     }
 
     private void OnConsoleOpenChangeHolocard(Entity<BodyScannerConsoleComponent> console, ref OpenChangeHolocardUIEvent args)
@@ -44,23 +47,37 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
         _ui.OpenUi(localTarget, HolocardChangeUIKey.Key, localOwner);
     }
 
-    private void UpdateUI(Entity<BodyScannerConsoleComponent> console)
+    private void OnOccupantRemoved(Entity<BodyScannerComponent> scanner, ref EntRemovedFromContainerMessage args)
     {
-        if (!_ui.IsUiOpen(console.Owner, HealthScannerUIKey.Key))
+        if (args.Container.ID != scanner.Comp.ContainerId)
             return;
 
-        if (!TryGetLinkedScanner(console, out var scanner))
+        if (scanner.Comp.LinkedConsole is not { } consoleId || !TryComp(consoleId, out BodyScannerConsoleComponent? consoleComp))
             return;
 
-        if (scanner.Comp.Occupant is not { } target)
+        if (!_ui.IsUiOpen(consoleId, HealthScannerUIKey.Key))
+            return;
+
+        SendUISnapshot((consoleId, consoleComp));
+    }
+
+    private void SendUISnapshot(Entity<BodyScannerConsoleComponent> console)
+    {
+        if (console.Comp.LastScanSnapshot is { } snapshot)
+        {
+            _ui.SetUiState(console.Owner, HealthScannerUIKey.Key, snapshot);
+        }
+        else
         {
             _ui.SetUiState(console.Owner,
                 HealthScannerUIKey.Key,
                 new HealthScannerBuiState(NetEntity.Invalid, 0, 0, null, string.Empty, null, false));
-            return;
         }
+    }
 
-        if (TerminatingOrDeleted(target))
+    private void UpdateUI(Entity<BodyScannerConsoleComponent> console, Entity<BodyScannerComponent> scanner)
+    {
+        if (scanner.Comp.Occupant is not { } target || TerminatingOrDeleted(target))
             return;
 
         FixedPoint2 blood = 0;
@@ -87,7 +104,6 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
             scanner.Comp.DetailLevel);
 
         console.Comp.LastScanSnapshot = state;
-
         _ui.SetUiState(console.Owner, HealthScannerUIKey.Key, state);
     }
 
@@ -102,11 +118,14 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
             if (!_ui.IsUiOpen(uid, HealthScannerUIKey.Key))
                 continue;
 
+            if (!TryGetLinkedScanner((uid, console), out var scanner) || scanner.Comp.Occupant == null)
+                continue;
+
             if (time < console.UpdateAt)
                 continue;
 
             console.UpdateAt = time + console.UpdateCooldown;
-            UpdateUI((uid, console));
+            UpdateUI((uid, console), scanner);
         }
     }
 
@@ -114,9 +133,7 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
     {
         scanner = default;
         if (console.Comp.LinkedBodyScanner is not { } linkedId || !TryComp(linkedId, out BodyScannerComponent? comp))
-        {
             return false;
-        }
 
         scanner = (linkedId, comp);
         return true;
