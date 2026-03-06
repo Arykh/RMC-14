@@ -12,7 +12,7 @@ public sealed class HealthScannerBuiState(
     float? temperature,
     Solution? chemicals,
     bool bleeding,
-    HealthScanDetailLevel detailLevel = HealthScanDetailLevel.HealthAnalyzer)
+    HealthScanDetailLevel detailLevel)
     : BoundUserInterfaceState
 {
     public readonly NetEntity Target = target;
