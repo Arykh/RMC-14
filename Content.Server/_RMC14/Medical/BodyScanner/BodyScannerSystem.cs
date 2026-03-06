@@ -8,7 +8,6 @@ using Content.Shared.FixedPoint;
 using Content.Shared.UserInterface;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
-using Robust.Shared.Containers;
 using Robust.Shared.Timing;
 
 namespace Content.Server._RMC14.Medical.BodyScanner;
@@ -28,7 +27,6 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
 
         SubscribeLocalEvent<BodyScannerConsoleComponent, AfterActivatableUIOpenEvent>(OnConsoleUIOpened);
         SubscribeLocalEvent<BodyScannerConsoleComponent, OpenChangeHolocardUIEvent>(OnConsoleOpenChangeHolocard);
-        SubscribeLocalEvent<BodyScannerComponent, EntRemovedFromContainerMessage>(OnOccupantRemoved);
     }
 
     private void OnConsoleUIOpened(Entity<BodyScannerConsoleComponent> console, ref AfterActivatableUIOpenEvent args)
@@ -45,34 +43,6 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
         var localOwner = GetEntity(args.Owner);
         var localTarget = GetEntity(args.Target);
         _ui.OpenUi(localTarget, HolocardChangeUIKey.Key, localOwner);
-    }
-
-    private void OnOccupantRemoved(Entity<BodyScannerComponent> scanner, ref EntRemovedFromContainerMessage args)
-    {
-        if (args.Container.ID != scanner.Comp.ContainerId)
-            return;
-
-        if (scanner.Comp.LinkedConsole is not { } consoleId || !TryComp(consoleId, out BodyScannerConsoleComponent? consoleComp))
-            return;
-
-        if (!_ui.IsUiOpen(consoleId, HealthScannerUIKey.Key))
-            return;
-
-        SendUISnapshot((consoleId, consoleComp));
-    }
-
-    private void SendUISnapshot(Entity<BodyScannerConsoleComponent> console)
-    {
-        if (console.Comp.LastScanSnapshot is { } snapshot)
-        {
-            _ui.SetUiState(console.Owner, HealthScannerUIKey.Key, snapshot);
-        }
-        else
-        {
-            _ui.SetUiState(console.Owner,
-                HealthScannerUIKey.Key,
-                new HealthScannerBuiState(NetEntity.Invalid, 0, 0, null, string.Empty, null, false));
-        }
     }
 
     private void UpdateUI(Entity<BodyScannerConsoleComponent> console, Entity<BodyScannerComponent> scanner)
@@ -94,7 +64,8 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
         var pulse = _rmcPulse.TryGetPulseReading(target, true, out _);
         var bleeding = _rmcBloodstream.IsBleeding(target);
 
-        var state = new HealthScannerBuiState(GetNetEntity(target),
+        var state = new HealthScannerBuiState(
+            GetNetEntity(target),
             blood,
             maxBlood,
             temperature,

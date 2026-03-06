@@ -1,3 +1,4 @@
+using Content.Shared._RMC14.Medical.Scanner;
 using Content.Shared._RMC14.Storage;
 using Content.Shared.Damage;
 using Content.Shared.Interaction;
@@ -23,6 +24,7 @@ public abstract class SharedBodyScannerSystem : EntitySystem
     [Dependency] private readonly SharedStunSystem _stun = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly SharedUserInterfaceSystem _ui = default!;
 
     public override void Initialize()
     {
@@ -86,7 +88,8 @@ public abstract class SharedBodyScannerSystem : EntitySystem
             return;
 
         scanner.Comp.Occupant = args.Entity;
-        _audio.PlayPvs(scanner.Comp.InsertSound, scanner);
+        if (_net.IsServer)
+            _audio.PlayPvs(scanner.Comp.InsertSound, scanner);
         Dirty(scanner);
         UpdateBodyScannerVisuals(scanner);
 
@@ -111,6 +114,21 @@ public abstract class SharedBodyScannerSystem : EntitySystem
 
         UpdateBodyScannerVisuals(scanner);
         RemCompDeferred<InsideBodyScannerComponent>(args.Entity);
+
+        if (_net.IsServer
+            && scanner.Comp.LinkedConsole is { } consoleId
+            && TryComp(consoleId, out BodyScannerConsoleComponent? consoleComp)
+            && _ui.IsUiOpen(consoleId, HealthScannerUIKey.Key))
+        {
+            SendUISnapshot((consoleId, consoleComp));
+        }
+    }
+
+    private void SendUISnapshot(Entity<BodyScannerConsoleComponent> console)
+    {
+        _ui.SetUiState(console.Owner,
+            HealthScannerUIKey.Key,
+            console.Comp.LastScanSnapshot ?? new HealthScannerBuiState(NetEntity.Invalid, 0, 0, null, string.Empty, null, false));
     }
 
     private void OnBodyScannerInteractHand(Entity<BodyScannerComponent> scanner, ref InteractHandEvent args)
@@ -163,7 +181,8 @@ public abstract class SharedBodyScannerSystem : EntitySystem
             return;
 
         _container.Remove(occupant, container);
-        _audio.PlayPvs(scanner.Comp.EjectSound, scanner);
+        if (_net.IsServer)
+            _audio.PlayPvs(scanner.Comp.EjectSound, scanner);
 
         if (scanner.Comp.ExitStun > TimeSpan.Zero && !HasComp<NoStunOnExitComponent>(scanner))
             _stun.TryStun(occupant, scanner.Comp.ExitStun, true);

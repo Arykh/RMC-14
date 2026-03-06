@@ -17,6 +17,5 @@ public sealed partial class BodyScannerConsoleComponent : Component
     public TimeSpan UpdateCooldown = TimeSpan.FromSeconds(1);
 
     // TODO RMC14 Medical records?
-    [DataField]
     public HealthScannerBuiState? LastScanSnapshot;
 }
