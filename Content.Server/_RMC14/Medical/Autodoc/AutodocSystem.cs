@@ -261,6 +261,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
     {
         if (!TryGetLinkedAutodoc(console, out _))
             return;
+
         // TODO RMC14 Medical Records? Import latest body scan. Copy from medical record if available.
         UpdateUI(console);
     }
@@ -371,6 +372,15 @@ public sealed class AutodocSystem : SharedAutodocSystem
         var pulse = string.Empty;
         FixedPoint2 totalReagents = 0;
 
+        if (TerminatingOrDeleted(occupant))
+        {
+            if (!TerminatingOrDeleted(occupant))
+                _ui.CloseUi(autodoc.Owner, AutodocUIKey.Key);
+
+            autodoc.Comp.Occupant = null;
+            return;
+        }
+
         if (occupant != null)
         {
             if (TryComp<DamageableComponent>(occupant, out var damageable))
@@ -452,9 +462,6 @@ public sealed class AutodocSystem : SharedAutodocSystem
         var consoles = EntityQueryEnumerator<AutodocConsoleComponent>();
         while (consoles.MoveNext(out var uid, out var console))
         {
-            if (!_ui.IsUiOpen(uid, AutodocUIKey.Key))
-                continue;
-
             if (time < console.UpdateAt)
                 continue;
 
@@ -550,8 +557,8 @@ public sealed class AutodocSystem : SharedAutodocSystem
                     Dirty(uid, autodoc);
                 }
             }
-
-            if (autodoc.BloodTransfusion) // TODO RMC14 blood type O-
+            // TODO RMC14 use blood type O-
+            if (autodoc.BloodTransfusion)
             {
                 if (TryComp<BloodstreamComponent>(occupant, out var blood) &&
                     _solution.TryGetSolution(occupant, blood.BloodSolutionName, out var bloodSolEnt, out var bloodSol) &&
