@@ -374,7 +374,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
 
         if (TerminatingOrDeleted(occupant))
         {
-            if (!TerminatingOrDeleted(occupant))
+            if (!TerminatingOrDeleted(autodoc))
                 _ui.CloseUi(autodoc.Owner, AutodocUIKey.Key);
 
             autodoc.Comp.Occupant = null;
