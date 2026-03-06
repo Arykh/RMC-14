@@ -164,6 +164,15 @@ public sealed class SleeperSystem : SharedSleeperSystem
         FixedPoint2 totalReagents = 0;
         Solution? cachedChemSol = null;
 
+        if (TerminatingOrDeleted(occupant))
+        {
+            if (!TerminatingOrDeleted(occupant))
+                _ui.CloseUi(sleeper.Owner, SleeperUIKey.Key);
+
+            sleeper.Comp.Occupant = null;
+            return;
+        }
+
         if (occupant != null)
         {
             if (TryComp<DamageableComponent>(occupant, out var damageable))
@@ -270,9 +279,6 @@ public sealed class SleeperSystem : SharedSleeperSystem
         var consoles = EntityQueryEnumerator<SleeperConsoleComponent>();
         while (consoles.MoveNext(out var uid, out var console))
         {
-            if (!_ui.IsUiOpen(uid, SleeperUIKey.Key))
-                continue;
-
             if (time < console.UpdateAt)
                 continue;
 
