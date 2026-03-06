@@ -227,7 +227,8 @@ public abstract class SharedAutodocSystem : EntitySystem
             return;
 
         _container.Remove(occupant, container);
-        _audio.PlayPvs(autodoc.Comp.EjectSound, autodoc);
+        if (_net.IsServer)
+            _audio.PlayPvs(autodoc.Comp.EjectSound, autodoc);
 
         if (autodoc.Comp.ExitStun > TimeSpan.Zero && !HasComp<NoStunOnExitComponent>(autodoc))
             _stun.TryStun(occupant, autodoc.Comp.ExitStun, true);
