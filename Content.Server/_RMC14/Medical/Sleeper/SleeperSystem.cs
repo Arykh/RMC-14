@@ -166,7 +166,7 @@ public sealed class SleeperSystem : SharedSleeperSystem
 
         if (TerminatingOrDeleted(occupant))
         {
-            if (!TerminatingOrDeleted(occupant))
+            if (!TerminatingOrDeleted(sleeper))
                 _ui.CloseUi(sleeper.Owner, SleeperUIKey.Key);
 
             sleeper.Comp.Occupant = null;
