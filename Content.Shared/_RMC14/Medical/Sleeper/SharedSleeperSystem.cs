@@ -171,7 +171,8 @@ public abstract class SharedSleeperSystem : EntitySystem
             return;
 
         _container.Remove(occupant, container);
-        _audio.PlayPvs(sleeper.Comp.EjectSound, sleeper);
+        if (_net.IsServer)
+            _audio.PlayPvs(sleeper.Comp.EjectSound, sleeper);
 
         if (sleeper.Comp.ExitStun > TimeSpan.Zero && !HasComp<NoStunOnExitComponent>(sleeper))
             _stun.TryStun(occupant, sleeper.Comp.ExitStun, true);
