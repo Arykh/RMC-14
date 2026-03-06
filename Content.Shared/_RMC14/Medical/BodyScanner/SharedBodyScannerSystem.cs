@@ -1,4 +1,3 @@
-using Content.Shared._RMC14.Medical.Scanner;
 using Content.Shared._RMC14.Storage;
 using Content.Shared.Damage;
 using Content.Shared.Interaction;
@@ -24,7 +23,6 @@ public abstract class SharedBodyScannerSystem : EntitySystem
     [Dependency] private readonly SharedStunSystem _stun = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly SharedUserInterfaceSystem _ui = default!;
 
     public override void Initialize()
     {
@@ -38,7 +36,6 @@ public abstract class SharedBodyScannerSystem : EntitySystem
         SubscribeLocalEvent<BodyScannerComponent, InteractHandEvent>(OnBodyScannerInteractHand);
 
         SubscribeLocalEvent<BodyScannerConsoleComponent, ActivatableUIOpenAttemptEvent>(OnConsoleUIOpenAttempt);
-        SubscribeLocalEvent<BodyScannerConsoleComponent, BoundUserInterfaceCheckRangeEvent>(OnConsoleRangeCheck);
 
         SubscribeLocalEvent<InsideBodyScannerComponent, MoveInputEvent>(OnInsideBodyScannerMoveInput);
     }
@@ -114,21 +111,6 @@ public abstract class SharedBodyScannerSystem : EntitySystem
 
         UpdateBodyScannerVisuals(scanner);
         RemCompDeferred<InsideBodyScannerComponent>(args.Entity);
-
-        if (_net.IsServer
-            && scanner.Comp.LinkedConsole is { } consoleId
-            && TryComp(consoleId, out BodyScannerConsoleComponent? consoleComp)
-            && _ui.IsUiOpen(consoleId, HealthScannerUIKey.Key))
-        {
-            SendUISnapshot((consoleId, consoleComp));
-        }
-    }
-
-    private void SendUISnapshot(Entity<BodyScannerConsoleComponent> console)
-    {
-        _ui.SetUiState(console.Owner,
-            HealthScannerUIKey.Key,
-            console.Comp.LastScanSnapshot ?? new HealthScannerBuiState(NetEntity.Invalid, 0, 0, null, string.Empty, null, false));
     }
 
     private void OnBodyScannerInteractHand(Entity<BodyScannerComponent> scanner, ref InteractHandEvent args)
@@ -150,29 +132,23 @@ public abstract class SharedBodyScannerSystem : EntitySystem
 
         if (console.Comp.LinkedBodyScanner is not { } scannerId || !TryComp<BodyScannerComponent>(scannerId, out var scanner))
         {
-            _popup.PopupEntity(Loc.GetString("rmc-body-scanner-no-scanner-connected"), console, args.User);
+            _popup.PopupClient(Loc.GetString("rmc-body-scanner-no-scanner-connected"), console, args.User);
             args.Cancel();
             return;
         }
 
         if (scanner.Occupant is not { } occupant)
         {
-            _popup.PopupEntity(Loc.GetString("rmc-body-scanner-no-lifeform"), console, args.User);
+            _popup.PopupClient(Loc.GetString("rmc-body-scanner-no-lifeform"), console, args.User);
             args.Cancel();
             return;
         }
 
         if (!HasComp<DamageableComponent>(occupant) || !HasComp<MobStateComponent>(occupant) || !HasComp<MobThresholdsComponent>(occupant))
         {
-            _popup.PopupEntity(Loc.GetString("rmc-body-scanner-incompatible-lifeform"), console, args.User);
+            _popup.PopupClient(Loc.GetString("rmc-body-scanner-incompatible-lifeform"), console, args.User);
             args.Cancel();
         }
-    }
-
-    private static void OnConsoleRangeCheck(Entity<BodyScannerConsoleComponent> console, ref BoundUserInterfaceCheckRangeEvent args)
-    {
-        // Keep UI open to show the last scan results
-        args.Result = BoundUserInterfaceRangeResult.Pass;
     }
 
     private void EjectOccupant(Entity<BodyScannerComponent> scanner, EntityUid occupant)

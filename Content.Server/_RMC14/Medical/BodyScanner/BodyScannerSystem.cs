@@ -35,7 +35,7 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
             return;
 
         _audio.PlayPvs(scanner.Comp.ScanSound, console);
-        UpdateUI(console, scanner);
+        UpdateUI(console);
     }
 
     private void OnConsoleOpenChangeHolocard(Entity<BodyScannerConsoleComponent> console, ref OpenChangeHolocardUIEvent args)
@@ -45,10 +45,25 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
         _ui.OpenUi(localTarget, HolocardChangeUIKey.Key, localOwner);
     }
 
-    private void UpdateUI(Entity<BodyScannerConsoleComponent> console, Entity<BodyScannerComponent> scanner)
+    private void UpdateUI(Entity<BodyScannerConsoleComponent> console)
     {
-        if (scanner.Comp.Occupant is not { } target || TerminatingOrDeleted(target))
+        if (!_ui.IsUiOpen(console.Owner, HealthScannerUIKey.Key))
             return;
+
+        if (!TryGetLinkedScanner(console, out var scanner))
+            return;
+
+        if (scanner.Comp.Occupant is not { } target)
+            return;
+
+        if (TerminatingOrDeleted(target))
+        {
+            if (!TerminatingOrDeleted(scanner))
+                _ui.CloseUi(scanner.Owner, HealthScannerUIKey.Key);
+
+            scanner.Comp.Occupant = null;
+            return;
+        }
 
         FixedPoint2 blood = 0;
         FixedPoint2 maxBlood = 0;
@@ -74,7 +89,7 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
             bleeding,
             scanner.Comp.DetailLevel);
 
-        console.Comp.LastScanSnapshot = state;
+        // TODO RMC14 Medical records? /proc/create_medical_record(mob/living/carbon/human/person)
         _ui.SetUiState(console.Owner, HealthScannerUIKey.Key, state);
     }
 
@@ -86,17 +101,11 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
         var consoles = EntityQueryEnumerator<BodyScannerConsoleComponent>();
         while (consoles.MoveNext(out var uid, out var console))
         {
-            if (!_ui.IsUiOpen(uid, HealthScannerUIKey.Key))
-                continue;
-
-            if (!TryGetLinkedScanner((uid, console), out var scanner) || scanner.Comp.Occupant == null)
-                continue;
-
             if (time < console.UpdateAt)
                 continue;
 
             console.UpdateAt = time + console.UpdateCooldown;
-            UpdateUI((uid, console), scanner);
+            UpdateUI((uid, console));
         }
     }
 
