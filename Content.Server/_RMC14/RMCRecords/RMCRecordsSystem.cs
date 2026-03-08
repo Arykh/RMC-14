@@ -1,4 +1,5 @@
 using Content.Shared._RMC14.Body;
+using Content.Shared._RMC14.Chemistry.Reagent;
 using Content.Shared._RMC14.Medical.Surgery.Steps.Parts;
 using Content.Shared._RMC14.Mobs;
 using Content.Shared._RMC14.RMCRecords;
@@ -23,6 +24,7 @@ public sealed class RMCRecordsSystem : SharedRMCRecordsSystem
     [Dependency] private readonly SharedBodySystem _body = default!;
     [Dependency] private readonly SharedRMCBloodstreamSystem _rmcBloodstream = default!;
     [Dependency] private readonly RMCPulseSystem _rmcPulse = default!;
+    [Dependency] private readonly RMCReagentSystem _rmcReagent = default!;
     [Dependency] private readonly SharedRMCTemperatureSystem _rmcTemperature = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly MobThresholdSystem _mobThreshold = default!;
@@ -147,15 +149,28 @@ public sealed class RMCRecordsSystem : SharedRMCRecordsSystem
 
         // TODO RMC14 Remove Shrapnel
 
-        // Blood level
+        // Blood + Dialysis
         if (_rmcBloodstream.TryGetBloodSolution(target, out var bloodstream) && bloodstream.Volume < bloodstream.MaxVolume)
             data.Add(new RMCAutodocRecord(now, AutodocProcedures.Blood, Loc.GetString("rmc-records-autodoc-blood")));
 
-        // Dialysis
+        if (_rmcBloodstream.TryGetChemicalSolution(target, out _, out var chemSol))
+        {
+            foreach (var reagentQuantity in chemSol.Contents)
+            {
+                if (!_rmcReagent.TryIndex(reagentQuantity.Reagent, out var reagentProto))
+                    continue;
+
+                if (reagentProto.Overdose is { } overdose && reagentQuantity.Quantity >= overdose)
+                {
+                    data.Add(new RMCAutodocRecord(now, AutodocProcedures.Dialysis, Loc.GetString("rmc-records-autodoc-dialysis")));
+                    break;
+                }
+            }
+        }
 
         // TODO RMC-14 Internal Bleeding, Broken Bones, Organ Damage
 
-        // Parasites — larva extraction research upgrade
+        // Parasites — larva extraction
         if (TryComp<VictimInfectedComponent>(target, out var infected) && !infected.IsBursting)
             data.Add(new RMCAutodocRecord(now, AutodocProcedures.Larva, Loc.GetString("rmc-records-autodoc-larva")));
 
@@ -218,14 +233,5 @@ public sealed class RMCRecordsSystem : SharedRMCRecordsSystem
             parts.Add(Loc.GetString("rmc-records-scan-pulse", ("value", pulse)));
 
         return string.Join(" | ", parts);
-    }
-
-    public void AddAutodocRecord(EntityUid target, string procedure, string details)
-    {
-        if (!TryGetMedicalRecord(target, out var medical))
-            return;
-
-        medical.AutodocData.Add(new RMCAutodocRecord(_timing.CurTime, procedure, details));
-        Dirty(target, medical);
     }
 }
