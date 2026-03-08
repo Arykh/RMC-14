@@ -46,5 +46,7 @@
   description: A highly advanced hand-held body scanner capable of providing a detailed health readout of the subject.
   suffix: RMC14, Admin
   components:
+  - type: Sprite
+    state: golden_health
   - type: HealthScanner
     detailLevel: Full
