@@ -62,22 +62,40 @@ public sealed class RMCRecordsSystem : SharedRMCRecordsSystem
         general.MentalStatus = RMCMentalStatus.Stable;
         Dirty(mob, general);
 
+        // Security record
+        var security = EnsureComp<RMCSecurityRecordComponent>(mob);
+        security.CriminalStatus = RMCCriminalStatus.None;
+        Dirty(mob, security);
+
         // TODO RMC-14 actual blood types — update when blood type system is implemented
         // Medical record
         var medical = EnsureComp<RMCMedicalRecordComponent>(mob);
         medical.BloodType = "O-";
         Dirty(mob, medical);
-
-        // Security record
-        var security = EnsureComp<RMCSecurityRecordComponent>(mob);
-        security.CriminalStatus = RMCCriminalStatus.None;
-        Dirty(mob, security);
     }
 
     private void OnMobStateChanged(Entity<RMCGeneralRecordComponent> ent, ref MobStateChangedEvent args)
     {
         ent.Comp.PhysicalStatus = MobStateToPhysicalStatus(args.NewMobState);
         Dirty(ent);
+    }
+
+    public void SetCriminalStatus(EntityUid target, RMCCriminalStatus status)
+    {
+        if (!TryGetSecurityRecord(target, out var security))
+            return;
+
+        security.CriminalStatus = status;
+        Dirty(target, security);
+    }
+
+    public void AddSecurityIncident(EntityUid target, string author, string details)
+    {
+        if (!TryGetSecurityRecord(target, out var security))
+            return;
+
+        security.Incidents.Add(new RMCSecurityIncident(_timing.CurTime, author, details));
+        Dirty(target, security);
     }
 
     /// <summary>
@@ -104,7 +122,7 @@ public sealed class RMCRecordsSystem : SharedRMCRecordsSystem
         var now = _timing.CurTime;
         var data = new List<RMCAutodocRecord>();
 
-        // Damage types — these map to the autodoc's continuous healing treatments
+        // Damage types — for autodoc's continuous healing treatments
         if (TryComp<DamageableComponent>(target, out var damageable))
         {
             if (damageable.DamagePerGroup.GetValueOrDefault(BruteGroup) > 0)
@@ -200,24 +218,6 @@ public sealed class RMCRecordsSystem : SharedRMCRecordsSystem
             parts.Add(Loc.GetString("rmc-records-scan-pulse", ("value", pulse)));
 
         return string.Join(" | ", parts);
-    }
-
-    public void SetCriminalStatus(EntityUid target, RMCCriminalStatus status)
-    {
-        if (!TryGetSecurityRecord(target, out var security))
-            return;
-
-        security.CriminalStatus = status;
-        Dirty(target, security);
-    }
-
-    public void AddSecurityIncident(EntityUid target, string author, string details)
-    {
-        if (!TryGetSecurityRecord(target, out var security))
-            return;
-
-        security.Incidents.Add(new RMCSecurityIncident(_timing.CurTime, author, details));
-        Dirty(target, security);
     }
 
     public void AddAutodocRecord(EntityUid target, string procedure, string details)
