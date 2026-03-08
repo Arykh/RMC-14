@@ -1,4 +1,4 @@
-using Content.Server._RMC14.Medical.Records;
+using Content.Server._RMC14.RMCRecords;
 using Content.Shared._RMC14.Body;
 using Content.Shared._RMC14.Medical.BodyScanner;
 using Content.Shared._RMC14.Medical.HUD;
