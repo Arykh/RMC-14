@@ -1,5 +1,4 @@
 using Content.Shared.Humanoid;
-using Robust.Shared.Enums;
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization;
 
@@ -19,7 +18,7 @@ public sealed partial class RMCGeneralRecordComponent : Component
     public string Rank = "Unassigned";
 
     /// <summary>
-    ///     This is the character's <see cref="Sex"/>, not <see cref="Gender"/>.
+    ///     This is the character's <see cref="Sex"/>, not their gender identity.
     /// </summary>
     [DataField, AutoNetworkedField]
     public Sex Sex = Sex.Male;
@@ -27,8 +26,11 @@ public sealed partial class RMCGeneralRecordComponent : Component
     [DataField, AutoNetworkedField]
     public int Age;
 
+    /// <summary>
+    ///     The character's species. Defaults to <see cref="SharedHumanoidAppearanceSystem.DefaultSpecies"/>.
+    /// </summary>
     [DataField, AutoNetworkedField]
-    public string Species = "Human";
+    public string Species = SharedHumanoidAppearanceSystem.DefaultSpecies;
 
     /// <summary>
     ///     The character's physical status (Active, Unconscious, Dead, etc.).
