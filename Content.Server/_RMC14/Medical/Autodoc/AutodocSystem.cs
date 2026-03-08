@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Server._RMC14.Medical.Records;
 using Content.Shared._RMC14.Body;
 using Content.Shared._RMC14.Damage;
 using Content.Shared._RMC14.Medical.Autodoc;
@@ -32,6 +33,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly MobThresholdSystem _mobThreshold = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
+    [Dependency] private readonly RMCRecordsSystem _records = default!;
     [Dependency] private readonly SharedRMCBloodstreamSystem _rmcBloodstream = default!;
     [Dependency] private readonly SharedRMCDamageableSystem _rmcDamageable = default!;
     [Dependency] private readonly RMCPulseSystem _rmcPulse = default!;
@@ -259,10 +261,67 @@ public sealed class AutodocSystem : SharedAutodocSystem
 
     private void OnConsoleImportScan(Entity<AutodocConsoleComponent> console, ref AutodocImportScanBuiMsg args)
     {
-        if (!TryGetLinkedAutodoc(console, out _))
+        if (!TryGetLinkedAutodoc(console, out var autodoc, true))
             return;
 
-        // TODO RMC14 Medical Records? Import latest body scan. Copy from medical record if available.
+        if (autodoc.Comp.Occupant is not { } occupant)
+        {
+            UpdateUI(console);
+            return;
+        }
+
+        if (!_records.TryGetMedicalRecord(occupant, out var medical) || medical.AutodocData.Count == 0)
+        {
+            _popup.PopupEntity(Loc.GetString("rmc-autodoc-no-scan-data"), console, args.Actor);
+            UpdateUI(console);
+            return;
+        }
+
+        foreach (var entry in medical.AutodocData)
+        {
+            switch (entry.Procedure)
+            {
+                case "brute":
+                    autodoc.Comp.HealingBrute = true;
+                    break;
+                case "burn":
+                    autodoc.Comp.HealingBurn = true;
+                    break;
+                case "toxin":
+                    autodoc.Comp.HealingToxin = true;
+                    break;
+                case "dialysis":
+                    autodoc.Comp.Filtering = true;
+                    break;
+                case "blood":
+                    autodoc.Comp.BloodTransfusion = true;
+                    break;
+                case "close_incisions":
+                    autodoc.Comp.CloseIncisions = true;
+                    break;
+                case "shrapnel":
+                    autodoc.Comp.RemoveShrapnel = true;
+                    break;
+                case "internal_bleeding":
+                    if (console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.InternalBleeding))
+                        autodoc.Comp.InternalBleeding = true;
+                    break;
+                case "broken_bone":
+                    if (console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.BrokenBone))
+                        autodoc.Comp.BrokenBone = true;
+                    break;
+                case "organ_damage":
+                    if (console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.OrganDamage))
+                        autodoc.Comp.OrganDamage = true;
+                    break;
+                case "larva":
+                    if (console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.LarvaExtraction))
+                        autodoc.Comp.RemoveLarva = true;
+                    break;
+            }
+        }
+
+        Dirty(autodoc);
         UpdateUI(console);
     }
 
@@ -557,6 +616,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
                     Dirty(uid, autodoc);
                 }
             }
+
             // TODO RMC14 use blood type O-
             if (autodoc.BloodTransfusion)
             {

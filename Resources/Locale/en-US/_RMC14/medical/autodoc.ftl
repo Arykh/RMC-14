@@ -51,6 +51,7 @@ rmc-autodoc-surgery-starting = The autodoc begins to operate, loud audible click
 rmc-autodoc-incisions-starting = The autodoc begins closing surgical incisions.
 rmc-autodoc-larva-starting = The autodoc begins parasite extraction surgery.
 
+rmc-autodoc-no-scan-data = No scan data available to import.
 rmc-autodoc-unneeded = Procedure has been deemed unnecessary.
 rmc-autodoc-complete = The autodoc clicks and opens up having finished the requested operations.
 rmc-autodoc-patient-dead = Patient has expired.
