@@ -294,11 +294,11 @@ public sealed class AutodocSystem : SharedAutodocSystem
                 case AutodocProcedures.RemoveShrapnel:
                     autodoc.Comp.RemoveShrapnel = true;
                     break;
-                case AutodocProcedures.Dialysis:
-                    autodoc.Comp.Filtering = true;
-                    break;
                 case AutodocProcedures.Blood:
                     autodoc.Comp.BloodTransfusion = true;
+                    break;
+                case AutodocProcedures.Dialysis:
+                    autodoc.Comp.Filtering = true;
                     break;
                 case AutodocProcedures.Toxin:
                     autodoc.Comp.HealingToxin = true;
