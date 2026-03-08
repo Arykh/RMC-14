@@ -60,7 +60,7 @@ public abstract class SharedRMCRecordsSystem : EntitySystem
             ent.Comp,
             msg,
             Loc.GetString("rmc-records-examine-verb-text"),
-            "/Textures/_RMC14/Interface/VerbIcons/ambulance.png",
+            "/Textures/_RMC14/Objects/Medical/medical.rsi/traumakit.png",
             Loc.GetString("rmc-records-examine-verb-message"));
     }
 

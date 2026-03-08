@@ -100,10 +100,6 @@ public sealed class RMCRecordsSystem : SharedRMCRecordsSystem
         Dirty(target, security);
     }
 
-    /// <summary>
-    ///     Updates a mob's medical record with body scanner results and generates surgery data.
-    ///     Called by the body scanner system when a scan is performed.
-    /// </summary>
     public void UpdateMedicalRecordFromScan(EntityUid target)
     {
         if (!TryGetMedicalRecord(target, out var medical))
@@ -115,10 +111,6 @@ public sealed class RMCRecordsSystem : SharedRMCRecordsSystem
         Dirty(target, medical);
     }
 
-    /// <summary>
-    ///     Generates a list of autodoc surgery entries based on the patient's current conditions.
-    ///     Only flags procedures the autodoc can actually perform.
-    /// </summary>
     private List<RMCAutodocRecord> GenerateAutodocData(EntityUid target)
     {
         var now = _timing.CurTime;
