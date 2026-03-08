@@ -10,8 +10,8 @@ public static class AutodocProcedures
     public const string Burn = "burn";
     public const string CloseIncisions = "close_incisions";
     public const string RemoveShrapnel = "shrapnel";
-    public const string Dialysis = "dialysis";
     public const string Blood = "blood";
+    public const string Dialysis = "dialysis";
     public const string Toxin = "toxin";
     public const string InternalBleeding = "internal_bleeding";
     public const string BrokenBone = "broken_bone";

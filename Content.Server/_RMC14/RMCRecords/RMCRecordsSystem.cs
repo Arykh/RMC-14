@@ -133,6 +133,8 @@ public sealed class RMCRecordsSystem : SharedRMCRecordsSystem
         if (_rmcBloodstream.TryGetBloodSolution(target, out var bloodstream) && bloodstream.Volume < bloodstream.MaxVolume)
             data.Add(new RMCAutodocRecord(now, AutodocProcedures.Blood, Loc.GetString("rmc-records-autodoc-blood")));
 
+        // Dialysis
+
         // TODO RMC-14 Internal Bleeding, Broken Bones, Organ Damage
 
         // Parasites — larva extraction research upgrade
