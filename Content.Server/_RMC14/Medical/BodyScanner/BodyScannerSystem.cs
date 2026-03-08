@@ -1,3 +1,4 @@
+using Content.Server._RMC14.Medical.Records;
 using Content.Shared._RMC14.Body;
 using Content.Shared._RMC14.Medical.BodyScanner;
 using Content.Shared._RMC14.Medical.HUD;
@@ -8,17 +9,16 @@ using Content.Shared.FixedPoint;
 using Content.Shared.UserInterface;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
-using Robust.Shared.Timing;
 
 namespace Content.Server._RMC14.Medical.BodyScanner;
 
 public sealed class BodyScannerSystem : SharedBodyScannerSystem
 {
     [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private readonly RMCRecordsSystem _records = default!;
     [Dependency] private readonly SharedRMCBloodstreamSystem _rmcBloodstream = default!;
     [Dependency] private readonly RMCPulseSystem _rmcPulse = default!;
     [Dependency] private readonly SharedRMCTemperatureSystem _rmcTemperature = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
 
     public override void Initialize()
@@ -35,7 +35,20 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
             return;
 
         _audio.PlayPvs(scanner.Comp.ScanSound, console);
-        UpdateUI(console);
+
+        if (scanner.Comp.Occupant is not { } target)
+            return;
+
+        if (TerminatingOrDeleted(target))
+        {
+            scanner.Comp.Occupant = null;
+            return;
+        }
+
+        // Update the patient's medical record with a snapshot of their current state
+        _records.UpdateMedicalRecordFromScan(target);
+
+        SendScanState(console, scanner, target);
     }
 
     private void OnConsoleOpenChangeHolocard(Entity<BodyScannerConsoleComponent> console, ref OpenChangeHolocardUIEvent args)
@@ -45,26 +58,8 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
         _ui.OpenUi(localTarget, HolocardChangeUIKey.Key, localOwner);
     }
 
-    private void UpdateUI(Entity<BodyScannerConsoleComponent> console)
+    private void SendScanState(Entity<BodyScannerConsoleComponent> console, Entity<BodyScannerComponent> scanner, EntityUid target)
     {
-        if (!_ui.IsUiOpen(console.Owner, HealthScannerUIKey.Key))
-            return;
-
-        if (!TryGetLinkedScanner(console, out var scanner))
-            return;
-
-        if (scanner.Comp.Occupant is not { } target)
-            return;
-
-        if (TerminatingOrDeleted(target))
-        {
-            if (!TerminatingOrDeleted(scanner))
-                _ui.CloseUi(scanner.Owner, HealthScannerUIKey.Key);
-
-            scanner.Comp.Occupant = null;
-            return;
-        }
-
         FixedPoint2 blood = 0;
         FixedPoint2 maxBlood = 0;
         if (_rmcBloodstream.TryGetBloodSolution(target, out var bloodstream))
@@ -89,24 +84,7 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
             bleeding,
             scanner.Comp.DetailLevel);
 
-        // TODO RMC14 Medical records? /proc/create_medical_record(mob/living/carbon/human/person)
         _ui.SetUiState(console.Owner, HealthScannerUIKey.Key, state);
-    }
-
-    public override void Update(float frameTime)
-    {
-        base.Update(frameTime);
-
-        var time = _timing.CurTime;
-        var consoles = EntityQueryEnumerator<BodyScannerConsoleComponent>();
-        while (consoles.MoveNext(out var uid, out var console))
-        {
-            if (time < console.UpdateAt)
-                continue;
-
-            console.UpdateAt = time + console.UpdateCooldown;
-            UpdateUI((uid, console));
-        }
     }
 
     private bool TryGetLinkedScanner(Entity<BodyScannerConsoleComponent> console, out Entity<BodyScannerComponent> scanner)
