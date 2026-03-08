@@ -1,6 +1,7 @@
 using System.Linq;
 using Content.Server._RMC14.RMCRecords;
 using Content.Shared._RMC14.Body;
+using Content.Shared._RMC14.RMCRecords;
 using Content.Shared._RMC14.Damage;
 using Content.Shared._RMC14.Medical.Autodoc;
 using Content.Shared._RMC14.Medical.Surgery.Steps.Parts;
@@ -281,40 +282,40 @@ public sealed class AutodocSystem : SharedAutodocSystem
         {
             switch (entry.Procedure)
             {
-                case "brute":
+                case AutodocProcedures.Brute:
                     autodoc.Comp.HealingBrute = true;
                     break;
-                case "burn":
+                case AutodocProcedures.Burn:
                     autodoc.Comp.HealingBurn = true;
                     break;
-                case "toxin":
-                    autodoc.Comp.HealingToxin = true;
-                    break;
-                case "dialysis":
-                    autodoc.Comp.Filtering = true;
-                    break;
-                case "blood":
-                    autodoc.Comp.BloodTransfusion = true;
-                    break;
-                case "close_incisions":
+                case AutodocProcedures.CloseIncisions:
                     autodoc.Comp.CloseIncisions = true;
                     break;
-                case "shrapnel":
+                case AutodocProcedures.RemoveShrapnel:
                     autodoc.Comp.RemoveShrapnel = true;
                     break;
-                case "internal_bleeding":
+                case AutodocProcedures.Dialysis:
+                    autodoc.Comp.Filtering = true;
+                    break;
+                case AutodocProcedures.Blood:
+                    autodoc.Comp.BloodTransfusion = true;
+                    break;
+                case AutodocProcedures.Toxin:
+                    autodoc.Comp.HealingToxin = true;
+                    break;
+                case AutodocProcedures.InternalBleeding:
                     if (console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.InternalBleeding))
                         autodoc.Comp.InternalBleeding = true;
                     break;
-                case "broken_bone":
+                case AutodocProcedures.BrokenBone:
                     if (console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.BrokenBone))
                         autodoc.Comp.BrokenBone = true;
                     break;
-                case "organ_damage":
+                case AutodocProcedures.OrganDamage:
                     if (console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.OrganDamage))
                         autodoc.Comp.OrganDamage = true;
                     break;
-                case "larva":
+                case AutodocProcedures.Larva:
                     if (console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.LarvaExtraction))
                         autodoc.Comp.RemoveLarva = true;
                     break;
