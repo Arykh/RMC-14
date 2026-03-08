@@ -42,7 +42,7 @@ public sealed partial class RMCMedicalRecordComponent : Component
     public TimeSpan? LastScanTime;
 
     /// <summary>
-    ///     A human-readable summary of the last scan result.
+    ///     A readable summary of the last scan result.
     /// </summary>
     [DataField, AutoNetworkedField]
     public string LastScanResult = "No scan data on record";
