@@ -1,11 +1,10 @@
 using System.Linq;
-using Content.Server._RMC14.RMCRecords;
 using Content.Shared._RMC14.Body;
-using Content.Shared._RMC14.RMCRecords;
 using Content.Shared._RMC14.Damage;
 using Content.Shared._RMC14.Medical.Autodoc;
 using Content.Shared._RMC14.Medical.Surgery.Steps.Parts;
 using Content.Shared._RMC14.Mobs;
+using Content.Shared._RMC14.RMCMedicalRecords;
 using Content.Shared._RMC14.Xenonids.Parasite;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
@@ -34,7 +33,7 @@ public sealed class AutodocSystem : SharedAutodocSystem
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly MobThresholdSystem _mobThreshold = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly RMCRecordsSystem _records = default!;
+    [Dependency] private readonly SharedRMCMedicalRecordsSystem _records = default!;
     [Dependency] private readonly SharedRMCBloodstreamSystem _rmcBloodstream = default!;
     [Dependency] private readonly SharedRMCDamageableSystem _rmcDamageable = default!;
     [Dependency] private readonly RMCPulseSystem _rmcPulse = default!;
