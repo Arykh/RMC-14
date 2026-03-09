@@ -1,4 +1,4 @@
-using Content.Server._RMC14.RMCRecords;
+using Content.Server._RMC14.RMCMedicalRecords;
 using Content.Shared._RMC14.Body;
 using Content.Shared._RMC14.Medical.BodyScanner;
 using Content.Shared._RMC14.Medical.HUD;
@@ -15,7 +15,7 @@ namespace Content.Server._RMC14.Medical.BodyScanner;
 public sealed class BodyScannerSystem : SharedBodyScannerSystem
 {
     [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly RMCRecordsSystem _records = default!;
+    [Dependency] private readonly RMCMedicalRecordsSystem _records = default!;
     [Dependency] private readonly SharedRMCBloodstreamSystem _rmcBloodstream = default!;
     [Dependency] private readonly RMCPulseSystem _rmcPulse = default!;
     [Dependency] private readonly SharedRMCTemperatureSystem _rmcTemperature = default!;
