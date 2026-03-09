@@ -1,4 +1,4 @@
-namespace Content.Shared._RMC14.RMCRecords;
+namespace Content.Shared._RMC14.RMCMedicalRecords;
 
 /// <summary>
 ///     Identifiers used to bridge body scanner results with the autodoc's import feature.
