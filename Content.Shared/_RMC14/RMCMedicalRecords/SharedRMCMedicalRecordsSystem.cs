@@ -1,7 +1,6 @@
 using Content.Shared._RMC14.Marines.Skills;
 using Content.Shared._RMC14.Medical.HUD.Events;
 using Content.Shared._RMC14.Synth;
-using Content.Shared.Examine;
 using Content.Shared.Inventory;
 using Content.Shared.Verbs;
 using Robust.Shared.Prototypes;
@@ -11,7 +10,6 @@ namespace Content.Shared._RMC14.RMCMedicalRecords;
 
 public abstract class SharedRMCMedicalRecordsSystem : EntitySystem
 {
-    [Dependency] private readonly ExamineSystemShared _examine = default!;
     [Dependency] private readonly SkillsSystem _skills = default!;
 
     private const int MedicalSkillRequired = 2;
@@ -41,26 +39,27 @@ public abstract class SharedRMCMedicalRecordsSystem : EntitySystem
                 return;
         }
 
-        var msg = new FormattedMessage();
-        if (ent.Comp.LastScanTime is not { } scanTime)
-        {
-            msg.AddMarkupOrThrow(Loc.GetString("rmc-records-examine-no-scan"));
-        }
-        else
-        {
-            var timeStr = scanTime.ToString(@"hh\:mm\:ss");
-            msg.AddMarkupOrThrow(Loc.GetString("rmc-records-examine-scan-time", ("time", timeStr)));
-            msg.PushNewline();
-            msg.AddMarkupOrThrow(Loc.GetString("rmc-records-examine-scan-result", ("result", ent.Comp.LastScanResult)));
-        }
+        var hasScan = ent.Comp.LastScanTime is not null && ent.Comp.LastScanState is not null;
+        var verbMessage = hasScan
+            ? Loc.GetString("rmc-records-examine-scan-time", ("time", ent.Comp.LastScanTime!.Value.ToString(@"hh\:mm\:ss")))
+            : Loc.GetString("rmc-records-examine-no-scan");
 
-        _examine.AddDetailedExamineVerb(
-            args,
-            ent.Comp,
-            msg,
-            Loc.GetString("rmc-records-examine-verb-text"),
-            "/Textures/_RMC14/Objects/Medical/medical.rsi/traumakit.png",
-            Loc.GetString("rmc-records-examine-verb-message"));
+        var target = ent.Owner;
+        var verb = new ExamineVerb
+        {
+            Act = () =>
+            {
+                if (hasScan)
+                    RaiseLocalEvent(new OpenStoredScanEvent(GetNetEntity(target)));
+            },
+            Text = Loc.GetString("rmc-records-examine-verb-text"),
+            Message = verbMessage,
+            Category = VerbCategory.Examine,
+            Icon = new SpriteSpecifier.Texture(new("/Textures/_RMC14/Objects/Medical/medical.rsi/traumakit.png")),
+            Disabled = !hasScan,
+        };
+
+        args.Verbs.Add(verb);
     }
 
     /// <summary>

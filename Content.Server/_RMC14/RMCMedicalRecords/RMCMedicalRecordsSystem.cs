@@ -1,6 +1,7 @@
 using Content.Server.StationRecords.Systems;
 using Content.Shared._RMC14.Body;
 using Content.Shared._RMC14.Chemistry.Reagent;
+using Content.Shared._RMC14.Medical.Scanner;
 using Content.Shared._RMC14.Medical.Surgery.Steps.Parts;
 using Content.Shared._RMC14.Mobs;
 using Content.Shared._RMC14.RMCMedicalRecords;
@@ -11,15 +12,13 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared.GameTicking;
-using Content.Shared.Mobs;
-using Content.Shared.Mobs.Systems;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._RMC14.RMCMedicalRecords;
 
 /// <summary>
-///     Creates <see cref="RMCMedicalRecord"/> entries the station record set when a general record is created.
+///     Creates <see cref="RMCMedicalRecord"/> entries in the station record set when a general record is created.
 ///     Also manages entity-bound scan data on <see cref="RMCMedicalRecordComponent"/>.
 /// </summary>
 public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
@@ -29,15 +28,12 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
     [Dependency] private readonly RMCPulseSystem _rmcPulse = default!;
     [Dependency] private readonly RMCReagentSystem _rmcReagent = default!;
     [Dependency] private readonly SharedRMCTemperatureSystem _rmcTemperature = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly MobThresholdSystem _mobThreshold = default!;
     [Dependency] private readonly StationRecordsSystem _stationRecords = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
 
     private static readonly ProtoId<DamageGroupPrototype> BruteGroup = "Brute";
     private static readonly ProtoId<DamageGroupPrototype> BurnGroup = "Burn";
     private static readonly ProtoId<DamageGroupPrototype> ToxinGroup = "Toxin";
-    private static readonly ProtoId<DamageGroupPrototype> AirlossGroup = "Airloss";
 
     public override void Initialize()
     {
@@ -55,7 +51,6 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent args)
     {
-        // Entity-bound bodyscan/autodoc data
         EnsureComp<RMCMedicalRecordComponent>(args.Mob);
     }
 
@@ -65,9 +60,36 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
             return;
 
         medical.LastScanTime = _timing.CurTime;
-        medical.LastScanResult = BuildScanSummary(target);
+        medical.LastScanState = BuildScanSnapshot(target);
         medical.AutodocData = GenerateAutodocData(target);
         Dirty(target, medical);
+    }
+
+    public HealthScannerBuiState BuildScanSnapshot(EntityUid target, HealthScanDetailLevel detailLevel = HealthScanDetailLevel.BodyScan)
+    {
+        var blood = default(FixedPoint2);
+        var maxBlood = default(FixedPoint2);
+        if (_rmcBloodstream.TryGetBloodSolution(target, out var bloodstream))
+        {
+            blood = bloodstream.Volume;
+            maxBlood = bloodstream.MaxVolume;
+        }
+
+        _rmcBloodstream.TryGetChemicalSolution(target, out _, out var chemicals);
+        _rmcTemperature.TryGetCurrentTemperature(target, out var temperature);
+
+        var pulse = _rmcPulse.TryGetPulseReading(target, true, out _);
+        var bleeding = _rmcBloodstream.IsBleeding(target);
+
+        return new HealthScannerBuiState(
+            GetNetEntity(target),
+            blood,
+            maxBlood,
+            temperature,
+            pulse,
+            chemicals,
+            bleeding,
+            detailLevel);
     }
 
     private List<RMCAutodocRecord> GenerateAutodocData(EntityUid target)
@@ -122,59 +144,5 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
             autodocData.Add(new RMCAutodocRecord(time, AutodocProcedures.Larva, Loc.GetString("rmc-records-autodoc-larva")));
 
         return autodocData;
-    }
-
-    private string BuildScanSummary(EntityUid target)
-    {
-        var scan = new List<string>();
-
-        if (_mobState.IsDead(target))
-            scan.Add(Loc.GetString("rmc-records-scan-status-dead"));
-        else if (_mobState.IsCritical(target))
-            scan.Add(Loc.GetString("rmc-records-scan-status-critical"));
-        else
-            scan.Add(Loc.GetString("rmc-records-scan-status-alive"));
-
-        if (TryComp<DamageableComponent>(target, out var damageable))
-        {
-            var health = FixedPoint2.Zero;
-            if (_mobThreshold.TryGetThresholdForState(target, MobState.Critical, out var critThreshold))
-                health = critThreshold.Value - damageable.TotalDamage;
-
-            scan.Add(Loc.GetString("rmc-records-scan-health", ("value", health)));
-
-            var brute = damageable.DamagePerGroup.GetValueOrDefault(BruteGroup);
-            var burn = damageable.DamagePerGroup.GetValueOrDefault(BurnGroup);
-            var toxin = damageable.DamagePerGroup.GetValueOrDefault(ToxinGroup);
-            var oxygen = damageable.DamagePerGroup.GetValueOrDefault(AirlossGroup);
-
-            scan.Add(Loc.GetString("rmc-records-scan-brute", ("value", brute)));
-            scan.Add(Loc.GetString("rmc-records-scan-burn", ("value", burn)));
-            scan.Add(Loc.GetString("rmc-records-scan-toxin", ("value", toxin)));
-            scan.Add(Loc.GetString("rmc-records-scan-oxygen", ("value", oxygen)));
-        }
-
-        if (_rmcBloodstream.TryGetBloodSolution(target, out var bloodstream))
-        {
-            var bloodPercent = bloodstream.MaxVolume > 0
-                ? (bloodstream.Volume / bloodstream.MaxVolume * 100).Float()
-                : 0f;
-            scan.Add(Loc.GetString("rmc-records-scan-blood",
-                ("percent", $"{bloodPercent:F0}"),
-                ("current", bloodstream.Volume),
-                ("max", bloodstream.MaxVolume)));
-        }
-
-        if (_rmcBloodstream.IsBleeding(target))
-            scan.Add(Loc.GetString("rmc-records-scan-bleeding"));
-
-        if (_rmcTemperature.TryGetCurrentTemperature(target, out var temperature))
-            scan.Add(Loc.GetString("rmc-records-scan-temperature", ("value", $"{temperature:F1}")));
-
-        var pulse = _rmcPulse.TryGetPulseReading(target, true, out _);
-        if (!string.IsNullOrEmpty(pulse))
-            scan.Add(Loc.GetString("rmc-records-scan-pulse", ("value", pulse)));
-
-        return string.Join(" | ", scan);
     }
 }
