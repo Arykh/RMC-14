@@ -3,14 +3,13 @@ using Content.Shared._RMC14.Medical.HUD.Events;
 using Content.Shared._RMC14.Synth;
 using Content.Shared.Examine;
 using Content.Shared.Inventory;
-using Content.Shared.Mobs;
 using Content.Shared.Verbs;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
-namespace Content.Shared._RMC14.RMCRecords;
+namespace Content.Shared._RMC14.RMCMedicalRecords;
 
-public abstract class SharedRMCRecordsSystem : EntitySystem
+public abstract class SharedRMCMedicalRecordsSystem : EntitySystem
 {
     [Dependency] private readonly ExamineSystemShared _examine = default!;
     [Dependency] private readonly SkillsSystem _skills = default!;
@@ -65,40 +64,10 @@ public abstract class SharedRMCRecordsSystem : EntitySystem
     }
 
     /// <summary>
-    ///     Attempts to retrieve the general record for a given entity.
-    /// </summary>
-    public bool TryGetGeneralRecord(EntityUid uid, out RMCGeneralRecordComponent record)
-    {
-        return TryComp(uid, out record!);
-    }
-
-    /// <summary>
-    ///     Attempts to retrieve the medical record for a given entity.
+    ///     Attempts to retrieve the entity-bound medical record component.
     /// </summary>
     public bool TryGetMedicalRecord(EntityUid uid, out RMCMedicalRecordComponent record)
     {
         return TryComp(uid, out record!);
-    }
-
-    /// <summary>
-    ///     Attempts to retrieve the security record for a given entity.
-    /// </summary>
-    public bool TryGetSecurityRecord(EntityUid uid, out RMCSecurityRecordComponent record)
-    {
-        return TryComp(uid, out record!);
-    }
-
-    /// <summary>
-    ///     Maps a <see cref="MobState"/> to the corresponding <see cref="RMCPhysicalStatus"/>.
-    /// </summary>
-    public static RMCPhysicalStatus MobStateToPhysicalStatus(MobState state)
-    {
-        return state switch
-        {
-            MobState.Alive => RMCPhysicalStatus.Active,
-            MobState.Critical => RMCPhysicalStatus.Unconscious,
-            MobState.Dead => RMCPhysicalStatus.Dead,
-            _ => RMCPhysicalStatus.Active,
-        };
     }
 }
