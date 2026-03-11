@@ -12,7 +12,6 @@ using Content.Shared._RMC14.Medical.Scanner;
 using Content.Shared._RMC14.Medical.Unrevivable;
 using Content.Shared._RMC14.Medical.Wounds;
 using Content.Shared._RMC14.Xenonids.Parasite;
-using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.IdentityManagement;
@@ -30,32 +29,34 @@ public sealed class HealthScannerUiData
 {
     private readonly IEntityManager _entities;
     private readonly IPlayerManager _player;
-    private readonly IPrototypeManager _prototype;
     private readonly ShowHolocardIconsSystem _holocardIcons;
     private readonly SkillsSystem _skills;
     private readonly SharedWoundsSystem _wounds;
     private readonly RMCUnrevivableSystem _unrevivable;
     private readonly MobStateSystem _mob;
+    private readonly RMCReagentSystem _rmcReagent;
     private readonly RottingSystem _rot;
+    private readonly SharedUserInterfaceSystem _ui;
 
     private readonly Dictionary<EntProtoId<SkillDefinitionComponent>, int> _bloodPackSkill = new() { ["RMCSkillSurgery"] = 1 };
     private readonly Dictionary<EntProtoId<SkillDefinitionComponent>, int> _defibSkill = new() { ["RMCSkillMedical"] = 2 };
     private readonly Dictionary<EntProtoId<SkillDefinitionComponent>, int> _larvaSurgerySkill = new() { ["RMCSkillSurgery"] = 2 };
 
-    public HealthScannerUiData(IEntityManager entities, IPlayerManager player, IPrototypeManager prototype)
+    public HealthScannerUiData(IEntityManager entities, IPlayerManager player)
     {
         _entities = entities;
         _player = player;
-        _prototype = prototype;
         _holocardIcons = entities.System<ShowHolocardIconsSystem>();
         _skills = entities.System<SkillsSystem>();
         _wounds = entities.System<SharedWoundsSystem>();
         _unrevivable = entities.System<RMCUnrevivableSystem>();
         _mob = entities.System<MobStateSystem>();
+        _rmcReagent = entities.System<RMCReagentSystem>();
         _rot = entities.System<RottingSystem>();
+        _ui = entities.System<SharedUserInterfaceSystem>();
     }
 
-    public void HealthScannerState(HealthScannerWindow window, HealthScannerBuiState uiState, Action<BaseButton.ButtonEventArgs>? onChangeHolocard)
+    public void RenderHealthScan(HealthScannerWindow window, HealthScannerBuiState uiState)
     {
         if (_entities.GetEntity(uiState.Target) is not { Valid: true } target)
             return;
@@ -119,28 +120,21 @@ public sealed class HealthScannerUiData
             }
         }
 
-        // TODO AAAAAAAAAAA private NetEntity _lastTarget;
         window.ChangeHolocardButton.Text = Loc.GetString("ui-health-scanner-holocard-change");
-        if (onChangeHolocard != null)
+        if (_player.LocalEntity is { } viewer &&
+            _skills.HasSkill(viewer, HolocardSystem.SkillType, HolocardSystem.MinimumRequiredSkill))
         {
-            window.ChangeHolocardButton.OnPressed += onChangeHolocard;
-
-            if (_player.LocalEntity is { } viewer &&
-                _skills.HasSkill(viewer, HolocardSystem.SkillType, HolocardSystem.MinimumRequiredSkill))
+            window.ChangeHolocardButton.Disabled = false;
+            window.ChangeHolocardButton.ToolTip = "";
+            window.ChangeHolocardButton.OnPressed += _ =>
             {
-                window.ChangeHolocardButton.Disabled = false;
-                window.ChangeHolocardButton.ToolTip = "";
-            }
-            else
-            {
-                window.ChangeHolocardButton.Disabled = true;
-                window.ChangeHolocardButton.ToolTip = Loc.GetString("ui-holocard-change-insufficient-skill");
-            }
+                _ui.OpenUi(target, HolocardChangeUIKey.Key, _player.LocalEntity, predicted: true);
+            };
         }
         else
         {
-            // Read-only view from stored record — hide the button
-            window.ChangeHolocardButton.Visible = false;
+            window.ChangeHolocardButton.Disabled = true;
+            window.ChangeHolocardButton.ToolTip = Loc.GetString("ui-holocard-change-insufficient-skill");
         }
 
         if (_entities.TryGetComponent(target, out HolocardStateComponent? holocardComponent) &&
@@ -167,7 +161,7 @@ public sealed class HealthScannerUiData
         {
             foreach (var reagent in uiState.Chemicals.Contents)
             {
-                if (!_prototype.TryIndexReagent(reagent.Reagent.Prototype, out ReagentPrototype? prototype))
+                if (!_rmcReagent.TryIndex(reagent.Reagent, out var prototype))
                     continue;
 
                 if (prototype.Unknown && uiState.DetailLevel < HealthScanDetailLevel.BodyScan)
@@ -259,10 +253,9 @@ public sealed class HealthScannerUiData
         var damage = damageable.Comp.DamagePerGroup.GetValueOrDefault(group)
             .Int()
             .ToString(CultureInfo.InvariantCulture);
-        if (_wounds.HasUntreated(damageable.Owner, group))
-            msg.AddText($"{{{damage}}}");
-        else
-            msg.AddText($"{damage}");
+        msg.AddText(_wounds.HasUntreated(damageable.Owner, group)
+            ? $"{{{damage}}}"
+            : $"{damage}");
 
         msg.Pop();
         label.SetMessage(msg);
@@ -287,19 +280,18 @@ public sealed class HealthScannerUiData
         if (_mob.IsDead(target))
         {
             var thresholdsSystem = _entities.System<MobThresholdSystem>();
-
             if (thresholdsSystem.TryGetDeadThreshold(target, out var deadThreshold))
             {
-                if (deadThreshold + 30 < target.Comp.Damage.GetTotal() && uiState.Chemicals != null
-                    && !uiState.Chemicals.ContainsReagent("CMEpinephrine", null))
+                if (deadThreshold + 30 < target.Comp.Damage.GetTotal() &&
+                    uiState.Chemicals != null &&
+                    !uiState.Chemicals.ContainsReagent("CMEpinephrine", null))
                 {
-                    AddAdvice(Loc.GetString("rmc-health-analyzer-advice-epinedrine"), window);
+                    AddAdvice(Loc.GetString("rmc-health-analyzer-advice-epinephrine"), window);
                 }
                 else
                 {
                     var defib = string.Empty;
-                    if (deadThreshold - 20 <= target.Comp.Damage.GetTotal() &&
-                        wounds != null && !hasBruteWounds && !hasBurnWounds)
+                    if (deadThreshold - 20 <= target.Comp.Damage.GetTotal() && wounds != null && !hasBruteWounds && !hasBurnWounds)
                         defib = Loc.GetString("rmc-health-analyzer-advice-defib-repeated");
                     else if (deadThreshold > target.Comp.Damage.GetTotal())
                         defib = Loc.GetString("rmc-health-analyzer-advice-defib");
@@ -338,13 +330,12 @@ public sealed class HealthScannerUiData
         if (uiState.Blood < uiState.MaxBlood)
         {
             var bloodPercent = uiState.Blood / uiState.MaxBlood;
-
             if (bloodPercent < 0.85)
             {
-                var bloodpack = Loc.GetString("rmc-health-analyzer-advice-blood-pack");
+                var bloodPack = Loc.GetString("rmc-health-analyzer-advice-blood-pack");
                 if (!_skills.HasAllSkills(viewer, _bloodPackSkill))
-                    bloodpack = $"[color=#858585]{bloodpack}[/color]";
-                AddAdvice(bloodpack, window);
+                    bloodPack = $"[color=#858585]{bloodPack}[/color]";
+                AddAdvice(bloodPack, window);
             }
 
             if (bloodPercent < 0.9 && uiState.Chemicals != null && !uiState.Chemicals.ContainsReagent("Nutriment", null))
@@ -365,25 +356,34 @@ public sealed class HealthScannerUiData
             if (airloss > 10 && _mob.IsCritical(target))
                 AddAdvice(Loc.GetString("rmc-health-analyzer-advice-cpr-crit"), window);
 
-            if (airloss > 30 && uiState.Chemicals != null &&
-                !uiState.Chemicals.ContainsReagent("CMDexalin", null))
+            if (airloss > 30 && uiState.Chemicals != null && !uiState.Chemicals.ContainsReagent("CMDexalin", null))
                 AddAdvice(Loc.GetString("rmc-health-analyzer-advice-dexalin"), window);
         }
 
-        if (brute > 30 && uiState.Chemicals != null &&
+        if (brute > 30 &&
+            uiState.Chemicals != null &&
             !uiState.Chemicals.ContainsReagent("CMBicaridine", null) &&
             !_mob.IsDead(target))
+        {
             AddAdvice(Loc.GetString("rmc-health-analyzer-advice-bicaridine"), window);
+        }
 
-        if (burn > 30 && uiState.Chemicals != null &&
+        if (burn > 30 &&
+            uiState.Chemicals != null &&
             !uiState.Chemicals.ContainsReagent("CMKelotane", null) &&
             !_mob.IsDead(target))
+        {
             AddAdvice(Loc.GetString("rmc-health-analyzer-advice-kelotane"), window);
+        }
 
-        if (toxin > 10 && uiState.Chemicals != null &&
-            !uiState.Chemicals.ContainsReagent("CMDylovene", null) && !uiState.Chemicals.ContainsReagent("Inaprovaline", null) &&
+        if (toxin > 10 &&
+            uiState.Chemicals != null &&
+            !uiState.Chemicals.ContainsReagent("CMDylovene", null) &&
+            !uiState.Chemicals.ContainsReagent("Inaprovaline", null) &&
             !_mob.IsDead(target))
+        {
             AddAdvice(Loc.GetString("rmc-health-analyzer-advice-dylovene"), window);
+        }
 
         // TODO RMC14 Clone damage advice
     }

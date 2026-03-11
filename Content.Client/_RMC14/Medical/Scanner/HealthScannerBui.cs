@@ -1,10 +1,7 @@
-using Content.Shared._RMC14.Medical.HUD;
 using Content.Shared._RMC14.Medical.Scanner;
 using JetBrains.Annotations;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
-using Robust.Client.UserInterface.Controls;
-using Robust.Shared.Prototypes;
 
 namespace Content.Client._RMC14.Medical.Scanner;
 
@@ -13,17 +10,15 @@ public sealed class HealthScannerBui(EntityUid owner, Enum uiKey) : BoundUserInt
 {
     [Dependency] private readonly IEntityManager _entities = default!;
     [Dependency] private readonly IPlayerManager _player = default!;
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
 
     [ViewVariables]
     private HealthScannerWindow? _window;
-    private NetEntity _lastTarget;
     private HealthScannerUiData? _scanUiData;
 
     protected override void Open()
     {
         base.Open();
-        _scanUiData ??= new HealthScannerUiData(_entities, _player, _prototype);
+        _scanUiData ??= new HealthScannerUiData(_entities, _player);
 
         if (State is HealthScannerBuiState state)
             UpdateState(state);
@@ -37,7 +32,7 @@ public sealed class HealthScannerBui(EntityUid owner, Enum uiKey) : BoundUserInt
 
     private void UpdateState(HealthScannerBuiState uiState)
     {
-        _scanUiData ??= new HealthScannerUiData(_entities, _player, _prototype);
+        _scanUiData ??= new HealthScannerUiData(_entities, _player);
 
         if (_window == null)
         {
@@ -45,13 +40,6 @@ public sealed class HealthScannerBui(EntityUid owner, Enum uiKey) : BoundUserInt
             _window.Title = Loc.GetString("rmc-health-analyzer-title");
         }
 
-        _lastTarget = uiState.Target;
-        _scanUiData.HealthScannerState(_window, uiState, OpenChangeHolocardUI);
-    }
-
-    private void OpenChangeHolocardUI(BaseButton.ButtonEventArgs obj)
-    {
-        if (_player.LocalEntity is { } viewer)
-            SendMessage(new OpenChangeHolocardUIEvent(_entities.GetNetEntity(viewer), _lastTarget));
+        _scanUiData.RenderHealthScan(_window, uiState);
     }
 }
