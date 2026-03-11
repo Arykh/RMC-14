@@ -1,6 +1,5 @@
 using Content.Shared._RMC14.Marines.Skills;
 using Content.Shared._RMC14.Medical.HUD.Events;
-using Content.Shared._RMC14.Synth;
 using Content.Shared.Inventory;
 using Content.Shared.Verbs;
 using Robust.Shared.Prototypes;
@@ -12,8 +11,8 @@ public abstract class SharedRMCMedicalRecordsSystem : EntitySystem
 {
     [Dependency] private readonly SkillsSystem _skills = default!;
 
-    private const int MedicalSkillRequired = 2;
-    private static readonly EntProtoId<SkillDefinitionComponent> MedicalSkillType = "RMCSkillMedical";
+    private const int MinimumSkillLvl = 2;
+    private static readonly EntProtoId<SkillDefinitionComponent> MedicalSkill = "RMCSkillMedical";
 
     public override void Initialize()
     {
@@ -27,17 +26,13 @@ public abstract class SharedRMCMedicalRecordsSystem : EntitySystem
         if (!args.CanInteract)
             return;
 
-        // Synths can always see records; otherwise require medical HUD + skill
-        if (!HasComp<SynthComponent>(args.User))
-        {
-            if (!_skills.HasSkill(args.User, MedicalSkillType, MedicalSkillRequired))
-                return;
+        if (!_skills.HasSkill(args.User, MedicalSkill, MinimumSkillLvl))
+            return;
 
-            var scanEvent = new HolocardScanEvent(false, SlotFlags.EYES | SlotFlags.HEAD);
-            RaiseLocalEvent(args.User, ref scanEvent);
-            if (!scanEvent.CanScan)
-                return;
-        }
+        var scanEvent = new HolocardScanEvent(false, SlotFlags.EYES | SlotFlags.HEAD);
+        RaiseLocalEvent(args.User, ref scanEvent);
+        if (!scanEvent.CanScan)
+            return;
 
         var hasScan = ent.Comp.LastScanTime is not null && ent.Comp.LastScanState is not null;
         var verbMessage = hasScan

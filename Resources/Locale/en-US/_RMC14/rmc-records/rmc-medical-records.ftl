@@ -1,5 +1,4 @@
 rmc-records-examine-verb-text = View Scan Report
-rmc-records-examine-verb-message = View the last body scanner report on file.
 rmc-records-examine-no-scan = No scan report on record
 rmc-records-examine-scan-time = Scan from {$time}
 

@@ -65,7 +65,7 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
         Dirty(target, medical);
     }
 
-    public HealthScannerBuiState BuildScanSnapshot(EntityUid target, HealthScanDetailLevel detailLevel = HealthScanDetailLevel.BodyScan)
+    public HealthScanState BuildScanSnapshot(EntityUid target, HealthScanDetailLevel detailLevel = HealthScanDetailLevel.BodyScan)
     {
         var blood = default(FixedPoint2);
         var maxBlood = default(FixedPoint2);
@@ -81,7 +81,7 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
         var pulse = _rmcPulse.TryGetPulseReading(target, true, out _);
         var bleeding = _rmcBloodstream.IsBleeding(target);
 
-        return new HealthScannerBuiState(
+        return new HealthScanState(
             GetNetEntity(target),
             blood,
             maxBlood,
