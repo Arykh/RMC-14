@@ -41,7 +41,7 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
         _rmcMedicalRecords.UpdateMedicalRecordFromScan(target);
 
         var state = _rmcMedicalRecords.BuildScanSnapshot(target, scanner.Comp.DetailLevel);
-        _ui.SetUiState(console.Owner, HealthScannerUIKey.Key, state);
+        _ui.SetUiState(console.Owner, HealthScannerUIKey.Key, new HealthScannerBuiState(state));
     }
 
     private void OnConsoleOpenChangeHolocard(Entity<BodyScannerConsoleComponent> console, ref OpenChangeHolocardUIEvent args)

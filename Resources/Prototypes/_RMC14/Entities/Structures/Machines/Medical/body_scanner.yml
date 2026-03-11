@@ -94,7 +94,6 @@
     interfaces:
       enum.HealthScannerUIKey.Key:
         type: HealthScannerBui
-  - type: IgnoreUIRange
   - type: ActivatableUI
     key: enum.HealthScannerUIKey.Key
   - type: ActivatableUIRequiresPower

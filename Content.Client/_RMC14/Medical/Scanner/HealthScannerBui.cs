@@ -40,6 +40,6 @@ public sealed class HealthScannerBui(EntityUid owner, Enum uiKey) : BoundUserInt
             _window.Title = Loc.GetString("rmc-health-analyzer-title");
         }
 
-        _scanUiData.RenderHealthScan(_window, uiState);
+        _scanUiData.PopulateHealthScan(_window, uiState.ScanState);
     }
 }

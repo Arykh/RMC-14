@@ -56,7 +56,7 @@ public sealed class HealthScannerUiData
         _ui = entities.System<SharedUserInterfaceSystem>();
     }
 
-    public void RenderHealthScan(HealthScannerWindow window, HealthScannerBuiState uiState)
+    public void PopulateHealthScan(HealthScannerWindow window, HealthScanState uiState)
     {
         if (_entities.GetEntity(uiState.Target) is not { Valid: true } target)
             return;
@@ -261,7 +261,7 @@ public sealed class HealthScannerUiData
         label.SetMessage(msg);
     }
 
-    private void MedicalAdvice(Entity<DamageableComponent> target, HealthScannerBuiState uiState, HealthScannerWindow window)
+    private void MedicalAdvice(Entity<DamageableComponent> target, HealthScanState uiState, HealthScannerWindow window)
     {
         _entities.TryGetComponent(target, out WoundedComponent? wounds);
         var hasBruteWounds = false;
