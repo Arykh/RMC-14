@@ -26,14 +26,13 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
         if (!TryGetMedicalRecord(target, out var record) || record.LastScanState is not { } scanState)
             return;
 
-        _healthScanUiData ??= new HealthScannerUiData(EntityManager, _player, _prototype);
+        _healthScanUiData ??= new HealthScannerUiData(EntityManager, _player);
 
-        // Close existing window if open
         if (_storedScanWindow is { IsOpen: true })
             _storedScanWindow.Close();
 
         _storedScanWindow = new HealthScannerWindow();
         _storedScanWindow.Title = Loc.GetString("rmc-records-examine-verb-text");
-        _healthScanUiData.HealthScannerState(_storedScanWindow, scanState, onChangeHolocard: null);
+        _healthScanUiData.RenderHealthScan(_storedScanWindow, scanState);
     }
 }
