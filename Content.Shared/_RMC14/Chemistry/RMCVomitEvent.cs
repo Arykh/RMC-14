@@ -1,8 +1,8 @@
 namespace Content.Shared._RMC14.Chemistry;
 
 /// <summary>
-/// Event to start the delayed vomit process. vomit() proc
-/// Vomit sequence: nausea -> warning -> actual vomit
+///     Event to start the delayed vomit process. vomit() proc
+///     Vomit sequence: nausea -> warning -> actual vomit
 /// </summary>
 [ByRefEvent]
 public readonly record struct RMCVomitEvent(
@@ -12,7 +12,7 @@ public readonly record struct RMCVomitEvent(
 );
 
 /// <summary>
-/// Event to perform the actual vomit immediately. do_vomit() proc
+///     Event to perform the actual vomit immediately. do_vomit() proc
 /// </summary>
 [ByRefEvent]
 public readonly record struct RMCDoVomitEvent(

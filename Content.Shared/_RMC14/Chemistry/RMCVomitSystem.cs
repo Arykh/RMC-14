@@ -47,7 +47,7 @@ public sealed class RMCVomitSystem : EntitySystem
     }
 
     /// <summary>
-    /// Handles the vomit() proc from 13 - starts the delayed vomit sequence.
+    ///     Handles the vomit() proc from 13 - starts the delayed vomit sequence.
     /// </summary>
     private void OnRMCVomit(ref RMCVomitEvent args)
     {
@@ -55,7 +55,7 @@ public sealed class RMCVomitSystem : EntitySystem
     }
 
     /// <summary>
-    /// Handles the do_vomit() proc from 13 - performs the actual vomit immediately.
+    ///     Handles the do_vomit() proc from 13 - performs the actual vomit immediately.
     /// </summary>
     private void OnRMCDoVomit(ref RMCDoVomitEvent args)
     {
@@ -63,8 +63,7 @@ public sealed class RMCVomitSystem : EntitySystem
     }
 
     /// <summary>
-    /// Start the vomit process.
-    /// Shows nausea message, schedules warning and actual vomit.
+    ///     Start the vomit process. Shows nausea message, schedules warning and actual vomit.
     /// </summary>
     public void StartVomit(EntityUid uid, float hungerLoss = -40f, float toxinHeal = 3f)
     {
@@ -107,7 +106,7 @@ public sealed class RMCVomitSystem : EntitySystem
     }
 
     /// <summary>
-    /// Make an entity vomit immediately.
+    ///     Make an entity vomit immediately.
     /// </summary>
     public void DoVomit(EntityUid uid, float hungerLoss = -40f, float toxinHeal = 3f)
     {
@@ -132,7 +131,6 @@ public sealed class RMCVomitSystem : EntitySystem
         {
             var vomitAmount = solutionSize;
 
-            // Flushes small portion of the chemicals removed from the bloodstream // TODO RMC14 (uid, bloodStream.BloodSolutionName, ref bloodStream.BloodSolution)
             if (_solutionContainer.ResolveSolution(uid, bloodStream.ChemicalSolutionName, ref bloodStream.ChemicalSolution))
             {
                 var vomitChemstreamAmount = _solutionContainer.SplitSolution(bloodStream.ChemicalSolution.Value, vomitAmount);
@@ -140,19 +138,8 @@ public sealed class RMCVomitSystem : EntitySystem
                 solution.AddSolution(vomitChemstreamAmount, _proto);
 
                 vomitAmount -= (float)vomitChemstreamAmount.Volume;
-                /* // TODO RMC14 Replace above with this when BloodstreamSystem is updated
-                var vomitChemstreamAmount = _bloodstream.FlushChemicals((uid, bloodStream), vomitAmount);
-
-                if (vomitChemstreamAmount != null)
-                {
-                    vomitChemstreamAmount.ScaleSolution(ChemMultiplier);
-                    solution.AddSolution(vomitChemstreamAmount, _proto);
-                    vomitAmount -= (float)vomitChemstreamAmount.Volume;
-                }
-                */
             }
 
-            // Makes a vomit solution the size of 90% of the chemicals removed from the chemstream // TODO RMC14 ((uid, bloodStream))), vomitAmount);
             solution.AddReagent(new ReagentId(vomitComp.VomitPrototype, _bloodstream.GetEntityBloodData(uid)), vomitAmount);
         }
 

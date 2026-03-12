@@ -9,7 +9,7 @@ namespace Content.Shared._RMC14.Chemistry.Effects;
 
 public sealed partial class NutrimentOverdose : EntityEffect
 {
-    // Does NOT use RMCChemicalEffect to avoid triggering overdose on Neogenetic and Hemogenic.
+    // Do NOT inherit from RMCChemicalEffect to avoid triggering overdose on Neogenetic and Hemogenic.
     [DataField]
     public FixedPoint2 OverdoseThreshold = 60;
 
@@ -40,20 +40,16 @@ public sealed partial class NutrimentOverdose : EntityEffect
         if (reagentArgs.Source == null)
             return;
 
-        // Check if overdosing
         var nutVolume = reagentArgs.Source.GetTotalPrototypeQuantity("Nutriment");
         if (nutVolume < OverdoseThreshold)
             return;
 
-        // Calculate and remove nutriment
         var removalAmount = FixedPoint2.Max(nutVolume * PercentRate, MinimumRate) * reagentArgs.Scale;
         reagentArgs.Source.RemoveReagent("Nutriment", removalAmount);
 
-        // Check if we should apply vomiting (still overdosing)
         if (nutVolume < OverdoseThreshold)
             return;
 
-        // Check if already vomiting - RMCVomitComponent tracks vomit cooldown
         if (args.EntityManager.HasComponent<RMCVomitComponent>(args.TargetEntity))
             return;
 
