@@ -1,9 +1,8 @@
 using Content.Server._RMC14.RMCMedicalRecords;
 using Content.Shared._RMC14.Medical.BodyScanner;
-using Content.Shared._RMC14.Medical.HUD;
-using Content.Shared._RMC14.Medical.Scanner;
-using Content.Shared.UserInterface;
-using Robust.Server.GameObjects;
+using Content.Shared.Interaction;
+using Content.Shared.Popups;
+using Robust.Server.Player;
 using Robust.Shared.Audio.Systems;
 
 namespace Content.Server._RMC14.Medical.BodyScanner;
@@ -11,44 +10,34 @@ namespace Content.Server._RMC14.Medical.BodyScanner;
 public sealed class BodyScannerSystem : SharedBodyScannerSystem
 {
     [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private readonly IPlayerManager _player = default!;
+    [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly RMCMedicalRecordsSystem _rmcMedicalRecords = default!;
-    [Dependency] private readonly UserInterfaceSystem _ui = default!;
 
-    public override void Initialize()
+    protected override void OnConsoleActivateInWorld(Entity<BodyScannerConsoleComponent> console, ref ActivateInWorldEvent args)
     {
-        base.Initialize();
+        base.OnConsoleActivateInWorld(console, ref args);
 
-        SubscribeLocalEvent<BodyScannerConsoleComponent, AfterActivatableUIOpenEvent>(OnConsoleUIOpened);
-        SubscribeLocalEvent<BodyScannerConsoleComponent, OpenChangeHolocardUIEvent>(OnConsoleOpenChangeHolocard);
-    }
+        if (!args.Handled)
+            return;
 
-    private void OnConsoleUIOpened(Entity<BodyScannerConsoleComponent> console, ref AfterActivatableUIOpenEvent args)
-    {
         if (!TryGetLinkedScanner(console, out var scanner))
             return;
 
         _audio.PlayPvs(scanner.Comp.ScanSound, console);
 
-        if (scanner.Comp.Occupant is not { } target)
-            return;
-
-        if (TerminatingOrDeleted(target))
+        if (scanner.Comp.Occupant is not { } target || TerminatingOrDeleted(target))
         {
             scanner.Comp.Occupant = null;
             return;
         }
 
         _rmcMedicalRecords.UpdateMedicalRecordFromScan(target);
+        _popup.PopupEntity(Loc.GetString("rmc-body-scanner-scan-stored", ("entity", target)), console);
 
         var state = _rmcMedicalRecords.BuildScanSnapshot(target, scanner.Comp.DetailLevel);
-        _ui.SetUiState(console.Owner, HealthScannerUIKey.Key, new HealthScannerBuiState(state));
-    }
-
-    private void OnConsoleOpenChangeHolocard(Entity<BodyScannerConsoleComponent> console, ref OpenChangeHolocardUIEvent args)
-    {
-        var localOwner = GetEntity(args.Owner);
-        var localTarget = GetEntity(args.Target);
-        _ui.OpenUi(localTarget, HolocardChangeUIKey.Key, localOwner);
+        if (_player.TryGetSessionByEntity(args.User, out var session))
+            RaiseNetworkEvent(new BodyScannerConsoleScanEvent(state), session);
     }
 
     private bool TryGetLinkedScanner(Entity<BodyScannerConsoleComponent> console, out Entity<BodyScannerComponent> scanner)

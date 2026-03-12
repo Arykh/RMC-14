@@ -90,13 +90,6 @@
         - MachineLayer
         hard: false
   - type: BodyScannerConsole
-  - type: UserInterface
-    interfaces:
-      enum.HealthScannerUIKey.Key:
-        type: HealthScannerBui
-  - type: ActivatableUI
-    key: enum.HealthScannerUIKey.Key
-  - type: ActivatableUIRequiresPower
   - type: ApcPowerReceiver
     powerLoad: 0 # No power usage WOT THA SOD
     needsPower: false # TODO RMC14 power
@@ -107,8 +100,4 @@
         enum.PowerDeviceVisualLayers.Powered:
           True: { visible: true }
           False: { visible: false }
-  - type: ActivatableUIBlacklist
-    blacklist:
-      components:
-      - Xeno
   - type: RMCMesonsNonviewable

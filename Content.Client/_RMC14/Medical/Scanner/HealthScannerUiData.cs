@@ -42,6 +42,9 @@ public sealed class HealthScannerUiData
     private readonly Dictionary<EntProtoId<SkillDefinitionComponent>, int> _defibSkill = new() { ["RMCSkillMedical"] = 2 };
     private readonly Dictionary<EntProtoId<SkillDefinitionComponent>, int> _larvaSurgerySkill = new() { ["RMCSkillSurgery"] = 2 };
 
+    private NetEntity _lastTarget;
+    private HealthScannerWindow? _subscribedWindow;
+
     public HealthScannerUiData(IEntityManager entities, IPlayerManager player)
     {
         _entities = entities;
@@ -60,6 +63,8 @@ public sealed class HealthScannerUiData
     {
         if (_entities.GetEntity(uiState.Target) is not { Valid: true } target)
             return;
+
+        _lastTarget = uiState.Target;
 
         window.PatientLabel.Text = Loc.GetString("rmc-health-analyzer-patient", ("name", Identity.Name(target, _entities, _player.LocalEntity)));
 
@@ -121,15 +126,17 @@ public sealed class HealthScannerUiData
         }
 
         window.ChangeHolocardButton.Text = Loc.GetString("ui-health-scanner-holocard-change");
+        if (_subscribedWindow != window)
+        {
+            _subscribedWindow = window;
+            window.ChangeHolocardButton.OnPressed += OnHolocardButtonPressed;
+        }
+
         if (_player.LocalEntity is { } viewer &&
             _skills.HasSkill(viewer, HolocardSystem.SkillType, HolocardSystem.MinimumRequiredSkill))
         {
             window.ChangeHolocardButton.Disabled = false;
             window.ChangeHolocardButton.ToolTip = "";
-            window.ChangeHolocardButton.OnPressed += _ =>
-            {
-                _ui.OpenUi(target, HolocardChangeUIKey.Key, _player.LocalEntity, predicted: true);
-            };
         }
         else
         {
@@ -242,6 +249,15 @@ public sealed class HealthScannerUiData
 
         if (!window.IsOpen)
             window.OpenCentered();
+    }
+
+    private void OnHolocardButtonPressed(BaseButton.ButtonEventArgs args)
+    {
+        if (_player.LocalEntity is { } viewer &&
+            _entities.GetEntity(_lastTarget) is { Valid: true } target)
+        {
+            _ui.OpenUi(target, HolocardChangeUIKey.Key, viewer, predicted: true);
+        }
     }
 
     private void AddGroup(Entity<DamageableComponent> damageable, RichTextLabel label, Color color, ProtoId<DamageGroupPrototype> group, string labelStr)

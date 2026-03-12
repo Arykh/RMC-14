@@ -1,11 +1,11 @@
 using Content.Shared._RMC14.Storage;
+using Content.Shared._RMC14.Xenonids;
 using Content.Shared.Damage;
 using Content.Shared.Interaction;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Movement.Events;
 using Content.Shared.Popups;
 using Content.Shared.Stunnable;
-using Content.Shared.UserInterface;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
 using Robust.Shared.Network;
@@ -35,7 +35,7 @@ public abstract class SharedBodyScannerSystem : EntitySystem
         SubscribeLocalEvent<BodyScannerComponent, EntRemovedFromContainerMessage>(OnBodyScannerEntRemoved);
         SubscribeLocalEvent<BodyScannerComponent, InteractHandEvent>(OnBodyScannerInteractHand);
 
-        SubscribeLocalEvent<BodyScannerConsoleComponent, ActivatableUIOpenAttemptEvent>(OnConsoleUIOpenAttempt);
+        SubscribeLocalEvent<BodyScannerConsoleComponent, ActivateInWorldEvent>(OnConsoleActivateInWorld);
 
         SubscribeLocalEvent<InsideBodyScannerComponent, MoveInputEvent>(OnInsideBodyScannerMoveInput);
     }
@@ -125,30 +125,41 @@ public abstract class SharedBodyScannerSystem : EntitySystem
         }
     }
 
-    private void OnConsoleUIOpenAttempt(Entity<BodyScannerConsoleComponent> console, ref ActivatableUIOpenAttemptEvent args)
+    protected virtual void OnConsoleActivateInWorld(Entity<BodyScannerConsoleComponent> console, ref ActivateInWorldEvent args)
     {
-        if (args.Cancelled)
+        if (args.Handled)
             return;
 
+        if (HasComp<XenoComponent>(args.User))
+            return;
+
+        if (!TryGetConsoleOccupant(console, args.User))
+            return;
+
+        args.Handled = true;
+    }
+
+    private bool TryGetConsoleOccupant(Entity<BodyScannerConsoleComponent> console, EntityUid user)
+    {
         if (console.Comp.LinkedBodyScanner is not { } scannerId || !TryComp<BodyScannerComponent>(scannerId, out var scanner))
         {
-            _popup.PopupClient(Loc.GetString("rmc-body-scanner-no-scanner-connected"), console, args.User);
-            args.Cancel();
-            return;
+            _popup.PopupClient(Loc.GetString("rmc-body-scanner-no-scanner-connected"), console, user);
+            return false;
         }
 
-        if (scanner.Occupant is not { } occupant)
+        if (scanner.Occupant is not { } target)
         {
-            _popup.PopupClient(Loc.GetString("rmc-body-scanner-no-lifeform"), console, args.User);
-            args.Cancel();
-            return;
+            _popup.PopupClient(Loc.GetString("rmc-body-scanner-no-lifeform"), console, user);
+            return false;
         }
 
-        if (!HasComp<DamageableComponent>(occupant) || !HasComp<MobStateComponent>(occupant) || !HasComp<MobThresholdsComponent>(occupant))
+        if (!HasComp<DamageableComponent>(target) || !HasComp<MobStateComponent>(target) || !HasComp<MobThresholdsComponent>(target))
         {
-            _popup.PopupClient(Loc.GetString("rmc-body-scanner-incompatible-lifeform"), console, args.User);
-            args.Cancel();
+            _popup.PopupClient(Loc.GetString("rmc-body-scanner-incompatible-lifeform"), console, user);
+            return false;
         }
+
+        return true;
     }
 
     private void EjectOccupant(Entity<BodyScannerComponent> scanner, EntityUid occupant)
