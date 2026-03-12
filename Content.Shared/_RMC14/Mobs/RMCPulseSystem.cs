@@ -27,7 +27,7 @@ public sealed class RMCPulseSystem : EntitySystem
     }
 
     /// <summary>
-    /// Gets the raw pulse value in beats per minute for an entity that has RMCPulseComponent.
+    ///     Gets the raw pulse value in beats per minute for an entity that has RMCPulseComponent.
     /// </summary>
     /// <param name="uid">The entity to get a pulse value from.</param>
     /// <param name="byMachine">True for machine readings (more accurate), false for hand readings (less accurate with ±10 variation).</param>
@@ -43,8 +43,8 @@ public sealed class RMCPulseSystem : EntitySystem
     }
 
     /// <summary>
-    /// Gets a localized pulse reading for display. The return value is the display string (e.g. "72 bpm").
-    /// Use <paramref name="bpm"/> when you also need the raw numeric value, or discard it with <c>out _</c> if not needed.
+    ///     Gets a localized pulse reading for display. The return value is the display string (e.g. "72 bpm").
+    ///     Use <paramref name="bpm"/> when you also need the raw numeric value, or discard it with <c>out _</c> if not needed.
     /// </summary>
     /// <param name="uid">The entity to get a pulse reading from.</param>
     /// <param name="byMachine">True for machine readings (shows numeric bpm), false for hand readings (shows descriptive text).</param>

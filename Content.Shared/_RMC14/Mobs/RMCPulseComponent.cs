@@ -6,19 +6,19 @@ namespace Content.Shared._RMC14.Mobs;
 public sealed partial class RMCPulseComponent : Component
 {
     /// <summary>
-    /// The threshold above which pulse is considered thready and displayed as >250.
-    /// A thready pulse is weak, fine, and barely perceptible, often feeling like a thin thread under the finger.
+    ///     The threshold above which pulse is considered thready and displayed as >250.
+    ///     A thready pulse is weak, fine, and barely perceptible, often feeling like a thin thread under the finger.
     /// </summary>
     public const int ThreadyPulseThreshold = 250;
 
     /// <summary>
-    /// Blood volume percentage at or below which pulse becomes thready.
-    /// Corresponds to BLOOD_VOLUME_BAD (224/560 ≈ 40%).
+    ///     Blood volume percentage at or below which pulse becomes thready.
+    ///     Corresponds to BLOOD_VOLUME_BAD (224/560 ≈ 40%).
     /// </summary>
     public const float ThreadyBloodThreshold = 0.4f;
 
     /// <summary>
-    /// The current pulse state of this entity.
+    ///     The current pulse state of this entity.
     /// </summary>
     [DataField, AutoNetworkedField]
     public PulseState State = PulseState.Normal;
