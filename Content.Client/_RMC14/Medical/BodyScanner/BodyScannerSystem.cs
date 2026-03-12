@@ -8,8 +8,9 @@ public sealed class BodyScannerSystem : SharedBodyScannerSystem
 {
     [Dependency] private readonly IPlayerManager _player = default!;
 
-    private HealthScannerUiData? _scanUiData;
+    [ViewVariables]
     private HealthScannerWindow? _scanWindow;
+    private HealthScannerUiData? _scanUiData;
 
     public override void Initialize()
     {

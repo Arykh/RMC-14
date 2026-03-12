@@ -1,5 +1,4 @@
 using System.Numerics;
-using Content.Shared._RMC14.Medical.Scanner;
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
@@ -36,17 +35,11 @@ public sealed partial class BodyScannerComponent : Component
     [DataField, AutoNetworkedField]
     public EntityUid? LinkedConsole;
 
-    [DataField, AutoNetworkedField]
-    public HealthScanDetailLevel DetailLevel = HealthScanDetailLevel.BodyScan;
-
     [DataField]
     public SoundSpecifier EjectSound = new SoundPathSpecifier("/Audio/_RMC14/Machines/hydraulics_3.ogg");
 
     [DataField]
     public SoundSpecifier InsertSound = new SoundPathSpecifier("/Audio/_RMC14/Machines/scanning_pod1.ogg");
-
-    [DataField]
-    public SoundSpecifier ScanSound = new SoundPathSpecifier("/Audio/_RMC14/Machines/screen_output1.ogg");
 }
 
 [Serializable, NetSerializable]
