@@ -8,8 +8,8 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
 {
     [Dependency] private readonly IPlayerManager _player = default!;
 
-    private HealthScannerUiData? _healthScanUiData;
-    private HealthScannerWindow? _storedScanWindow;
+    private HealthScannerUiData? _scanUiData;
+    private HealthScannerWindow? _scanWindow;
 
     public override void Initialize()
     {
@@ -24,13 +24,13 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
         if (!TryGetMedicalRecord(target, out var record) || record.LastScanState is not { } scanState)
             return;
 
-        _healthScanUiData = new HealthScannerUiData(EntityManager, _player);
+        _scanUiData ??= new HealthScannerUiData(EntityManager, _player);
 
-        if (_storedScanWindow is { IsOpen: true })
-            _storedScanWindow.Close();
+        if (_scanWindow is { IsOpen: true })
+            _scanWindow.Close();
 
-        _storedScanWindow = new HealthScannerWindow();
-        _storedScanWindow.Title = Loc.GetString("rmc-records-examine-verb-text");
-        _healthScanUiData.PopulateHealthScan(_storedScanWindow, scanState);
+        _scanWindow = new HealthScannerWindow();
+        _scanWindow.Title = Loc.GetString("rmc-health-analyzer-title");
+        _scanUiData.PopulateHealthScan(_scanWindow, scanState);
     }
 }
