@@ -9,7 +9,7 @@ namespace Content.Shared._RMC14.Medical.Scanner;
 ///     records, and as the payload inside <see cref="HealthScannerBuiState"/>.
 /// </summary>
 [DataRecord, Serializable, NetSerializable]
-public sealed record HealthScanState(
+public readonly record struct HealthScanState(
     NetEntity Target,
     FixedPoint2 Blood,
     FixedPoint2 MaxBlood,
