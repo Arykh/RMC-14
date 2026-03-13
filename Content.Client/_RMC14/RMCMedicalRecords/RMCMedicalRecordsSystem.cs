@@ -17,6 +17,7 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
         base.Initialize();
 
         SubscribeLocalEvent<OpenStoredScanEvent>(OnOpenStoredScan);
+        SubscribeNetworkEvent<OpenStoredScanEvent>(OnOpenStoredScan); // Body Scanner
     }
 
     private void OnOpenStoredScan(OpenStoredScanEvent ev)
@@ -27,11 +28,12 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
 
         _scanUiData ??= new HealthScannerUiData(EntityManager, _player);
 
-        if (_scanWindow is { IsOpen: true })
-            _scanWindow.Close();
+        if (_scanWindow == null)
+        {
+            _scanWindow = new HealthScannerWindow();
+            _scanWindow.Title = Loc.GetString("rmc-health-analyzer-title");
+        }
 
-        _scanWindow = new HealthScannerWindow();
-        _scanWindow.Title = Loc.GetString("rmc-health-analyzer-title");
         _scanUiData.PopulateHealthScan(_scanWindow, scanState);
     }
 }

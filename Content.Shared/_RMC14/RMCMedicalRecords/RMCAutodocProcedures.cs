@@ -3,8 +3,8 @@ namespace Content.Shared._RMC14.RMCMedicalRecords;
 /// <summary>
 ///     Identifiers used to bridge body scanner results with the autodoc's import feature.
 /// </summary>
-/// <remarks>These <see cref="RMCAutodocRecord.Procedure"/> values must match between the body scanner and the autodoc import scan.</remarks>
-public static class AutodocProcedures
+/// <remarks>These <see cref="RMCAutodocScanData.Procedure"/> values must match between the body scanner and the autodoc import scan.</remarks>
+public static class RMCAutodocProcedures
 {
     public const string Brute = "brute";
     public const string Burn = "burn";

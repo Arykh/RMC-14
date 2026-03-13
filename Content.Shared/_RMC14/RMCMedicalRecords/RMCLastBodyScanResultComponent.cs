@@ -5,18 +5,18 @@ using Robust.Shared.Serialization;
 namespace Content.Shared._RMC14.RMCMedicalRecords;
 
 /// <summary>
-///     Entity-bound medical data that needs direct entity access for the body scanner and autodoc.
+///     Entity-bound medical data taken from the body scanner. Import scan can pre-select surgeries in the autodoc.
 ///     Static medical data (blood type, disabilities, etc.) lives on <see cref="RMCMedicalRecord"/> in the station record set.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 [Access(typeof(SharedRMCMedicalRecordsSystem))]
-public sealed partial class RMCMedicalRecordComponent : Component
+public sealed partial class RMCLastBodyScanResultComponent : Component
 {
     /// <summary>
-    ///     The time of the last body scan, or null if never scanned.
+    ///     The formatted world time of the last body scan, or null if never scanned.
     /// </summary>
     [DataField, AutoNetworkedField]
-    public TimeSpan? LastScanTime;
+    public string? LastScanTime;
 
     /// <summary>
     ///     A snapshot of the body scanner state captured at <see cref="LastScanTime"/>.
@@ -29,11 +29,11 @@ public sealed partial class RMCMedicalRecordComponent : Component
     ///     Used by the autodoc's "import scan" to pre-select surgeries.
     /// </summary>
     [DataField, AutoNetworkedField]
-    public List<RMCAutodocRecord> AutodocData = [];
+    public List<RMCAutodocScanData> AutodocScanData = [];
 }
 
 /// <summary>
 ///     A single autodoc procedure record entry, identifying procedures detected by the body scanner.
 /// </summary>
 [Serializable, NetSerializable, DataRecord]
-public sealed record RMCAutodocRecord(TimeSpan Time, string Procedure, string Details);
+public sealed record RMCAutodocScanData(string Procedure, string Details);

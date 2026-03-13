@@ -18,10 +18,10 @@ public abstract class SharedRMCMedicalRecordsSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<RMCMedicalRecordComponent, GetVerbsEvent<ExamineVerb>>(OnMedicalRecordExamineVerb);
+        SubscribeLocalEvent<RMCLastBodyScanResultComponent, GetVerbsEvent<ExamineVerb>>(OnMedicalRecordExamineVerb);
     }
 
-    private void OnMedicalRecordExamineVerb(Entity<RMCMedicalRecordComponent> ent, ref GetVerbsEvent<ExamineVerb> args)
+    private void OnMedicalRecordExamineVerb(Entity<RMCLastBodyScanResultComponent> ent, ref GetVerbsEvent<ExamineVerb> args)
     {
         if (!args.CanInteract)
             return;
@@ -36,7 +36,7 @@ public abstract class SharedRMCMedicalRecordsSystem : EntitySystem
 
         var hasScan = ent.Comp.LastScanTime is not null && ent.Comp.LastScanState is not null;
         var verbMessage = hasScan
-            ? Loc.GetString("rmc-records-examine-scan-time", ("time", ent.Comp.LastScanTime!.Value.ToString(@"hh\:mm\:ss")))
+            ? Loc.GetString("rmc-records-examine-scan-time", ("time", ent.Comp.LastScanTime!))
             : Loc.GetString("rmc-records-examine-no-scan");
 
         var target = ent.Owner;
@@ -60,7 +60,7 @@ public abstract class SharedRMCMedicalRecordsSystem : EntitySystem
     /// <summary>
     ///     Attempts to retrieve the entity-bound medical record component.
     /// </summary>
-    public bool TryGetMedicalRecord(EntityUid uid, out RMCMedicalRecordComponent record)
+    public bool TryGetMedicalRecord(EntityUid uid, out RMCLastBodyScanResultComponent record)
     {
         return TryComp(uid, out record!);
     }

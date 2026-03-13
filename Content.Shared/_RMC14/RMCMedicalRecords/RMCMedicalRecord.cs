@@ -3,12 +3,12 @@ using Robust.Shared.Serialization;
 namespace Content.Shared._RMC14.RMCMedicalRecords;
 
 /// <summary>
-///     Medical record for a crewmember, stored in the station record set.
+///     Medical record stored in the station record set.
 ///     Created automatically when a general record is created.
 /// </summary>
 /// <remarks>
 ///     Static medical data (blood type, disabilities, etc.) lives here.
-///     Dynamic scan/autodoc data lives in <see cref="RMCMedicalRecordComponent"/> directly
+///     Dynamic scan/autodoc data lives in <see cref="RMCLastBodyScanResultComponent"/> directly
 ///     on the entity, since the body scanner and autodoc need direct entity access.
 /// </remarks>
 [Serializable, NetSerializable, DataRecord]

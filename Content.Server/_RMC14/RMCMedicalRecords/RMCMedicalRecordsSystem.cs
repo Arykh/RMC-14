@@ -1,3 +1,4 @@
+using System.Linq;
 using Content.Server.StationRecords.Systems;
 using Content.Shared._RMC14.Body;
 using Content.Shared._RMC14.Chemistry.Reagent;
@@ -8,18 +9,18 @@ using Content.Shared._RMC14.RMCMedicalRecords;
 using Content.Shared._RMC14.Temperature;
 using Content.Shared._RMC14.Xenonids.Parasite;
 using Content.Shared.Body.Systems;
+using Content.Shared.Clock;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared.GameTicking;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Timing;
 
 namespace Content.Server._RMC14.RMCMedicalRecords;
 
 /// <summary>
 ///     Creates <see cref="RMCMedicalRecord"/> entries in the station record set when a general record is created.
-///     Also manages entity-bound scan data on <see cref="RMCMedicalRecordComponent"/>.
+///     Also manages entity-bound scan data on <see cref="RMCLastBodyScanResultComponent"/>.
 /// </summary>
 public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
 {
@@ -29,7 +30,7 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
     [Dependency] private readonly RMCReagentSystem _rmcReagent = default!;
     [Dependency] private readonly SharedRMCTemperatureSystem _rmcTemperature = default!;
     [Dependency] private readonly StationRecordsSystem _stationRecords = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly SharedGameTicker _ticker = default!;
 
     private static readonly ProtoId<DamageGroupPrototype> BruteGroup = "Brute";
     private static readonly ProtoId<DamageGroupPrototype> BurnGroup = "Burn";
@@ -40,7 +41,6 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
         base.Initialize();
 
         SubscribeLocalEvent<AfterGeneralRecordCreatedEvent>(OnGeneralRecordCreated);
-        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
     }
 
     private void OnGeneralRecordCreated(AfterGeneralRecordCreatedEvent ev)
@@ -49,23 +49,19 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
         _stationRecords.Synchronize(ev.Key);
     }
 
-    private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent args)
+    public void UpdateMedicalRecordFromScan(EntityUid target, HealthScanDetailLevel detailLevel)
     {
-        EnsureComp<RMCMedicalRecordComponent>(args.Mob);
-    }
-
-    public void UpdateMedicalRecordFromScan(EntityUid target)
-    {
-        if (!TryGetMedicalRecord(target, out var medical))
+        if (!TryGetMedicalRecord(target, out var medRecord))
             return;
 
-        medical.LastScanTime = _timing.CurTime;
-        medical.LastScanState = BuildScanSnapshot(target);
-        medical.AutodocData = GenerateAutodocData(target);
-        Dirty(target, medical);
+        var worldTime = (EntityQuery<GlobalTimeManagerComponent>().FirstOrDefault()?.TimeOffset ?? TimeSpan.Zero) + _ticker.RoundDuration();
+        medRecord.LastScanTime = worldTime.ToString("HH:mm");
+        medRecord.LastScanState = BuildScanSnapshot(target, detailLevel);
+        medRecord.AutodocScanData = GenerateAutodocData(target);
+        Dirty(target, medRecord);
     }
 
-    public HealthScanState BuildScanSnapshot(EntityUid target, HealthScanDetailLevel detailLevel = HealthScanDetailLevel.BodyScan)
+    private HealthScanState BuildScanSnapshot(EntityUid target, HealthScanDetailLevel detailLevel)
     {
         var blood = default(FixedPoint2);
         var maxBlood = default(FixedPoint2);
@@ -92,28 +88,27 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
             detailLevel);
     }
 
-    private List<RMCAutodocRecord> GenerateAutodocData(EntityUid target)
+    private List<RMCAutodocScanData> GenerateAutodocData(EntityUid target)
     {
-        var time = _timing.CurTime;
-        var autodocData = new List<RMCAutodocRecord>();
+        var autodocData = new List<RMCAutodocScanData>();
 
         if (TryComp<DamageableComponent>(target, out var damageable))
         {
             if (damageable.DamagePerGroup.GetValueOrDefault(BruteGroup) > 0)
-                autodocData.Add(new RMCAutodocRecord(time, AutodocProcedures.Brute, Loc.GetString("rmc-records-autodoc-brute")));
+                autodocData.Add(new RMCAutodocScanData(RMCAutodocProcedures.Brute, Loc.GetString("rmc-records-autodoc-brute")));
 
             if (damageable.DamagePerGroup.GetValueOrDefault(BurnGroup) > 0)
-                autodocData.Add(new RMCAutodocRecord(time, AutodocProcedures.Burn, Loc.GetString("rmc-records-autodoc-burn")));
+                autodocData.Add(new RMCAutodocScanData(RMCAutodocProcedures.Burn, Loc.GetString("rmc-records-autodoc-burn")));
 
             if (damageable.DamagePerGroup.GetValueOrDefault(ToxinGroup) > 0)
-                autodocData.Add(new RMCAutodocRecord(time, AutodocProcedures.Toxin, Loc.GetString("rmc-records-autodoc-toxin")));
+                autodocData.Add(new RMCAutodocScanData(RMCAutodocProcedures.Toxin, Loc.GetString("rmc-records-autodoc-toxin")));
         }
 
         foreach (var part in _body.GetBodyChildren(target))
         {
             if (HasComp<CMIncisionOpenComponent>(part.Id))
             {
-                autodocData.Add(new RMCAutodocRecord(time, AutodocProcedures.CloseIncisions, Loc.GetString("rmc-records-autodoc-incision")));
+                autodocData.Add(new RMCAutodocScanData(RMCAutodocProcedures.CloseIncisions, Loc.GetString("rmc-records-autodoc-incision")));
                 break;
             }
         }
@@ -121,7 +116,7 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
         // TODO RMC14 Remove Shrapnel
 
         if (_rmcBloodstream.TryGetBloodSolution(target, out var bloodstream) && bloodstream.Volume < bloodstream.MaxVolume)
-            autodocData.Add(new RMCAutodocRecord(time, AutodocProcedures.Blood, Loc.GetString("rmc-records-autodoc-blood")));
+            autodocData.Add(new RMCAutodocScanData(RMCAutodocProcedures.Blood, Loc.GetString("rmc-records-autodoc-blood")));
 
         if (_rmcBloodstream.TryGetChemicalSolution(target, out _, out var chemSol))
         {
@@ -132,7 +127,7 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
 
                 if (reagentProto.Overdose is { } overdose && reagentQuantity.Quantity >= overdose)
                 {
-                    autodocData.Add(new RMCAutodocRecord(time, AutodocProcedures.Dialysis, Loc.GetString("rmc-records-autodoc-dialysis")));
+                    autodocData.Add(new RMCAutodocScanData(RMCAutodocProcedures.Dialysis, Loc.GetString("rmc-records-autodoc-dialysis")));
                     break;
                 }
             }
@@ -141,7 +136,7 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
         // TODO RMC-14 Internal Bleeding, Broken Bones, Organ Damage
 
         if (TryComp<VictimInfectedComponent>(target, out var infected) && !infected.IsBursting)
-            autodocData.Add(new RMCAutodocRecord(time, AutodocProcedures.Larva, Loc.GetString("rmc-records-autodoc-larva")));
+            autodocData.Add(new RMCAutodocScanData(RMCAutodocProcedures.Larva, Loc.GetString("rmc-records-autodoc-larva")));
 
         return autodocData;
     }
