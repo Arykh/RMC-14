@@ -270,51 +270,51 @@ public sealed class AutodocSystem : SharedAutodocSystem
             return;
         }
 
-        if (!_records.TryGetMedicalRecord(occupant, out var medical) || medical.AutodocData.Count == 0)
+        if (!_records.TryGetMedicalRecord(occupant, out var medical) || medical.AutodocScanData.Count == 0)
         {
             _popup.PopupEntity(Loc.GetString("rmc-autodoc-no-scan-data"), console, args.Actor);
             UpdateUI(console);
             return;
         }
 
-        foreach (var entry in medical.AutodocData)
+        foreach (var entry in medical.AutodocScanData)
         {
             switch (entry.Procedure)
             {
-                case AutodocProcedures.Brute:
+                case RMCAutodocProcedures.Brute:
                     autodoc.Comp.HealingBrute = true;
                     break;
-                case AutodocProcedures.Burn:
+                case RMCAutodocProcedures.Burn:
                     autodoc.Comp.HealingBurn = true;
                     break;
-                case AutodocProcedures.CloseIncisions:
+                case RMCAutodocProcedures.CloseIncisions:
                     autodoc.Comp.CloseIncisions = true;
                     break;
-                case AutodocProcedures.RemoveShrapnel:
+                case RMCAutodocProcedures.RemoveShrapnel:
                     autodoc.Comp.RemoveShrapnel = true;
                     break;
-                case AutodocProcedures.Blood:
+                case RMCAutodocProcedures.Blood:
                     autodoc.Comp.BloodTransfusion = true;
                     break;
-                case AutodocProcedures.Dialysis:
+                case RMCAutodocProcedures.Dialysis:
                     autodoc.Comp.Filtering = true;
                     break;
-                case AutodocProcedures.Toxin:
+                case RMCAutodocProcedures.Toxin:
                     autodoc.Comp.HealingToxin = true;
                     break;
-                case AutodocProcedures.InternalBleeding:
+                case RMCAutodocProcedures.InternalBleeding:
                     if (console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.InternalBleeding))
                         autodoc.Comp.InternalBleeding = true;
                     break;
-                case AutodocProcedures.BrokenBone:
+                case RMCAutodocProcedures.BrokenBone:
                     if (console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.BrokenBone))
                         autodoc.Comp.BrokenBone = true;
                     break;
-                case AutodocProcedures.OrganDamage:
+                case RMCAutodocProcedures.OrganDamage:
                     if (console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.OrganDamage))
                         autodoc.Comp.OrganDamage = true;
                     break;
-                case AutodocProcedures.Larva:
+                case RMCAutodocProcedures.Larva:
                     if (console.Comp.InstalledUpgrades.Contains(AutodocUpgradeTier.LarvaExtraction))
                         autodoc.Comp.RemoveLarva = true;
                     break;

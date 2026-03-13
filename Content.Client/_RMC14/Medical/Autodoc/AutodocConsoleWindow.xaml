@@ -106,7 +106,7 @@
                 </BoxContainer>
                 <BoxContainer Orientation="Horizontal" Margin="0 2 0 2">
                     <Button Name="CloseIncisionsToggleButton" Text="{Loc rmc-autodoc-close-incisions}" ToggleMode="True" HorizontalExpand="True" Margin="2" />
-                    <Button Name="RemoveShrapnelToggleButton" Text="{Loc rmc-autodoc-shrapnel-removal}" ToggleMode="True" HorizontalExpand="True" Margin="2" />
+                    <Button Name="RemoveShrapnelToggleButton" Text="{Loc rmc-autodoc-shrapnel-removal}" ToggleMode="True" HorizontalExpand="True" Margin="2" Visible="False" />
                 </BoxContainer>
             </BoxContainer>
 
