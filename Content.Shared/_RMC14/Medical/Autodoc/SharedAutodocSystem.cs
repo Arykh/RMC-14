@@ -1,7 +1,9 @@
 using Content.Shared._RMC14.Marines.Skills;
 using Content.Shared._RMC14.Storage;
+using Content.Shared.Administration.Logs;
 using Content.Shared.Containers;
 using Content.Shared.Damage;
+using Content.Shared.Database;
 using Content.Shared.DragDrop;
 using Content.Shared.Interaction;
 using Content.Shared.Movement.Events;
@@ -18,6 +20,7 @@ namespace Content.Shared._RMC14.Medical.Autodoc;
 
 public abstract class SharedAutodocSystem : EntitySystem
 {
+    [Dependency] private readonly ISharedAdminLogManager _adminLog = default!;
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
@@ -216,6 +219,8 @@ public abstract class SharedAutodocSystem : EntitySystem
             // TODO RMC14 Damage random limb
             _damageable.TryChangeDamage(occupant, damage, true, false);
             _popup.PopupEntity(Loc.GetString("rmc-autodoc-surgery-aborted"), autodoc);
+
+            _adminLog.Add(LogType.RMCAutodocSurgeryAbort, $"{ToPrettyString(user.Value):user} ejected {ToPrettyString(occupant):victim} from the autodoc during surgery, dealing {damage.GetTotal()} damage.");
         }
 
         EjectOccupant(autodoc, occupant);
