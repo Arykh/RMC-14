@@ -34,6 +34,9 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
             _scanWindow.Title = Loc.GetString("rmc-health-analyzer-title");
         }
 
+        if (!_scanWindow.IsOpen)
+            _scanWindow.OpenCentered();
+
         _scanUiData.PopulateHealthScan(_scanWindow, scanState);
     }
 }
