@@ -154,9 +154,6 @@ public sealed class HealthScannerSystem : EntitySystem
 
     private void UpdateUI(Entity<HealthScannerComponent> scanner)
     {
-        if (!_ui.IsUiOpen(scanner.Owner, HealthScannerUIKey.Key))
-            return;
-
         if (scanner.Comp.Target is not { } target)
             return;
 
