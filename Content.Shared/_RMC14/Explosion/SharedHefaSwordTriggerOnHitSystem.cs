@@ -30,15 +30,11 @@ public abstract class SharedHefaSwordTriggerOnHitSystem : EntitySystem
         Dirty(ent);
 
         if (ent.Comp.Primed)
-        {
             _popup.PopupClient(Loc.GetString(ent.Comp.PrimedPopup), args.User, args.User);
-            if (ent.Comp.PrimeSound != null)
-                _audio.PlayPredicted(ent.Comp.PrimeSound, ent, args.User);
-        }
         else
-        {
             _popup.PopupClient(Loc.GetString(ent.Comp.DeprimedPopup), args.User, args.User);
-        }
+
+        _audio.PlayPredicted(ent.Comp.PrimeSound, ent, args.User);
     }
 
     private void OnMeleeHit(Entity<HefaSwordTriggerOnHitComponent> ent, ref MeleeHitEvent args)
