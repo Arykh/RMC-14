@@ -34,13 +34,13 @@ public sealed class HealthScannerUiData
     private NetEntity _lastTarget;
 
     private readonly ShowHolocardIconsSystem _holocardIcons;
-    private readonly SkillsSystem _skills;
-    private readonly SharedWoundsSystem _wounds;
-    private readonly RMCUnrevivableSystem _unrevivable;
     private readonly MobStateSystem _mob;
     private readonly MobThresholdSystem _mobThresholds;
     private readonly RMCReagentSystem _rmcReagent;
     private readonly RottingSystem _rot;
+    private readonly SkillsSystem _skills;
+    private readonly RMCUnrevivableSystem _unrevivable;
+    private readonly SharedWoundsSystem _wounds;
 
     private readonly Dictionary<EntProtoId<SkillDefinitionComponent>, int> _bloodPackSkill = new() { ["RMCSkillSurgery"] = 1 };
     private readonly Dictionary<EntProtoId<SkillDefinitionComponent>, int> _defibSkill = new() { ["RMCSkillMedical"] = 2 };
@@ -57,13 +57,13 @@ public sealed class HealthScannerUiData
         IoCManager.InjectDependencies(this);
 
         _holocardIcons = _entities.System<ShowHolocardIconsSystem>();
-        _skills = _entities.System<SkillsSystem>();
-        _wounds = _entities.System<SharedWoundsSystem>();
-        _unrevivable = _entities.System<RMCUnrevivableSystem>();
         _mob = _entities.System<MobStateSystem>();
         _mobThresholds = _entities.System<MobThresholdSystem>();
         _rmcReagent = _entities.System<RMCReagentSystem>();
         _rot = _entities.System<RottingSystem>();
+        _skills = _entities.System<SkillsSystem>();
+        _unrevivable = _entities.System<RMCUnrevivableSystem>();
+        _wounds = _entities.System<SharedWoundsSystem>();
     }
 
     public void PopulateHealthScan(HealthScannerWindow window, HealthScanState uiState)
