@@ -55,7 +55,7 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
             return;
 
         var worldTime = (EntityQuery<GlobalTimeManagerComponent>().FirstOrDefault()?.TimeOffset ?? TimeSpan.Zero) + _ticker.RoundDuration();
-        medRecord.LastScanTime = worldTime.ToString("HH:mm");
+        medRecord.LastScanTime = worldTime.ToString(@"hh\:mm");
         medRecord.LastScanState = BuildScanSnapshot(target, detailLevel);
         medRecord.AutodocScanData = GenerateAutodocData(target);
         Dirty(target, medRecord);
