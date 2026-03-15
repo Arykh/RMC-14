@@ -431,12 +431,12 @@ public sealed class AutodocSystem : SharedAutodocSystem
         var pulse = string.Empty;
         FixedPoint2 totalReagents = 0;
 
-        if (TerminatingOrDeleted(occupant))
+        if (occupant != null && TerminatingOrDeleted(occupant))
         {
-            if (!TerminatingOrDeleted(autodoc))
-                _ui.CloseUi(autodoc.Owner, AutodocUIKey.Key);
-
             autodoc.Comp.Occupant = null;
+            if (!TerminatingOrDeleted(console))
+                _ui.CloseUi(console.Owner, AutodocUIKey.Key);
+
             return;
         }
 
