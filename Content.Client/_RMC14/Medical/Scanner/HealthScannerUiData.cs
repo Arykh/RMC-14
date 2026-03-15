@@ -18,8 +18,8 @@ using Content.Shared.IdentityManagement;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Temperature;
 using Robust.Client.Graphics;
-using Robust.Client.Player;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -27,11 +27,12 @@ namespace Content.Client._RMC14.Medical.Scanner;
 
 public sealed class HealthScannerUiData
 {
+    [Dependency] private readonly IEntityManager _entities = default!;
+    [Dependency] private readonly ISharedPlayerManager _player = default!;
+
     private HealthScannerWindow? _holocardWindow;
     private NetEntity _lastTarget;
 
-    private readonly IEntityManager _entities;
-    private readonly IPlayerManager _player;
     private readonly ShowHolocardIconsSystem _holocardIcons;
     private readonly SkillsSystem _skills;
     private readonly SharedWoundsSystem _wounds;
@@ -51,18 +52,18 @@ public sealed class HealthScannerUiData
     private static readonly ProtoId<DamageGroupPrototype> AirlossGroup = "Airloss";
     private static readonly ProtoId<DamageGroupPrototype> GeneticGroup = "Genetic";
 
-    public HealthScannerUiData(IEntityManager entities, IPlayerManager player)
+    public HealthScannerUiData()
     {
-        _entities = entities;
-        _player = player;
-        _holocardIcons = entities.System<ShowHolocardIconsSystem>();
-        _skills = entities.System<SkillsSystem>();
-        _wounds = entities.System<SharedWoundsSystem>();
-        _unrevivable = entities.System<RMCUnrevivableSystem>();
-        _mob = entities.System<MobStateSystem>();
-        _mobThresholds = entities.System<MobThresholdSystem>();
-        _rmcReagent = entities.System<RMCReagentSystem>();
-        _rot = entities.System<RottingSystem>();
+        IoCManager.InjectDependencies(this);
+
+        _holocardIcons = _entities.System<ShowHolocardIconsSystem>();
+        _skills = _entities.System<SkillsSystem>();
+        _wounds = _entities.System<SharedWoundsSystem>();
+        _unrevivable = _entities.System<RMCUnrevivableSystem>();
+        _mob = _entities.System<MobStateSystem>();
+        _mobThresholds = _entities.System<MobThresholdSystem>();
+        _rmcReagent = _entities.System<RMCReagentSystem>();
+        _rot = _entities.System<RottingSystem>();
     }
 
     public void PopulateHealthScan(HealthScannerWindow window, HealthScanState uiState)
@@ -82,7 +83,7 @@ public sealed class HealthScannerUiData
         AddGroup(ent, window.BurnLabel, Color.FromHex("#FFB833"), BurnGroup, Loc.GetString("rmc-health-analyzer-burn"));
         AddGroup(ent, window.ToxinLabel, Color.FromHex("#25CA4C"), ToxinGroup, Loc.GetString("rmc-health-analyzer-toxin"));
         AddGroup(ent, window.OxygenLabel, Color.FromHex("#2E93DE"), AirlossGroup, Loc.GetString("rmc-health-analyzer-oxygen"));
-        if (damageable.DamagePerGroup[GeneticGroup] > 0)
+        if (damageable.DamagePerGroup.GetValueOrDefault(GeneticGroup) > 0)
         {
             window.CloneBox.Visible = true;
             AddGroup(ent, window.CloneLabel, Color.FromHex("#02c9c0"), GeneticGroup, Loc.GetString("rmc-health-analyzer-clone"));

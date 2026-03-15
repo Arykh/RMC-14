@@ -1,6 +1,5 @@
 using Content.Shared._RMC14.Medical.Scanner;
 using JetBrains.Annotations;
-using Robust.Client.Player;
 using Robust.Client.UserInterface;
 
 namespace Content.Client._RMC14.Medical.Scanner;
@@ -8,9 +7,6 @@ namespace Content.Client._RMC14.Medical.Scanner;
 [UsedImplicitly]
 public sealed class HealthScannerBui(EntityUid owner, Enum uiKey) : BoundUserInterface(owner, uiKey)
 {
-    [Dependency] private readonly IEntityManager _entities = default!;
-    [Dependency] private readonly IPlayerManager _player = default!;
-
     [ViewVariables]
     private HealthScannerWindow? _window;
     private HealthScannerUiData? _scanUiData;
@@ -18,7 +14,7 @@ public sealed class HealthScannerBui(EntityUid owner, Enum uiKey) : BoundUserInt
     protected override void Open()
     {
         base.Open();
-        _scanUiData ??= new HealthScannerUiData(_entities, _player);
+        _scanUiData ??= new HealthScannerUiData();
 
         if (State is HealthScannerBuiState state)
             UpdateState(state);
@@ -32,7 +28,7 @@ public sealed class HealthScannerBui(EntityUid owner, Enum uiKey) : BoundUserInt
 
     private void UpdateState(HealthScannerBuiState uiState)
     {
-        _scanUiData ??= new HealthScannerUiData(_entities, _player);
+        _scanUiData ??= new HealthScannerUiData();
 
         if (_window == null)
         {
