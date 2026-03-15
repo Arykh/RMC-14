@@ -13,8 +13,7 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<OpenStoredScanEvent>(OnOpenStoredScan);
-        SubscribeNetworkEvent<OpenStoredScanEvent>(OnOpenStoredScan); // Body Scanner
+        SubscribeAllEvent<OpenStoredScanEvent>(OnOpenStoredScan);
     }
 
     public override void Shutdown()
