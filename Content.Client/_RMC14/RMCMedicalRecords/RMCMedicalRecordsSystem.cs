@@ -1,13 +1,10 @@
 using Content.Client._RMC14.Medical.Scanner;
 using Content.Shared._RMC14.RMCMedicalRecords;
-using Robust.Client.Player;
 
 namespace Content.Client._RMC14.RMCMedicalRecords;
 
 public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
 {
-    [Dependency] private readonly IPlayerManager _player = default!;
-
     [ViewVariables]
     private HealthScannerWindow? _scanWindow;
     private HealthScannerUiData? _scanUiData;
@@ -20,13 +17,22 @@ public sealed class RMCMedicalRecordsSystem : SharedRMCMedicalRecordsSystem
         SubscribeNetworkEvent<OpenStoredScanEvent>(OnOpenStoredScan); // Body Scanner
     }
 
+    public override void Shutdown()
+    {
+        base.Shutdown();
+
+        _scanWindow?.Close();
+        _scanWindow = null;
+        _scanUiData = null;
+    }
+
     private void OnOpenStoredScan(OpenStoredScanEvent ev)
     {
         var target = GetEntity(ev.Target);
         if (!TryGetMedicalRecord(target, out var record) || record.LastScanState is not { } scanState)
             return;
 
-        _scanUiData ??= new HealthScannerUiData(EntityManager, _player);
+        _scanUiData ??= new HealthScannerUiData();
 
         if (_scanWindow == null)
         {
