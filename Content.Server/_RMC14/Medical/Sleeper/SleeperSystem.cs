@@ -164,12 +164,12 @@ public sealed class SleeperSystem : SharedSleeperSystem
         FixedPoint2 totalReagents = 0;
         Solution? cachedChemSol = null;
 
-        if (TerminatingOrDeleted(occupant))
+        if (occupant != null && TerminatingOrDeleted(occupant))
         {
-            if (!TerminatingOrDeleted(sleeper))
-                _ui.CloseUi(sleeper.Owner, SleeperUIKey.Key);
-
             sleeper.Comp.Occupant = null;
+            if (!TerminatingOrDeleted(console))
+                _ui.CloseUi(console.Owner, SleeperUIKey.Key);
+
             return;
         }
 
