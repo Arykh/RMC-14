@@ -210,8 +210,8 @@ public abstract partial class SharedScopeSystem : EntitySystem
             return false;
         }
 
-        var heldCorrectly = _hands.TryGetActiveItem(user, out var heldItem) && (scope.Comp.Attachment || heldItem == scope.Owner);
-        if (!heldCorrectly && !scope.Comp.CanUseInsideContainer)
+        var heldInHands = _hands.TryGetActiveItem(user, out var heldItem) && (scope.Comp.Attachment || heldItem == scope.Owner);
+        if (!heldInHands && !scope.Comp.CanUseInsideContainer)
         {
             var msgError = Loc.GetString("cm-action-popup-scoping-user-must-hold", ("scope", ent));
             _popup.PopupClient(msgError, user, user);
