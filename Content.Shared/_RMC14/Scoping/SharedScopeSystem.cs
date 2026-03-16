@@ -210,7 +210,8 @@ public abstract partial class SharedScopeSystem : EntitySystem
             return false;
         }
 
-        if ((!_hands.TryGetActiveItem(user, out var heldItem) || !scope.Comp.Attachment && heldItem != scope.Owner) && !scope.Comp.CanUseInsideContainer)
+        var heldCorrectly = _hands.TryGetActiveItem(user, out var heldItem) && (scope.Comp.Attachment || heldItem == scope.Owner);
+        if (!heldCorrectly && !scope.Comp.CanUseInsideContainer)
         {
             var msgError = Loc.GetString("cm-action-popup-scoping-user-must-hold", ("scope", ent));
             _popup.PopupClient(msgError, user, user);
@@ -361,13 +362,9 @@ public abstract partial class SharedScopeSystem : EntitySystem
 
     private void ToggleScoping(Entity<ScopeComponent> scope, EntityUid user)
     {
-        if (HasComp<ScopingComponent>(user))
+        if (TryComp(user, out ScopingComponent? scoping))
         {
-            Unscope(scope);
-
-            if (TryComp(user, out ScopingComponent? scoping))
-                UserStopScoping((user, scoping));
-
+            UserStopScoping((user, scoping));
             return;
         }
 
@@ -411,22 +408,19 @@ public abstract partial class SharedScopeSystem : EntitySystem
 
     private void ValidateCurrentZoomLevel(Entity<ScopeComponent> scope)
     {
-        bool dirty = false;
-
-        if (scope.Comp.ZoomLevels == null || scope.Comp.ZoomLevels.Count <= 0)
+        if (scope.Comp.ZoomLevels is not { Count: > 0 })
         {
-            scope.Comp.ZoomLevels = new List<ScopeZoomLevel>(){ new ScopeZoomLevel(null, 1f, 15, false, TimeSpan.FromSeconds(1)) };
-            dirty = true;
+            scope.Comp.ZoomLevels = new List<ScopeZoomLevel> { new(null, 1f, 15, false, TimeSpan.FromSeconds(1)) };
+            scope.Comp.CurrentZoomLevel = 0;
+            Dirty(scope);
+            return;
         }
 
         if (scope.Comp.CurrentZoomLevel >= scope.Comp.ZoomLevels.Count)
         {
             scope.Comp.CurrentZoomLevel = 0;
-            dirty = true;
-        }
-
-        if (dirty)
             Dirty(scope);
+        }
     }
 
     private void UpdateOffset(EntityUid user)
