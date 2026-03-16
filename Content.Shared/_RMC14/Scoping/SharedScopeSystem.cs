@@ -1,15 +1,16 @@
 using System.Numerics;
 using Content.Shared._RMC14.Attachable.Events;
 using Content.Shared._RMC14.Emplacements;
+using Content.Shared._RMC14.Overwatch;
 using Content.Shared.Actions;
 using Content.Shared.Camera;
 using Content.Shared.DoAfter;
 using Content.Shared.Hands;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
+using Content.Shared.Item;
 using Content.Shared.Movement.Pulling.Systems;
 using Content.Shared.Movement.Systems;
-using Content.Shared._RMC14.Overwatch;
 using Content.Shared.Popups;
 using Content.Shared.Toggleable;
 using Content.Shared.Weapons.Ranged.Components;
@@ -29,6 +30,7 @@ public abstract partial class SharedScopeSystem : EntitySystem
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly SharedEyeSystem _eye = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private readonly SharedItemSystem _item = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly PullingSystem _pulling = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
@@ -277,6 +279,12 @@ public abstract partial class SharedScopeSystem : EntitySystem
         scope.Comp.User = user;
         scope.Comp.ScopingDirection = direction;
 
+        if (scope.Comp.ScopedHeldSuffix != null && TryComp(scope, out ItemComponent? item))
+        {
+            scope.Comp.UnscopedHeldPrefix = item.HeldPrefix;
+            _item.SetHeldPrefix(scope, item.HeldPrefix + scope.Comp.ScopedHeldSuffix, component: item);
+        }
+
         Dirty(scope);
 
         scoping = EnsureComp<ScopingComponent>(user);
@@ -322,6 +330,12 @@ public abstract partial class SharedScopeSystem : EntitySystem
         {
             var interruptEvent = new AttachableToggleableInterruptEvent(scope.Comp.User.Value);
             RaiseLocalEvent(scope.Owner, ref interruptEvent);
+        }
+
+        if (scope.Comp.ScopedHeldSuffix != null)
+        {
+            _item.SetHeldPrefix(scope, scope.Comp.UnscopedHeldPrefix);
+            scope.Comp.UnscopedHeldPrefix = null;
         }
 
         scope.Comp.User = null;

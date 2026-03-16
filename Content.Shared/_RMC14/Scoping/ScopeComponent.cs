@@ -61,6 +61,12 @@ public sealed partial class ScopeComponent : Component
 
     [DataField, AutoNetworkedField]
     public bool CanUseNightVision;
+
+    [DataField, AutoNetworkedField]
+    public string? ScopedHeldSuffix;
+
+    [ViewVariables, AutoNetworkedField]
+    public string? UnscopedHeldPrefix;
 }
 
 [DataRecord, Serializable, NetSerializable]
