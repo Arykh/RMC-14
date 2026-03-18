@@ -1,4 +1,5 @@
 using Content.Shared._RMC14.CrashLand;
+using Content.Shared._RMC14.Dropship;
 using Content.Shared._RMC14.Marines;
 using Content.Shared._RMC14.Marines.Skills;
 using Content.Shared._RMC14.Prototypes;
@@ -85,6 +86,11 @@ public sealed class RMCStorageSystem : EntitySystem
         SubscribeLocalEvent<RMCContainerEmptyOnDestructionComponent, EntityTerminatingEvent>(OnContainerEmptyDeleted);
 
         SubscribeLocalEvent<OpenStorageOnGearEquipComponent, StartingGearEquippedEvent>(OnOpenStorageStartingGear);
+
+        SubscribeLocalEvent<DropshipHijackStartEvent>(OnEmergencyCabinetHijackStart);
+        SubscribeLocalEvent<RMCLockerOnlyOpenOnHijackComponent, StorageOpenAttemptEvent>(OnEmergencyCabinetOpenAttempt);
+        SubscribeLocalEvent<RMCLockerOnlyOpenOnHijackComponent, StorageCloseAttemptEvent>(OnEmergencyCabinetCloseAttempt);
+        SubscribeLocalEvent<RMCLockerOnlyOpenOnHijackComponent, LockToggleAttemptEvent>(OnEmergencyCabinetLockToggleAttempt);
 
         Subs.BuiEvents<StorageCloseOnMoveComponent>(StorageUiKey.Key, subs =>
         {
@@ -555,6 +561,49 @@ public sealed class RMCStorageSystem : EntitySystem
 
             _storage.OpenStorageUI(slot.ContainedEntity.Value, ent.Owner, storageComp, doAfter: false);
         }
+    }
+
+    private void OnEmergencyCabinetHijackStart(ref DropshipHijackStartEvent ev)
+    {
+        var query = EntityQueryEnumerator<RMCLockerOnlyOpenOnHijackComponent, LockComponent>();
+        while (query.MoveNext(out var uid, out var emergency, out var lockComp))
+        {
+            emergency.Hijacked = true;
+            Dirty(uid, emergency);
+
+            _lock.Unlock(uid, null, lockComp);
+            _entityStorage.OpenStorage(uid);
+        }
+    }
+
+    private void OnEmergencyCabinetOpenAttempt(Entity<RMCLockerOnlyOpenOnHijackComponent> ent, ref StorageOpenAttemptEvent args)
+    {
+        if (ent.Comp.Hijacked)
+            return;
+
+        args.Cancelled = true;
+
+        if (!args.Silent)
+            _popup.PopupClient(Loc.GetString("rmc-hijack-cabinet-locked"), ent, args.User);
+    }
+
+    private void OnEmergencyCabinetCloseAttempt(Entity<RMCLockerOnlyOpenOnHijackComponent> ent, ref StorageCloseAttemptEvent args)
+    {
+        if (ent.Comp.Hijacked)
+            return;
+
+        args.Cancelled = true;
+    }
+
+    private void OnEmergencyCabinetLockToggleAttempt(Entity<RMCLockerOnlyOpenOnHijackComponent> ent, ref LockToggleAttemptEvent args)
+    {
+        if (ent.Comp.Hijacked)
+            return;
+
+        args.Cancelled = true;
+
+        if (!args.Silent)
+            _popup.PopupClient(Loc.GetString("rmc-hijack-cabinet-locked"), ent, args.User);
     }
 
     public override void Update(float frameTime)
