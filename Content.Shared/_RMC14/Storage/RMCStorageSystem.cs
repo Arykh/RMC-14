@@ -87,9 +87,9 @@ public sealed class RMCStorageSystem : EntitySystem
 
         SubscribeLocalEvent<OpenStorageOnGearEquipComponent, StartingGearEquippedEvent>(OnOpenStorageStartingGear);
 
-        SubscribeLocalEvent<DropshipHijackStartEvent>(OnLockerCabinetHijackStart);
-        SubscribeLocalEvent<RMCLockerOnlyOpenOnHijackComponent, StorageOpenAttemptEvent>(OnLockerCabinetOpenAttempt);
-        SubscribeLocalEvent<RMCLockerOnlyOpenOnHijackComponent, LockToggleAttemptEvent>(OnLockerCabinetLockToggleAttempt);
+        SubscribeLocalEvent<DropshipHijackStartEvent>(OnLockerHijackStart);
+        SubscribeLocalEvent<RMCLockerOnlyOpenOnHijackComponent, StorageOpenAttemptEvent>(OnLockerOpenAttempt);
+        SubscribeLocalEvent<RMCLockerOnlyOpenOnHijackComponent, LockToggleAttemptEvent>(OnLockerLockToggleAttempt);
 
         Subs.BuiEvents<StorageCloseOnMoveComponent>(StorageUiKey.Key, subs =>
         {
@@ -562,20 +562,20 @@ public sealed class RMCStorageSystem : EntitySystem
         }
     }
 
-    private void OnLockerCabinetHijackStart(ref DropshipHijackStartEvent ev)
+    private void OnLockerHijackStart(ref DropshipHijackStartEvent ev)
     {
         var query = EntityQueryEnumerator<RMCLockerOnlyOpenOnHijackComponent, LockComponent>();
-        while (query.MoveNext(out var uid, out var locker, out var lockComp))
+        while (query.MoveNext(out var locker, out var onHijackComp, out var lockComp))
         {
-            locker.IsHijack = true;
-            Dirty(uid, locker);
+            onHijackComp.IsHijack = true;
+            Dirty(locker, onHijackComp);
 
-            _lock.Unlock(uid, null, lockComp);
-            _entityStorage.OpenStorage(uid);
+            _lock.Unlock(locker, null, lockComp);
+            _entityStorage.OpenStorage(locker);
         }
     }
 
-    private void OnLockerCabinetOpenAttempt(Entity<RMCLockerOnlyOpenOnHijackComponent> ent, ref StorageOpenAttemptEvent args)
+    private void OnLockerOpenAttempt(Entity<RMCLockerOnlyOpenOnHijackComponent> ent, ref StorageOpenAttemptEvent args)
     {
         if (ent.Comp.IsHijack)
             return;
@@ -586,7 +586,7 @@ public sealed class RMCStorageSystem : EntitySystem
             _popup.PopupClient(Loc.GetString("rmc-hijack-cabinet-locked"), ent, args.User);
     }
 
-    private void OnLockerCabinetLockToggleAttempt(Entity<RMCLockerOnlyOpenOnHijackComponent> ent, ref LockToggleAttemptEvent args)
+    private void OnLockerLockToggleAttempt(Entity<RMCLockerOnlyOpenOnHijackComponent> ent, ref LockToggleAttemptEvent args)
     {
         if (ent.Comp.IsHijack)
             return;
