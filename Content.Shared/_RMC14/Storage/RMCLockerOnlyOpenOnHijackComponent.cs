@@ -14,5 +14,5 @@ public sealed partial class RMCLockerOnlyOpenOnHijackComponent : Component
     ///     True if the hijack event has already fired for this entity.
     /// </summary>
     [DataField, AutoNetworkedField]
-    public bool Hijacked;
+    public bool IsHijack;
 }
