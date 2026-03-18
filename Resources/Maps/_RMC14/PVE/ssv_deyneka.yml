@@ -19492,7 +19492,7 @@ entities:
     - type: Transform
       pos: 7.5,11.5
       parent: 1
-- proto: RMCWebbingSurgicalBlue
+- proto: CMWebbingSurgicalBlue
   entities:
   - uid: 1259
     components:
