@@ -7,26 +7,14 @@ namespace Content.Client._RMC14.Medical.IV;
 
 public sealed class IVDripSystem : SharedIVDripSystem
 {
-    [Dependency] private readonly SpriteSystem _spriteSystem = default!;
     [Dependency] private readonly IOverlayManager _overlay = default!;
+    [Dependency] private readonly SpriteSystem _spriteSystem = default!;
 
     public override void Initialize()
     {
         base.Initialize();
         if (!_overlay.HasOverlay<IVDripOverlay>())
             _overlay.AddOverlay(new IVDripOverlay());
-
-        SubscribeNetworkEvent<DialysisDetachedEvent>(OnDialysisDetachedEvent);
-    }
-
-    private void OnDialysisDetachedEvent(DialysisDetachedEvent ev)
-    {
-        var dialysis = GetEntity(ev.Dialysis);
-        if (!TryComp<PortableDialysisComponent>(dialysis, out var comp))
-            return;
-
-        comp.IsDetaching = ev.IsDetaching;
-        UpdateDialysisAppearance((dialysis, comp));
     }
 
     public override void Shutdown()
@@ -125,8 +113,8 @@ public sealed class IVDripSystem : SharedIVDripSystem
 
         if (_spriteSystem.LayerMapTryGet((dialysis.Owner, sprite), DialysisVisualLayers.Filtering, out var filteringLayer, false))
         {
-            var showFiltering = dialysis.Comp.AttachedTo != null && !dialysis.Comp.IsAttaching && !dialysis.Comp.IsDetaching;
-            _spriteSystem.LayerSetVisible((dialysis.Owner, sprite), filteringLayer, showFiltering);
+            var isFiltering = dialysis.Comp is { AttachedTo: not null, IsAttaching: false, IsDetaching: false };
+            _spriteSystem.LayerSetVisible((dialysis.Owner, sprite), filteringLayer, isFiltering);
         }
     }
 }

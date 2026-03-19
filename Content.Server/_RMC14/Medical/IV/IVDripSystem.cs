@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Content.Server._RMC14.Body;
 using Content.Server.Chat.Systems;
 using Content.Server.PowerCell;
 using Content.Shared.PowerCell.Components;
@@ -8,6 +9,7 @@ using Content.Shared.Body.Components;
 using Content.Shared.Chat.Prototypes;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
+using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Damage;
 using Robust.Shared.Prototypes;
@@ -19,24 +21,17 @@ public sealed class IVDripSystem : SharedIVDripSystem
 {
     [Dependency] private readonly ChatSystem _chat = default!;
     [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedSolutionContainerSystem _solutionContainer = default!;
     [Dependency] private readonly PowerCellSystem _powerCell = default!;
+    [Dependency] private readonly RMCBloodstreamSystem _rmcBloodstream = default!;
+    [Dependency] private readonly SharedSolutionContainerSystem _solutionContainer = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
 
-    private readonly List<string> _reagentRemovalBuffer = [];
+    private readonly List<ProtoId<ReagentPrototype>> _reagentRemovalBuffer = [];
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<PortableDialysisComponent, PowerCellChangedEvent>(OnDialysisBatteryChargeChanged);
-    }
-
-    protected override void OnServerDialysisDetached(Entity<PortableDialysisComponent> dialysis)
-    {
-        base.OnServerDialysisDetached(dialysis);
-        // Raise networked event to update client sprites with current state
-        var ev = new DialysisDetachedEvent(GetNetEntity(dialysis), dialysis.Comp.IsDetaching);
-        RaiseNetworkEvent(ev);
     }
 
     private void OnDialysisBatteryChargeChanged(Entity<PortableDialysisComponent> dialysis, ref PowerCellChangedEvent args)
@@ -185,34 +180,32 @@ public sealed class IVDripSystem : SharedIVDripSystem
 
             dialysisComp.TransferAt = time + dialysisComp.TransferDelay;
 
-            if (!_powerCell.HasActivatableCharge(dialysisId) || !HasComp<BloodstreamComponent>(attachedTo))
-                DetachDialysis((dialysisId, dialysisComp), null, false, false);
+            if (!TryGetBloodstream(attachedTo, out var streamSolEnt, out var streamSol, out var attachedStream))
+                continue;
 
-            if (_solutionContainer.TryGetSolution(attachedTo, "chemicals", out var chemicalSolEnt, out var chemicalSol))
+            if (_powerCell.HasActivatableCharge(dialysisId))
             {
                 _reagentRemovalBuffer.Clear();
-
-                foreach (var reagentQuantity in chemicalSol.Contents)
+                foreach (var reagentQuantity in streamSol.Contents)
                 {
                     if (!dialysisComp.NonTransferableReagents.Contains(reagentQuantity.Reagent.Prototype))
-                    {
                         _reagentRemovalBuffer.Add(reagentQuantity.Reagent.Prototype);
-                    }
                 }
 
                 foreach (var reagent in _reagentRemovalBuffer)
                 {
-                    _solutionContainer.RemoveReagent(chemicalSolEnt.Value, reagent, dialysisComp.ReagentRemovalAmount);
+                    _solutionContainer.RemoveReagent(streamSolEnt.Value, reagent, dialysisComp.ReagentRemovalAmount);
                 }
-            }
 
-            if (TryComp(attachedTo, out BloodstreamComponent? bloodstreamComp) &&
-                _solutionContainer.ResolveSolution(attachedTo, bloodstreamComp.BloodSolutionName, ref bloodstreamComp.BloodSolution))
+                if (attachedStream is { } bloodSolutionEnt)
+                    _solutionContainer.SplitSolution(bloodSolutionEnt, dialysisComp.BloodRemovalCost);
+
+                _powerCell.TryUseActivatableCharge(dialysisId);
+            }
+            else
             {
-                _solutionContainer.SplitSolution(bloodstreamComp.BloodSolution.Value, dialysisComp.BloodRemovalCost);
+                DetachDialysis((dialysisId, dialysisComp), null, false, false);
             }
-
-            _powerCell.TryUseActivatableCharge(dialysisId);
 
             Dirty(dialysisId, dialysisComp);
             UpdateDialysisVisuals((dialysisId, dialysisComp));
@@ -223,6 +216,7 @@ public sealed class IVDripSystem : SharedIVDripSystem
     {
         var batteryLevel = GetDialysisBatteryLevel(dialysis);
         UpdateDialysisBatteryAppearance(dialysis.Owner, batteryLevel);
+        Dirty(dialysis);
     }
 
     private DialysisBatteryLevel GetDialysisBatteryLevel(Entity<PortableDialysisComponent> dialysis)
