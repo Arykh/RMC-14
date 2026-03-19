@@ -217,18 +217,18 @@ public sealed class IVDripSystem : SharedIVDripSystem
     private DialysisBatteryLevel GetDialysisBatteryLevel(Entity<PortableDialysisComponent> dialysis)
     {
         if (!_powerCell.TryGetBatteryFromSlot(dialysis, out _, out var battery) || battery.MaxCharge <= 0)
-            return DialysisBatteryLevel.Empty;
+            return DialysisBatteryLevel.Battery0;
 
         var percentCharged = battery.CurrentCharge / battery.MaxCharge;
         return percentCharged switch
         {
-            > 0.85f => DialysisBatteryLevel.Full,
-            > 0.60f => DialysisBatteryLevel.VeryHigh,
-            > 0.45f => DialysisBatteryLevel.High,
-            > 0.30f => DialysisBatteryLevel.Medium,
-            > 0.15f => DialysisBatteryLevel.Low,
-            > 0.01f => DialysisBatteryLevel.VeryLow,
-            _ => DialysisBatteryLevel.Empty,
+            > 0.85f => DialysisBatteryLevel.Battery100,
+            > 0.60f => DialysisBatteryLevel.Battery85,
+            > 0.45f => DialysisBatteryLevel.Battery60,
+            > 0.30f => DialysisBatteryLevel.Battery45,
+            > 0.15f => DialysisBatteryLevel.Battery30,
+            > 0.01f => DialysisBatteryLevel.Battery15,
+            _ => DialysisBatteryLevel.Battery0,
         };
     }
 }

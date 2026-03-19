@@ -65,13 +65,13 @@ public enum DialysisVisualLayers
 [Serializable, NetSerializable]
 public enum DialysisBatteryLevel : byte
 {
-    Empty,
-    VeryLow,
-    Low,
-    Medium,
-    High,
-    VeryHigh,
-    Full
+    Battery0,
+    Battery15,
+    Battery30,
+    Battery45,
+    Battery60,
+    Battery85,
+    Battery100
 }
 
 [Serializable, NetSerializable]
