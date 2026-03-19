@@ -575,15 +575,12 @@ public sealed class RMCStorageSystem : EntitySystem
         }
     }
 
-    private void OnLockerOpenAttempt(Entity<RMCLockerOnlyOpenOnHijackComponent> ent, ref StorageOpenAttemptEvent args)
+    private static void OnLockerOpenAttempt(Entity<RMCLockerOnlyOpenOnHijackComponent> ent, ref StorageOpenAttemptEvent args)
     {
         if (ent.Comp.IsHijack)
             return;
 
         args.Cancelled = true;
-
-        if (!args.Silent)
-            _popup.PopupClient(Loc.GetString("rmc-hijack-cabinet-locked"), ent, args.User);
     }
 
     private void OnLockerLockToggleAttempt(Entity<RMCLockerOnlyOpenOnHijackComponent> ent, ref LockToggleAttemptEvent args)
