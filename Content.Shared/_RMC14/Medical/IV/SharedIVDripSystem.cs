@@ -322,7 +322,6 @@ public abstract class SharedIVDripSystem : EntitySystem
 
         dialysis.Comp.IsAttaching = true;
         Dirty(dialysis);
-        UpdateDialysisVisuals(dialysis);
 
         var ev = new AttachDialysisDoAfterEvent();
         var doAfter = new DoAfterArgs(EntityManager, user, delay, ev, dialysis, target, dialysis)
@@ -344,7 +343,6 @@ public abstract class SharedIVDripSystem : EntitySystem
             dialysis.Comp.IsAttaching = false;
             dialysis.Comp.DetachingEnd = TimeSpan.Zero;
             Dirty(dialysis);
-            UpdateDialysisVisuals(dialysis);
             return;
         }
 
@@ -474,7 +472,6 @@ public abstract class SharedIVDripSystem : EntitySystem
         dialysis.Comp.IsAttaching = false;
         dialysis.Comp.AttachedTo = to;
         Dirty(dialysis);
-        UpdateDialysisVisuals(dialysis);
 
         _powerCell.SetDrawEnabled((dialysis.Owner, null), true);
 
@@ -495,7 +492,6 @@ public abstract class SharedIVDripSystem : EntitySystem
         dialysis.Comp.AttachedTo = default;
         dialysis.Comp.DetachingEnd = _timing.CurTime + dialysis.Comp.AttachDelay;
         Dirty(dialysis);
-        UpdateDialysisVisuals(dialysis);
 
         _powerCell.SetDrawEnabled((dialysis.Owner, null), false);
 
