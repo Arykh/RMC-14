@@ -106,8 +106,8 @@ public sealed class IVDripSystem : SharedIVDripSystem
 
         if (_spriteSystem.LayerMapTryGet((dialysis.Owner, sprite), DialysisVisualLayers.Filtering, out var filteringLayer, false))
         {
-            var isFiltering = dialysis.Comp.AttachedTo != null && !dialysis.Comp.IsAttaching && !isDetaching;
-            _spriteSystem.LayerSetVisible((dialysis.Owner, sprite), filteringLayer, isFiltering);
+            var showFiltering = dialysis.Comp is { AttachedTo: not null, IsAttaching: false } && !isDetaching;
+            _spriteSystem.LayerSetVisible((dialysis.Owner, sprite), filteringLayer, showFiltering);
         }
     }
 }
