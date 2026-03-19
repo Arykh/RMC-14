@@ -342,7 +342,7 @@ public abstract class SharedIVDripSystem : EntitySystem
         if (args.Cancelled || args.Handled || args.Target is not { } target)
         {
             dialysis.Comp.IsAttaching = false;
-            dialysis.Comp.IsDetaching = false;
+            dialysis.Comp.DetachingEnd = TimeSpan.Zero;
             Dirty(dialysis);
             UpdateDialysisVisuals(dialysis);
             return;
@@ -470,7 +470,7 @@ public abstract class SharedIVDripSystem : EntitySystem
             return;
         }
 
-        dialysis.Comp.IsDetaching = false;
+        dialysis.Comp.DetachingEnd = TimeSpan.Zero;
         dialysis.Comp.IsAttaching = false;
         dialysis.Comp.AttachedTo = to;
         Dirty(dialysis);
@@ -493,38 +493,9 @@ public abstract class SharedIVDripSystem : EntitySystem
         }
 
         dialysis.Comp.AttachedTo = default;
-        dialysis.Comp.IsDetaching = true;
+        dialysis.Comp.DetachingEnd = _timing.CurTime + dialysis.Comp.AttachDelay;
         Dirty(dialysis);
         UpdateDialysisVisuals(dialysis);
-
-        if (_net.IsServer)
-        {
-            var delay = dialysis.Comp.AttachDelay;
-            if (delay > TimeSpan.Zero)
-            {
-                Timer.Spawn(
-                    delay,
-                    () =>
-                    {
-                        if (!TryComp(dialysis.Owner, out PortableDialysisComponent? comp))
-                            return;
-
-                        if (!comp.IsDetaching || comp.AttachedTo != null)
-                            return;
-
-                        comp.IsDetaching = false;
-                        Dirty(dialysis.Owner, comp);
-                        UpdateDialysisVisuals((dialysis.Owner, comp));
-                    }
-                );
-            }
-            else
-            {
-                dialysis.Comp.IsDetaching = false;
-                Dirty(dialysis);
-                UpdateDialysisVisuals(dialysis);
-            }
-        }
 
         _powerCell.SetDrawEnabled((dialysis.Owner, null), false);
 

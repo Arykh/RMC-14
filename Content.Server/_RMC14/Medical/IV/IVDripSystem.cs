@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Content.Server._RMC14.Body;
 using Content.Server.Chat.Systems;
 using Content.Server.PowerCell;
 using Content.Shared.PowerCell.Components;
@@ -22,7 +21,6 @@ public sealed class IVDripSystem : SharedIVDripSystem
     [Dependency] private readonly ChatSystem _chat = default!;
     [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly PowerCellSystem _powerCell = default!;
-    [Dependency] private readonly RMCBloodstreamSystem _rmcBloodstream = default!;
     [Dependency] private readonly SharedSolutionContainerSystem _solutionContainer = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
 
@@ -76,7 +74,10 @@ public sealed class IVDripSystem : SharedIVDripSystem
                 continue;
 
             if (!InRange(ivId, attachedTo, ivComp.Range))
+            {
                 DetachIV((ivId, ivComp), null, true, false);
+                continue;
+            }
 
             if (time < ivComp.TransferAt)
                 continue;
@@ -128,7 +129,10 @@ public sealed class IVDripSystem : SharedIVDripSystem
                 continue;
 
             if (!InRange(packId, attachedTo, packComp.Range))
+            {
                 DetachPack((packId, packComp), null, true, false);
+                continue;
+            }
 
             if (time < packComp.TransferAt)
                 continue;
@@ -173,7 +177,10 @@ public sealed class IVDripSystem : SharedIVDripSystem
                 continue;
 
             if (!InRange(dialysisId, attachedTo, dialysisComp.Range))
+            {
                 DetachDialysis((dialysisId, dialysisComp), null, true, false);
+                continue;
+            }
 
             if (time < dialysisComp.TransferAt)
                 continue;

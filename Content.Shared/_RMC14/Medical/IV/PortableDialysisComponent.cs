@@ -49,8 +49,8 @@ public sealed partial class PortableDialysisComponent : Component
     [DataField, AutoNetworkedField]
     public bool IsAttaching;
 
-    [DataField, AutoNetworkedField]
-    public bool IsDetaching;
+    [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoNetworkedField, AutoPausedField]
+    public TimeSpan DetachingEnd;
 }
 
 [Serializable, NetSerializable]

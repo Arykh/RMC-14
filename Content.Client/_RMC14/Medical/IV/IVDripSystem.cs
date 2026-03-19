@@ -2,6 +2,7 @@
 using Content.Shared.Rounding;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
+using Robust.Shared.Timing;
 
 namespace Content.Client._RMC14.Medical.IV;
 
@@ -9,6 +10,7 @@ public sealed class IVDripSystem : SharedIVDripSystem
 {
     [Dependency] private readonly IOverlayManager _overlay = default!;
     [Dependency] private readonly SpriteSystem _spriteSystem = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
 
     public override void Initialize()
     {
@@ -86,11 +88,12 @@ public sealed class IVDripSystem : SharedIVDripSystem
         if (_spriteSystem.LayerMapTryGet((dialysis.Owner, sprite), DialysisVisualLayers.Attachment, out var attachmentLayer, false))
             _spriteSystem.LayerSetRsiState((dialysis.Owner, sprite), attachmentLayer, attachmentState);
 
+        var isDetaching = dialysis.Comp.DetachingEnd > _timing.CurTime;
         if (_spriteSystem.LayerMapTryGet((dialysis.Owner, sprite), DialysisVisualLayers.Effect, out var effectLayer, false))
         {
             string? effectState = null;
             var showEffect = false;
-            if (dialysis.Comp.IsDetaching)
+            if (isDetaching)
             {
                 effectState = "draining";
                 showEffect = true;
@@ -113,7 +116,7 @@ public sealed class IVDripSystem : SharedIVDripSystem
 
         if (_spriteSystem.LayerMapTryGet((dialysis.Owner, sprite), DialysisVisualLayers.Filtering, out var filteringLayer, false))
         {
-            var isFiltering = dialysis.Comp is { AttachedTo: not null, IsAttaching: false, IsDetaching: false };
+            var isFiltering = dialysis.Comp.AttachedTo != null && !dialysis.Comp.IsAttaching && !isDetaching;
             _spriteSystem.LayerSetVisible((dialysis.Owner, sprite), filteringLayer, isFiltering);
         }
     }
