@@ -74,10 +74,7 @@ public sealed class IVDripSystem : SharedIVDripSystem
                 continue;
 
             if (!InRange(ivId, attachedTo, ivComp.Range))
-            {
                 DetachIV((ivId, ivComp), null, true, false);
-                continue;
-            }
 
             if (time < ivComp.TransferAt)
                 continue;
@@ -129,10 +126,7 @@ public sealed class IVDripSystem : SharedIVDripSystem
                 continue;
 
             if (!InRange(packId, attachedTo, packComp.Range))
-            {
                 DetachPack((packId, packComp), null, true, false);
-                continue;
-            }
 
             if (time < packComp.TransferAt)
                 continue;
@@ -177,10 +171,10 @@ public sealed class IVDripSystem : SharedIVDripSystem
                 continue;
 
             if (!InRange(dialysisId, attachedTo, dialysisComp.Range))
-            {
                 DetachDialysis((dialysisId, dialysisComp), null, true, false);
-                continue;
-            }
+
+            if (!_powerCell.HasActivatableCharge(dialysisId))
+                DetachDialysis((dialysisId, dialysisComp), null, false, false);
 
             if (time < dialysisComp.TransferAt)
                 continue;
@@ -190,29 +184,22 @@ public sealed class IVDripSystem : SharedIVDripSystem
             if (!TryGetBloodstream(attachedTo, out var streamSolEnt, out var streamSol, out var attachedStream))
                 continue;
 
-            if (_powerCell.HasActivatableCharge(dialysisId))
+            _reagentRemovalBuffer.Clear();
+            foreach (var reagentQuantity in streamSol.Contents)
             {
-                _reagentRemovalBuffer.Clear();
-                foreach (var reagentQuantity in streamSol.Contents)
-                {
-                    if (!dialysisComp.NonTransferableReagents.Contains(reagentQuantity.Reagent.Prototype))
-                        _reagentRemovalBuffer.Add(reagentQuantity.Reagent.Prototype);
-                }
-
-                foreach (var reagent in _reagentRemovalBuffer)
-                {
-                    _solutionContainer.RemoveReagent(streamSolEnt.Value, reagent, dialysisComp.ReagentRemovalAmount);
-                }
-
-                if (attachedStream is { } bloodSolutionEnt)
-                    _solutionContainer.SplitSolution(bloodSolutionEnt, dialysisComp.BloodRemovalCost);
-
-                _powerCell.TryUseActivatableCharge(dialysisId);
+                if (!dialysisComp.NonTransferableReagents.Contains(reagentQuantity.Reagent.Prototype))
+                    _reagentRemovalBuffer.Add(reagentQuantity.Reagent.Prototype);
             }
-            else
+
+            foreach (var reagent in _reagentRemovalBuffer)
             {
-                DetachDialysis((dialysisId, dialysisComp), null, false, false);
+                _solutionContainer.RemoveReagent(streamSolEnt.Value, reagent, dialysisComp.ReagentRemovalAmount);
             }
+
+            if (attachedStream is { } bloodSolutionEnt)
+                _solutionContainer.SplitSolution(bloodSolutionEnt, dialysisComp.BloodRemovalCost);
+
+            _powerCell.TryUseActivatableCharge(dialysisId);
 
             Dirty(dialysisId, dialysisComp);
             UpdateDialysisVisuals((dialysisId, dialysisComp));
@@ -223,7 +210,6 @@ public sealed class IVDripSystem : SharedIVDripSystem
     {
         var batteryLevel = GetDialysisBatteryLevel(dialysis);
         UpdateDialysisBatteryAppearance(dialysis.Owner, batteryLevel);
-        Dirty(dialysis);
     }
 
     private DialysisBatteryLevel GetDialysisBatteryLevel(Entity<PortableDialysisComponent> dialysis)

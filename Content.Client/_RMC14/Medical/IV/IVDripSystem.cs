@@ -92,25 +92,15 @@ public sealed class IVDripSystem : SharedIVDripSystem
         if (_spriteSystem.LayerMapTryGet((dialysis.Owner, sprite), DialysisVisualLayers.Effect, out var effectLayer, false))
         {
             string? effectState = null;
-            var showEffect = false;
             if (isDetaching)
-            {
                 effectState = "draining";
-                showEffect = true;
-            }
             else if (dialysis.Comp.IsAttaching)
-            {
                 effectState = "filling";
-                showEffect = true;
-            }
             else if (dialysis.Comp.AttachedTo != null)
-            {
                 effectState = "running";
-                showEffect = true;
-            }
 
-            _spriteSystem.LayerSetVisible((dialysis.Owner, sprite), effectLayer, showEffect);
-            if (showEffect && effectState != null)
+            _spriteSystem.LayerSetVisible((dialysis.Owner, sprite), effectLayer, effectState != null);
+            if (effectState != null)
                 _spriteSystem.LayerSetRsiState((dialysis.Owner, sprite), effectLayer, effectState);
         }
 
