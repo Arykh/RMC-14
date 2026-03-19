@@ -23,7 +23,7 @@ public sealed class IVDripSystem : SharedIVDripSystem
     [Dependency] private readonly SharedSolutionContainerSystem _solutionContainer = default!;
     [Dependency] private readonly PowerCellSystem _powerCell = default!;
 
-    private readonly List<string> _reagentRemovalBuffer = new();
+    private readonly List<string> _reagentRemovalBuffer = [];
 
     public override void Initialize()
     {
@@ -233,12 +233,12 @@ public sealed class IVDripSystem : SharedIVDripSystem
         var percentCharged = battery.CurrentCharge / battery.MaxCharge;
         return percentCharged switch
         {
-            >= 0.86f => DialysisBatteryLevel.Full,
-            >= 0.61f => DialysisBatteryLevel.VeryHigh,
-            >= 0.46f => DialysisBatteryLevel.High,
-            >= 0.31f => DialysisBatteryLevel.Medium,
-            >= 0.16f => DialysisBatteryLevel.Low,
-            >= 0.01f => DialysisBatteryLevel.VeryLow,
+            > 0.85f => DialysisBatteryLevel.Full,
+            > 0.60f => DialysisBatteryLevel.VeryHigh,
+            > 0.45f => DialysisBatteryLevel.High,
+            > 0.30f => DialysisBatteryLevel.Medium,
+            > 0.15f => DialysisBatteryLevel.Low,
+            > 0.01f => DialysisBatteryLevel.VeryLow,
             _ => DialysisBatteryLevel.Empty,
         };
     }

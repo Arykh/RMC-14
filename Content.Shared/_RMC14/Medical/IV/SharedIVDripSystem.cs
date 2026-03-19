@@ -492,7 +492,6 @@ public abstract class SharedIVDripSystem : EntitySystem
             return;
         }
 
-        var uid = dialysis.Owner;
         dialysis.Comp.AttachedTo = default;
         dialysis.Comp.IsDetaching = true;
         Dirty(dialysis);
@@ -502,20 +501,19 @@ public abstract class SharedIVDripSystem : EntitySystem
         var delay = dialysis.Comp.AttachDelay;
         if (delay > TimeSpan.Zero)
         {
-            var captured = uid;
             Timer.Spawn(
                 delay,
                 () =>
                 {
-                    if (!TryComp(captured, out PortableDialysisComponent? comp))
+                    if (!TryComp(dialysis.Owner, out PortableDialysisComponent? comp))
                         return;
 
                     if (!comp.IsDetaching || comp.AttachedTo != null)
                         return;
                     comp.IsDetaching = false;
-                    Dirty(captured, comp);
-                    UpdateDialysisVisuals((captured, comp));
-                    OnServerDialysisDetached((captured, comp));
+                    Dirty(dialysis.Owner, comp);
+                    UpdateDialysisVisuals((dialysis.Owner, comp));
+                    OnServerDialysisDetached((dialysis.Owner, comp));
                 }
             );
         }
