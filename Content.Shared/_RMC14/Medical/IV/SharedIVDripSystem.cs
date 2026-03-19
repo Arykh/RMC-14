@@ -368,7 +368,7 @@ public abstract class SharedIVDripSystem : EntitySystem
 
     private void OnDialysisAfterHandleState(Entity<PortableDialysisComponent> dialysis, ref AfterAutoHandleStateEvent args)
     {
-        UpdateDialysisVisuals(dialysis);
+        UpdateDialysisAppearance(dialysis);
     }
 
     private void OnDialysisPowerEmpty(Entity<PortableDialysisComponent> dialysis, ref PowerCellSlotEmptyEvent args)
@@ -573,18 +573,6 @@ public abstract class SharedIVDripSystem : EntitySystem
         iv.Comp.FillPercentage = 0;
         Dirty(iv);
         UpdateIVAppearance(iv);
-    }
-
-    protected void UpdateDialysisVisuals(Entity<PortableDialysisComponent> dialysis)
-    {
-        if (_net.IsClient)
-        {
-            UpdateDialysisAppearance(dialysis);
-            return;
-        }
-
-        Dirty(dialysis);
-        UpdateDialysisAppearance(dialysis);
     }
 
     protected virtual void UpdateIVAppearance(Entity<IVDripComponent> iv)

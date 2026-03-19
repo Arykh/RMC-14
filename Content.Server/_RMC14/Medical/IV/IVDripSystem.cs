@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Content.Server._RMC14.Body;
 using Content.Server.Chat.Systems;
 using Content.Server.PowerCell;
 using Content.Shared.PowerCell.Components;
@@ -21,6 +22,7 @@ public sealed class IVDripSystem : SharedIVDripSystem
     [Dependency] private readonly ChatSystem _chat = default!;
     [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly PowerCellSystem _powerCell = default!;
+    [Dependency] private readonly RMCBloodstreamSystem _rmcBloodstream = default!;
     [Dependency] private readonly SharedSolutionContainerSystem _solutionContainer = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
 
@@ -29,12 +31,8 @@ public sealed class IVDripSystem : SharedIVDripSystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<PortableDialysisComponent, PowerCellChangedEvent>(OnDialysisBatteryChargeChanged);
-    }
 
-    private void OnDialysisBatteryChargeChanged(Entity<PortableDialysisComponent> dialysis, ref PowerCellChangedEvent args)
-    {
-        UpdateDialysisBatteryLevel(dialysis);
+        SubscribeLocalEvent<PortableDialysisComponent, PowerCellChangedEvent>(OnDialysisBatteryChargeChanged);
     }
 
     private bool TryGetBloodstream(
@@ -167,6 +165,12 @@ public sealed class IVDripSystem : SharedIVDripSystem
         var dialysis = EntityQueryEnumerator<PortableDialysisComponent>();
         while (dialysis.MoveNext(out var dialysisId, out var dialysisComp))
         {
+            if (dialysisComp.DetachingEnd != TimeSpan.Zero && dialysisComp.DetachingEnd <= time)
+            {
+                dialysisComp.DetachingEnd = TimeSpan.Zero;
+                Dirty(dialysisId, dialysisComp);
+            }
+
             if (dialysisComp.AttachedTo is not { } attachedTo)
                 continue;
 
@@ -181,35 +185,33 @@ public sealed class IVDripSystem : SharedIVDripSystem
 
             dialysisComp.TransferAt = time + dialysisComp.TransferDelay;
 
-            if (!TryGetBloodstream(attachedTo, out var streamSolEnt, out var streamSol, out var attachedStream))
+            if (!TryGetBloodstream(attachedTo, out var streamSolEnt, out _, out _))
                 continue;
 
-            _reagentRemovalBuffer.Clear();
-            foreach (var reagentQuantity in streamSol.Contents)
+            if (_rmcBloodstream.TryGetChemicalSolution(attachedTo, out var chemSolEnt, out var chemSol))
             {
-                if (!dialysisComp.NonTransferableReagents.Contains(reagentQuantity.Reagent.Prototype))
-                    _reagentRemovalBuffer.Add(reagentQuantity.Reagent.Prototype);
+                _reagentRemovalBuffer.Clear();
+                foreach (var reagentQuantity in chemSol.Contents)
+                {
+                    if (!dialysisComp.NonTransferableReagents.Contains(reagentQuantity.Reagent.Prototype))
+                        _reagentRemovalBuffer.Add(reagentQuantity.Reagent.Prototype);
+                }
+
+                foreach (var reagent in _reagentRemovalBuffer)
+                {
+                    _solutionContainer.RemoveReagent(chemSolEnt, reagent, dialysisComp.ReagentRemovalAmount);
+                }
             }
 
-            foreach (var reagent in _reagentRemovalBuffer)
-            {
-                _solutionContainer.RemoveReagent(streamSolEnt.Value, reagent, dialysisComp.ReagentRemovalAmount);
-            }
-
-            if (attachedStream is { } bloodSolutionEnt)
-                _solutionContainer.SplitSolution(bloodSolutionEnt, dialysisComp.BloodRemovalCost);
-
+            _solutionContainer.SplitSolution(streamSolEnt.Value, dialysisComp.BloodRemovalCost);
             _powerCell.TryUseActivatableCharge(dialysisId);
-
             Dirty(dialysisId, dialysisComp);
-            UpdateDialysisVisuals((dialysisId, dialysisComp));
         }
     }
 
-    private void UpdateDialysisBatteryLevel(Entity<PortableDialysisComponent> dialysis)
+    private void OnDialysisBatteryChargeChanged(Entity<PortableDialysisComponent> dialysis, ref PowerCellChangedEvent args)
     {
-        var batteryLevel = GetDialysisBatteryLevel(dialysis);
-        UpdateDialysisBatteryAppearance(dialysis.Owner, batteryLevel);
+        UpdateDialysisBatteryAppearance(dialysis.Owner, GetDialysisBatteryLevel(dialysis));
     }
 
     private DialysisBatteryLevel GetDialysisBatteryLevel(Entity<PortableDialysisComponent> dialysis)
