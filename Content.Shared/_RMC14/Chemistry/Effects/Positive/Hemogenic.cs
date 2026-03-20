@@ -59,6 +59,6 @@ public sealed partial class Hemogenic : RMCChemicalEffect
     protected override void TickCriticalOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
         var hungerSystem = System<HungerSystem>(args);
-        hungerSystem.ModifyHunger(args.TargetEntity, -PotencyPerSecond * 5);
+        hungerSystem.ModifyHunger(args.TargetEntity, PotencyPerSecond * -5);
     }
 }
