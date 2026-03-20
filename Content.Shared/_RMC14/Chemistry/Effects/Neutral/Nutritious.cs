@@ -17,8 +17,8 @@ public sealed partial class Nutritious : RMCChemicalEffect
 
     protected override void Tick(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        var mobStateSystem = args.EntityManager.System<MobStateSystem>();
-        if (mobStateSystem.IsDead(args.TargetEntity))
+        var mobState = args.EntityManager.System<MobStateSystem>();
+        if (mobState.IsDead(args.TargetEntity))
             return;
 
         var hungerSys = args.EntityManager.System<HungerSystem>();
