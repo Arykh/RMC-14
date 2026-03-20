@@ -199,11 +199,11 @@ public sealed class IVDripSystem : SharedIVDripSystem
 
                 foreach (var reagent in _reagentRemovalBuffer)
                 {
-                    _solutionContainer.RemoveReagent(chemSolEnt, reagent, dialysisComp.ReagentRemovalAmount);
+                    _solutionContainer.RemoveReagent(chemSolEnt, reagent, dialysisComp.DialysisAmount);
                 }
             }
 
-            _solutionContainer.SplitSolution(streamSolEnt.Value, dialysisComp.BloodRemovalCost);
+            _solutionContainer.SplitSolution(streamSolEnt.Value, dialysisComp.BloodCost);
             _powerCell.TryUseActivatableCharge(dialysisId);
             Dirty(dialysisId, dialysisComp);
         }

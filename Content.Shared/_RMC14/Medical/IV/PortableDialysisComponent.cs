@@ -14,10 +14,10 @@ namespace Content.Shared._RMC14.Medical.IV;
 public sealed partial class PortableDialysisComponent : Component
 {
     [DataField, AutoNetworkedField]
-    public FixedPoint2 ReagentRemovalAmount = FixedPoint2.New(1.5);
+    public FixedPoint2 DialysisAmount = FixedPoint2.New(1.5);
 
     [DataField, AutoNetworkedField]
-    public FixedPoint2 BloodRemovalCost = FixedPoint2.New(6);
+    public FixedPoint2 BloodCost = FixedPoint2.New(6);
 
     [DataField, AutoNetworkedField]
     public TimeSpan TransferDelay = TimeSpan.FromSeconds(1);
