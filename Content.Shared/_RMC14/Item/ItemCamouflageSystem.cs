@@ -1,6 +1,7 @@
 using Content.Shared._RMC14.Survivor;
 using Content.Shared.GameTicking;
 using Content.Shared.Inventory;
+using Content.Shared.Item;
 using Content.Shared.Roles;
 using Content.Shared.Station;
 using Robust.Shared.Network;
@@ -11,6 +12,7 @@ namespace Content.Shared._RMC14.Item;
 public sealed class ItemCamouflageSystem : EntitySystem
 {
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
+    [Dependency] private readonly SharedItemSystem _item = default!;
     [Dependency] private readonly SharedStationSpawningSystem _stationSpawning = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
@@ -83,6 +85,9 @@ public sealed class ItemCamouflageSystem : EntitySystem
         while (_items.TryDequeue(out var ent))
         {
             _appearance.SetData(ent, ItemCamouflageVisuals.Camo, CurrentMapCamouflage);
+
+            if (ent.Comp.States != null && ent.Comp.States.TryGetValue(CurrentMapCamouflage, out var camoState))
+                _item.SetHeldPrefix(ent, camoState);
         }
     }
 }
