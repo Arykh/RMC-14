@@ -11,21 +11,18 @@ public sealed partial class Nutritious : RMCChemicalEffect
 {
     protected override string ReagentEffectGuidebookText(IPrototypeManager prototype, IEntitySystemManager entSys)
     {
-        var updatedFactor = NutrimentFactor + ActualPotency;
-        return $"Restores [color=green]{updatedFactor * ActualPotency}[/color] nutrients to the body and satiates hunger";
+        var updatedFactor = NutrimentFactor + Potency;
+        return $"Restores [color=green]{updatedFactor * Potency}[/color] nutrients to the body and satiates hunger";
     }
 
     protected override void Tick(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        var entityManager = args.EntityManager;
-        var target = args.TargetEntity;
-        var mobStateSystem = entityManager.System<MobStateSystem>();
-        var hungerSystem = entityManager.System<HungerSystem>();
-
-        if (mobStateSystem.IsDead(target))
+        var mobStateSystem = args.EntityManager.System<MobStateSystem>();
+        if (mobStateSystem.IsDead(args.TargetEntity))
             return;
 
-        var updatedFactor = NutrimentFactor + ActualPotency;
-        hungerSystem.ModifyHunger(target, updatedFactor * ActualPotency);
+        var hungerSys = args.EntityManager.System<HungerSystem>();
+        var updatedFactor = NutrimentFactor + Potency;
+        hungerSys.ModifyHunger(args.TargetEntity, updatedFactor * Potency);
     }
 }
