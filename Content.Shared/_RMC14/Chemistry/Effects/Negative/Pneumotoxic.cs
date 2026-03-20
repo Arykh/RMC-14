@@ -5,32 +5,32 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._RMC14.Chemistry.Effects.Negative;
 
-public sealed partial class Biocidic : RMCChemicalEffect
+public sealed partial class Pneumotoxic : RMCChemicalEffect
 {
-    public override string Abbreviation => "BCD";
+    public override string Abbreviation => "PNT";
 
     protected override string ReagentEffectGuidebookText(IPrototypeManager prototype, IEntitySystemManager entSys)
     {
-        return $"Deals [color=red]{PotencyPerSecond}[/color] brute damage.\n" +
-               $"Overdoses cause [color=red]{PotencyPerSecond * 2}[/color] brute damage.\n" +
-               $"Critical overdoses cause [color=red]{PotencyPerSecond * 5}[/color] brute damage.";
+        // TODO RMC14 organ lung damage
+        return $"Overdoses cause [color=red]{PotencyPerSecond * 2}[/color] oxygen damage.\n" +
+               $"Critical overdoses cause [color=red]{PotencyPerSecond * 5}[/color] oxygen damage.";
     }
 
     protected override void Tick(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        // TODO RMC14 one limb at random
-        TryChangeDamage(args, BluntType, potency);
+        if (!IsHumanoid(args))
+            return;
+
+        // TODO RMC14 organ lung damage
     }
 
     protected override void TickOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        // TODO RMC14 one limb at random
-        TryChangeDamage(args, BluntType, potency * 2);
+        TryChangeDamage(args, AsphyxiationType, potency * 2);
     }
 
     protected override void TickCriticalOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        // TODO RMC14 one limb at random
-        TryChangeDamage(args, BluntType, potency * 5);
+        TryChangeDamage(args, AsphyxiationType, potency * 5);
     }
 }

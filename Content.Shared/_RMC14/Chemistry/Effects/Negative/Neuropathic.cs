@@ -5,32 +5,32 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._RMC14.Chemistry.Effects.Negative;
 
-public sealed partial class Biocidic : RMCChemicalEffect
+public sealed partial class Neuropathic : RMCChemicalEffect
 {
-    public override string Abbreviation => "BCD";
+    public override string Abbreviation => "NPT";
 
     protected override string ReagentEffectGuidebookText(IPrototypeManager prototype, IEntitySystemManager entSys)
     {
-        return $"Deals [color=red]{PotencyPerSecond}[/color] brute damage.\n" +
-               $"Overdoses cause [color=red]{PotencyPerSecond * 2}[/color] brute damage.\n" +
-               $"Critical overdoses cause [color=red]{PotencyPerSecond * 5}[/color] brute damage.";
+        // TODO RMC14 apply pain
+        return $"Overdoses cause [color=red]{PotencyPerSecond}[/color] blunt damage.\n" +
+               $"Critical overdoses cause [color=red]{PotencyPerSecond * 2}[/color] blunt damage.";
     }
 
     protected override void Tick(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        // TODO RMC14 one limb at random
-        TryChangeDamage(args, BluntType, potency);
+        // TODO RMC14 apply pain
     }
 
     protected override void TickOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
+        // TODO RMC14 apply pain
         // TODO RMC14 one limb at random
-        TryChangeDamage(args, BluntType, potency * 2);
+        TryChangeDamage(args, BluntType, potency);
     }
 
     protected override void TickCriticalOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
         // TODO RMC14 one limb at random
-        TryChangeDamage(args, BluntType, potency * 5);
+        TryChangeDamage(args, BluntType, potency * 2);
     }
 }

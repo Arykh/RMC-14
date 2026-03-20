@@ -1,36 +1,41 @@
 using Content.Shared.Damage;
 using Content.Shared.EntityEffects;
+using Content.Shared.Eye.Blinding.Components;
+using Content.Shared.Eye.Blinding.Systems;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._RMC14.Chemistry.Effects.Negative;
 
-public sealed partial class Biocidic : RMCChemicalEffect
+public sealed partial class Oculotoxic : RMCChemicalEffect
 {
-    public override string Abbreviation => "BCD";
+    public override string Abbreviation => "OCT";
 
     protected override string ReagentEffectGuidebookText(IPrototypeManager prototype, IEntitySystemManager entSys)
     {
-        return $"Deals [color=red]{PotencyPerSecond}[/color] brute damage.\n" +
-               $"Overdoses cause [color=red]{PotencyPerSecond * 2}[/color] brute damage.\n" +
-               $"Critical overdoses cause [color=red]{PotencyPerSecond * 5}[/color] brute damage.";
+        // TODO RMC14 organ eye damage
+        return $"Overdoses cause the user to go [color=red]blind[/color].";
     }
 
     protected override void Tick(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        // TODO RMC14 one limb at random
-        TryChangeDamage(args, BluntType, potency);
+        if (!IsHumanoid(args))
+            return;
+
+        // TODO RMC14 organ eye damage
     }
 
     protected override void TickOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        // TODO RMC14 one limb at random
-        TryChangeDamage(args, BluntType, potency * 2);
+        if (TryComp(args, out BlindableComponent? blindable))
+        {
+            var blindableSys = System<BlindableSystem>(args);
+            blindableSys.AdjustEyeDamage((args.TargetEntity, blindable), blindable.MaxDamage);
+        }
     }
 
     protected override void TickCriticalOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        // TODO RMC14 one limb at random
-        TryChangeDamage(args, BluntType, potency * 5);
+        // TODO RM14 organ brain damage
     }
 }
