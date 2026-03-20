@@ -101,7 +101,8 @@ public sealed class HealthScannerSystem : EntitySystem
         _audio.PlayPredicted(scanner.Comp.Sound, scanner, args.User);
         _ui.OpenUi(scanner.Owner, HealthScannerUIKey.Key, args.User);
 
-        UpdateUI(scanner);
+        if (_timing.IsFirstTimePredicted)
+            UpdateUI(scanner);
     }
 
     /// <param name="scanner">The Health Scanner</param>
