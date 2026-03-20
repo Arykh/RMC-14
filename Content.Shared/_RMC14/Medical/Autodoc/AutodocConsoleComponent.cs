@@ -15,10 +15,6 @@ public sealed partial class AutodocConsoleComponent : Component
     [DataField]
     public TimeSpan UpdateCooldown = TimeSpan.FromSeconds(1);
 
-    /// <summary>
-    /// Set of research upgrade tiers currently installed on this console.
-    /// Each tier independently unlocks a specific surgery type.
-    /// </summary>
     [DataField, AutoNetworkedField]
-    public HashSet<AutodocUpgradeTier> InstalledUpgrades = new();
+    public HashSet<AutodocUpgradeTier> InstalledUpgrades = [];
 }
