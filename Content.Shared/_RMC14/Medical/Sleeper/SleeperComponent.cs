@@ -107,27 +107,15 @@ public sealed partial class SleeperComponent : Component
     [DataField, AutoNetworkedField]
     public FixedPoint2 UpgradedDialysisAmount = FixedPoint2.New(8);
 
-    /// <summary>
-    /// Delay between dialysis ticks.
-    /// </summary>
     [DataField, AutoNetworkedField]
     public TimeSpan DialysisTickDelay = TimeSpan.FromSeconds(1);
 
-    /// <summary>
-    /// Time of next dialysis tick.
-    /// </summary>
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoNetworkedField, AutoPausedField]
     public TimeSpan NextDialysisTick;
 
-    /// <summary>
-    /// Total reagent volume when dialysis started (for progress tracking).
-    /// </summary>
     [DataField, AutoNetworkedField]
     public FixedPoint2 DialysisStartedReagentVolume;
 
-    /// <summary>
-    /// Reagents that cannot be removed by dialysis.
-    /// </summary>
     [DataField, AutoNetworkedField]
     public ProtoId<ReagentPrototype>[] NonTransferableReagents = ["Blood"];
 
