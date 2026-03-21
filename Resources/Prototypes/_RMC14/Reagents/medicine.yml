@@ -1,5 +1,4 @@
-﻿# TODO RMC14 other effects
-- type: reagent
+﻿- type: reagent
   parent: [ CMReagentMedicine, Dylovene ]
   id: CMDylovene
   name: reagent-name-cmdylovene
@@ -12,11 +11,10 @@
       metabolismRate: 0.1
       effects:
       - !type:Antitoxic
-        potency: 2
+        level: 2
       - !type:Antihallucinogenic
-        potency: 2
+        level: 2
 
-# TODO RMC14 other effects
 - type: reagent
   parent: [ CMReagentMedicine, Ethylredoxrazine ]
   id: CMEthylredoxrazine
@@ -30,9 +28,8 @@
       metabolismRate: 0.1
       effects:
       - !type:Focusing
-        potency: 3
+        level: 3
 
-# TODO RMC14 other effects
 - type: reagent
   parent: [ CMReagentMedicine, Arithrazine ]
   id: CMArithrazine
@@ -46,9 +43,9 @@
       metabolismRate: 0.03
       effects:
       - !type:Antitoxic
-        potency: 1
+        level: 1
       - !type:Biocidic
-        potency: 1
+        level: 1
 
 - type: reagent
   parent: [ CMReagentMedicine, Bicaridine ]
@@ -63,9 +60,8 @@
       metabolismRate: 0.1
       effects:
       - !type:Neogenetic
-        potency: 2
+        level: 2
 
-# TODO RMC14 other effects
 - type: reagent
   parent: [ CMReagentMedicine, Cryoxadone ]
   id: CMCryoxadone
@@ -76,16 +72,26 @@
     Medicine:
       metabolismRate: 0.1
       effects:
+      - !type:Cryometabolizing
+        level: 2
+      - !type:Neogenetic
+        level: 1
+      - !type:Anticorrosive
+        level: 1
+      - !type:Antitoxic
+        level: 1
+      - !type:Anticarcinogenic
+        level: 1
       - !type:EqualHealthChange
         conditions:
         - !type:Temperature
-          max: 170
+          max: 210
         damage:
-        - Brute: -1
-        - Burn: -1
-        - Toxin: -1.5
+        - Brute: -0.5
+        - Burn: -0.5
+        - Toxin: -0.5
         - Airloss: -0.5
-        - Genetic: -1
+        - Genetic: -0.5
 
 - type: reagent
   parent: [ CMReagentMedicine, Dermaline ]
@@ -100,7 +106,7 @@
       metabolismRate: 0.1
       effects:
       - !type:Anticorrosive
-        potency: 3
+        level: 3
 
 - type: reagent
   parent: [ CMReagentMedicine, Dexalin ]
@@ -115,7 +121,7 @@
       metabolismRate: 0.1
       effects:
       - !type:Oxygenating
-        potency: 4
+        level: 4
 
 - type: reagent
   parent: [ CMReagentMedicine, DexalinPlus ]
@@ -130,10 +136,9 @@
       metabolismRate: 0.1
       effects:
       - !type:Oxygenating
-        potency: 6
+        level: 6
 
-# TODO RMC14 other effects (pain)
-# TODO RMC14 injected only
+# TODO RMC14 PROPERTY_PAINKILLING = 0.75
 - type: reagent
   parent: [ CMReagentMedicine, Epinephrine ]
   id: CMEpinephrine
@@ -147,7 +152,9 @@
       metabolismRate: 0.2
       effects:
       - !type:Electrogenetic
-        potency: 2
+        level: 2
+      - !type:Intravenous
+        level: 1
       - !type:HealthChange
         conditions:
         - !type:ReagentThreshold
@@ -222,9 +229,8 @@
       metabolismRate: 0.1
       effects:
       - !type:Anticorrosive
-        potency: 2
+        level: 2
 
-# TODO RMC14 other effects
 - type: reagent
   parent: [ CMReagentMedicine, Leporazine ]
   id: CMLeporazine
@@ -238,9 +244,8 @@
       metabolismRate: 0.1
       effects:
       - !type:Thermostabilizing
-        potency: 2
+        level: 2
 
-# TODO RMC14 other effects
 - type: reagent
   parent: [ CMReagentMedicine, Tricordrazine ]
   id: CMTricordrazine
@@ -254,13 +259,13 @@
       metabolismRate: 0.1
       effects:
       - !type:Neogenetic
-        potency: 1
+        level: 1
       - !type:Anticorrosive
-        potency: 1
+        level: 1
       - !type:Antitoxic
-        potency: 1
+        level: 1
       - !type:Oxygenating
-        potency: 1
+        level: 1
 
 - type: reagent
   parent: [ CMReagentMedicine, CMBicaridine ]
@@ -275,9 +280,9 @@
       metabolismRate: 0.1
       effects:
       - !type:Neogenetic
-        potency: 3
+        level: 3
 
-# TODO RMC14 other effects
+# TODO RMC14 PROPERTY_OCULOPEUTIC = 2
 # TODO RMC14 progressive eye healing
 # TODO RMC14 brain damage over 50u
 - type: reagent
@@ -303,14 +308,13 @@
       - !type:HealthChange
         conditions:
         - !type:ReagentThreshold
-          min: 50 #TODO 0.5 brain damage/s
+          min: 50
         damage:
           groups:
             Brute: 0.5
             Burn: 0.5
             Toxin: 1.5
 
-# TODO RMC14 other effects
 - type: reagent
   parent: [ CMReagentMedicine, CMCryoxadone ]
   id: CMClonexadone
@@ -321,17 +325,17 @@
     Medicine:
       metabolismRate: 0.1
       effects:
-      - !type:EqualHealthChange
-        conditions:
-        - !type:Temperature
-          max: 170
-        damage:
-        - Brute: -2.25
-        - Burn: -2.25
-        - Toxin: -3
-        - Genetic: -1.5
+      - !type:Cryometabolizing
+        level: 6
+      - !type:Neogenetic
+        level: 3
+      - !type:Anticorrosive
+        level: 3
+      - !type:Antitoxic
+        level: 3
+      - !type:Anticarcinogenic
+        level: 3
 
-# TODO RMC14 other effects
 - type: reagent
   parent: [ CMReagentMedicine, CMArithrazine ]
   id: RMCRussianRed
@@ -345,9 +349,9 @@
       metabolismRate: 0.5
       effects:
       - !type:Antitoxic
-        potency: 1
+        level: 1
       - !type:Biocidic
-        potency: 2
+        level: 2
 
 # Antidepressants/ADHD meds
 - type: reagent
@@ -362,7 +366,7 @@
     Medicine:
       metabolismRate: 0.01 # 1, 200 seconds is 0.005, but fixed point 2
       effects:
-      - !type:PopupMessage #TODO -2 confusion stat and message in 5 min intervals
+      - !type:PopupMessage # TODO PROPERTY_PSYCHOSTIMULATING = 4
         type: Local
         messages: [ "antidepressant-effect-rmcmethylphenidate" ]
         probability: 0.05
@@ -377,7 +381,7 @@
     Medicine:
       metabolismRate: 0.01 # 1, 200 seconds
       effects:
-      - !type:PopupMessage #TODO -1 confusion stat and message in 5 min intervals
+      - !type:PopupMessage # TODO PROPERTY_PSYCHOSTIMULATING = 2
         type: Local
         messages: [ "antidepressant-effect-rmccitalopram" ]
         probability: 0.05
@@ -392,20 +396,12 @@
     Medicine:
       metabolismRate: 0.01 # 1, 200 seconds
       effects:
-      - !type:PopupMessage #TODO -3 confusion stat and message in 5 min intervals
+      - !type:PopupMessage # TODO PROPERTY_PSYCHOSTIMULATING = 6
         type: Local
         messages: [ "antidepressant-effect-rmcparoxetine" ]
         probability: 0.05
-      - !type:ModifyStatusEffect
-        effectProto: StatusEffectSeeingRainbow
-        type: Add
-        time: 1.5 #TODO max 30
-        refresh: false
-      - !type:Jitter
-      - !type:Emote
-        emote: Laugh #TODO twitches, drools, moans.
-        showInChat: true
-        probability: 0.05
+      - !type:Hallucinogenic
+        level: 6
 
 # Zombie Cure
 - type: reagent
@@ -438,4 +434,4 @@
       metabolismRate: 0.1
       effects:
       - !type:Ketogenic
-        potency: 4
+        level: 4
