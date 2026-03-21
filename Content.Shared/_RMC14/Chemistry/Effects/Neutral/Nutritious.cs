@@ -14,7 +14,7 @@ public sealed partial class Nutritious : RMCChemicalEffect
     protected override string ReagentEffectGuidebookText(IPrototypeManager prototype, IEntitySystemManager entSys)
     {
         var updatedFactor = NutrimentFactor + Level;
-        return $"Restores [color=green]{updatedFactor * Level}[/color] nutrients to the body and satiates hunger";
+        return $"Restores [color=green]{updatedFactor * Potency}[/color] nutrients to the body and satiates hunger";
     }
 
     protected override void Tick(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
@@ -25,6 +25,6 @@ public sealed partial class Nutritious : RMCChemicalEffect
 
         var hungerSys = System<HungerSystem>(args);
         var updatedFactor = NutrimentFactor + Level;
-        hungerSys.ModifyHunger(args.TargetEntity, updatedFactor * Level);
+        hungerSys.ModifyHunger(args.TargetEntity, updatedFactor * Potency); // Half because chemicals tick every second
     }
 }
