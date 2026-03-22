@@ -22,7 +22,7 @@ public sealed partial class Thermostabilizing : RMCChemicalEffect
 
     protected override void Tick(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        var sys = args.EntityManager.EntitySysManager.GetEntitySystem<SharedRMCTemperatureSystem>();
+        var sys = System<SharedRMCTemperatureSystem>(args);
         var current = sys.GetTemperature(args.TargetEntity);
         var normalBodyTemp = TemperatureHelpers.CelsiusToKelvin(Atmospherics.NormalBodyTemperature);
         if (Math.Abs(current - normalBodyTemp) < 0.01)

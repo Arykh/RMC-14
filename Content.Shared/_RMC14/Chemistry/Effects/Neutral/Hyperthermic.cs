@@ -31,7 +31,7 @@ public sealed partial class Hyperthermic : RMCChemicalEffect
     {
         if (ProbHundred(5))
         {
-            var emoteSystem = args.EntityManager.System<SharedRMCEmoteSystem>();
+            var emoteSystem = System<SharedRMCEmoteSystem>(args);
             emoteSystem.TryEmoteWithChat(
                 args.TargetEntity,
                 GaspEmote,
@@ -46,7 +46,7 @@ public sealed partial class Hyperthermic : RMCChemicalEffect
                 popup.PopupClient("Your insides feel uncomfortably hot!", args.TargetEntity, args.TargetEntity);
         }
 
-        var sys = args.EntityManager.EntitySysManager.GetEntitySystem<SharedRMCTemperatureSystem>();
+        var sys = System<SharedRMCTemperatureSystem>(args);
         var current = sys.GetTemperature(args.TargetEntity);
         var change = (potency * 2 * args.Scale.Float()).Float();
         var temp = Math.Min(TemperatureHelpers.CelsiusToKelvin(120), current + change);
@@ -59,7 +59,7 @@ public sealed partial class Hyperthermic : RMCChemicalEffect
 
     protected override void TickOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
     {
-        var sys = args.EntityManager.EntitySysManager.GetEntitySystem<SharedRMCTemperatureSystem>();
+        var sys = System<SharedRMCTemperatureSystem>(args);
         var current = sys.GetTemperature(args.TargetEntity);
         var change = (potency * 5 * args.Scale.Float()).Float();
         var temp = Math.Min(TemperatureHelpers.CelsiusToKelvin(120), current + change);

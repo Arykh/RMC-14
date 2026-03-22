@@ -56,7 +56,7 @@ public sealed partial class Hemolytic : RMCChemicalEffect
         if (!ProbHundred(5))
             return;
 
-        var emoteSystem = args.EntityManager.System<SharedRMCEmoteSystem>();
+        var emoteSystem = System<SharedRMCEmoteSystem>(args);
         var emote = IoCManager.Resolve<IRobustRandom>().Pick(Emotes);
         emoteSystem.TryEmoteWithChat(
             args.TargetEntity,

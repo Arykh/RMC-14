@@ -20,7 +20,7 @@ public sealed partial class Excreting : RMCChemicalEffect
         if (args.SolutionEnt is not { } solution)
             return;
 
-        var solutionSys = args.EntityManager.System<SharedSolutionContainerSystem>();
+        var solutionSys = System<SharedSolutionContainerSystem>(args);
         solutionSys.RemoveEachReagent(solution, FixedPoint2.New(Level * 2));
     }
 }
