@@ -3,7 +3,7 @@
 namespace Content.Shared._RMC14.Medical.Refill;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
-[Access(typeof(CMSolutionRefillerComponent), typeof(SharedMedicalSupplyLinkSystem))]
+[Access(typeof(CMSolutionRefillerComponent), typeof(SharedRMCMedicalSupplyLinkSystem))]
 public sealed partial class CMMedicalSupplyLinkComponent : Component
 {
     [DataField, AutoNetworkedField]

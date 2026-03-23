@@ -7,7 +7,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._RMC14.Medical.Refill;
 
-public sealed class RMCMedicalSupplyLinkSystem : SharedMedicalSupplyLinkSystem
+public sealed class RMCMedicalSupplyLinkSystem : SharedRMCMedicalSupplyLinkSystem
 {
     [Dependency] private readonly GameTicker _gameTicker = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
