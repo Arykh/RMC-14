@@ -33,9 +33,7 @@ public abstract class SharedRMCMedicalSupplyLinkSystem : EntitySystem
                 return;
 
             if (TryGetSupplyLink(ent.Owner, ent.Comp, xform))
-            {
                 args.PushMarkup(Loc.GetString("rmc-vending-machine-supply-link-connected"));
-            }
         }
     }
 
@@ -103,7 +101,6 @@ public abstract class SharedRMCMedicalSupplyLinkSystem : EntitySystem
 
             var animationRsi = new SpriteSpecifier.Rsi(new ResPath(link.Comp.MedilinkRsiPath), animationState);
             var defaultRsi = new SpriteSpecifier.Rsi(new ResPath(link.Comp.MedilinkRsiPath), finalState);
-
             _animation.Flick((link.Owner, null), animationRsi, defaultRsi, link.Comp.BaseLayerKey);
         }
 

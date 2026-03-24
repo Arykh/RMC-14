@@ -104,10 +104,10 @@ public sealed partial class CMAutomatedVendorComponent : Component
     public Dictionary<string, int> PartialProductStacks = new();
 
     [ViewVariables]
-    public Dictionary<EntProtoId, CMVendorEntry> EntryByPrototype = new();
+    public readonly Dictionary<EntProtoId, CMVendorEntry> EntryByPrototype = new();
 
     [ViewVariables]
-    public Dictionary<string, CMVendorEntry> EntryByStackType = new();
+    public readonly Dictionary<string, CMVendorEntry> EntryByStackType = new();
 }
 
 internal readonly struct StackRestockPlan
