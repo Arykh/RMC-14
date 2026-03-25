@@ -12,11 +12,11 @@ namespace Content.Shared._RMC14.Item;
 public sealed class ItemCamouflageSystem : EntitySystem
 {
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly SharedItemSystem _item = default!;
-    [Dependency] private readonly SharedStationSpawningSystem _stationSpawning = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
+    [Dependency] private readonly SharedItemSystem _item = default!;
     [Dependency] private readonly INetManager _net = default!;
+    [Dependency] private readonly IPrototypeManager _prototypes = default!;
+    [Dependency] private readonly SharedStationSpawningSystem _stationSpawning = default!;
 
     [ViewVariables(VVAccess.ReadWrite)]
     public CamouflageType CurrentMapCamouflage { get; set; } = CamouflageType.Jungle;
