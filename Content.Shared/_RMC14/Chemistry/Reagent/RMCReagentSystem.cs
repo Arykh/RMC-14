@@ -72,7 +72,7 @@ public sealed class RMCReagentSystem : EntitySystem
             foreach (var effect in metabolism.Effects)
             {
                 if (effect is RMCChemicalEffect rmcEffect &&
-                    rmcEffect.CanBeIngested())
+                    !rmcEffect.CanBeIngested())
                 {
                     return false;
                 }
