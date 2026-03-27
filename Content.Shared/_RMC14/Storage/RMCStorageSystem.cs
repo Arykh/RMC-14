@@ -570,9 +570,7 @@ public sealed class RMCStorageSystem : EntitySystem
 
     private void OnDropshipHijackStart(ref DropshipHijackStartEvent ev)
     {
-        if (_net.IsServer)
-            OnHijackFill();
-
+        OnHijackFill();
         OnHijackOpenLockers();
     }
 
@@ -610,18 +608,20 @@ public sealed class RMCStorageSystem : EntitySystem
 
     private void OnHijackFill()
     {
-        var jobCounts = CountActivePlayerJobs();
+        if (_net.IsClient)
+            return;
 
+        var jobCount = GetActivePlayersJobCount();
         var fillQuery = EntityQueryEnumerator<RMCOnHijackFillComponent>();
         while (fillQuery.MoveNext(out var uid, out var fill))
         {
-            TryOnHijackFill(uid, fill, jobCounts);
+            TryOnHijackFill(uid, fill, jobCount);
         }
     }
 
-    private Dictionary<string, int> CountActivePlayerJobs()
+    private Dictionary<string, int> GetActivePlayersJobCount()
     {
-        var jobCounts = new Dictionary<string, int>();
+        var jobCount = new Dictionary<string, int>();
         var playerQuery = EntityQueryEnumerator<ActorComponent, OriginalRoleComponent>();
         while (playerQuery.MoveNext(out var uid, out _, out var role))
         {
@@ -631,25 +631,25 @@ public sealed class RMCStorageSystem : EntitySystem
             if (HasComp<CryostorageContainedComponent>(uid) || HasComp<InsideHyperSleepChamberComponent>(uid))
                 continue;
 
-            jobCounts.TryGetValue(job.Id, out var current);
-            jobCounts[job.Id] = current + 1;
+            jobCount.TryGetValue(job.Id, out var current);
+            jobCount[job.Id] = current + 1;
         }
 
-        return jobCounts;
+        return jobCount;
     }
 
-    private void TryOnHijackFill(EntityUid uid, RMCOnHijackFillComponent fill, Dictionary<string, int> jobCounts)
+    private void TryOnHijackFill(EntityUid uid, RMCOnHijackFillComponent hijackFill, Dictionary<string, int> jobCount)
     {
-        if (fill.Table == null)
+        if (hijackFill.Table == null)
             return;
 
         var count = 1;
-        if (fill.ScaleWithJobs)
+        if (hijackFill.ScaleWithJobs)
         {
             count = 0;
-            foreach (var job in fill.Jobs)
+            foreach (var job in hijackFill.Jobs)
             {
-                if (jobCounts.TryGetValue(job.Id, out var c))
+                if (jobCount.TryGetValue(job.Id, out var c))
                     count += c;
             }
 
@@ -660,7 +660,7 @@ public sealed class RMCStorageSystem : EntitySystem
         var coords = Transform(uid).Coordinates;
         for (var i = 0; i < count; i++)
         {
-            foreach (var proto in _entityTable.GetSpawns(fill.Table))
+            foreach (var proto in _entityTable.GetSpawns(hijackFill.Table))
             {
                 var ent = Spawn(proto, coords);
                 _entityStorage.Insert(ent, uid);
