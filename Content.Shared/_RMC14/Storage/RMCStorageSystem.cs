@@ -1,11 +1,15 @@
 using Content.Shared._RMC14.CrashLand;
 using Content.Shared._RMC14.Dropship;
 using Content.Shared._RMC14.Marines;
+using Content.Shared._RMC14.Marines.HyperSleep;
 using Content.Shared._RMC14.Marines.Skills;
 using Content.Shared._RMC14.Prototypes;
+using Content.Shared._RMC14.Roles;
 using Content.Shared._RMC14.Storage.Containers;
+using Content.Shared.Bed.Cryostorage;
 using Content.Shared.Destructible;
 using Content.Shared.DoAfter;
+using Content.Shared.EntityTable;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
 using Content.Shared.Inventory.Events;
@@ -21,6 +25,7 @@ using Content.Shared.Stunnable;
 using Content.Shared.Whitelist;
 using Robust.Shared.Containers;
 using Robust.Shared.Network;
+using Robust.Shared.Player;
 using Robust.Shared.Timing;
 using static Content.Shared.Storage.StorageComponent;
 
@@ -32,6 +37,7 @@ public sealed class RMCStorageSystem : EntitySystem
     [Dependency] private readonly SharedCrashLandSystem _crashLand = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly SharedEntityStorageSystem _entityStorage = default!;
+    [Dependency] private readonly EntityTableSystem _entityTable = default!;
     [Dependency] private readonly EntityWhitelistSystem _entityWhitelist = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
@@ -87,7 +93,7 @@ public sealed class RMCStorageSystem : EntitySystem
 
         SubscribeLocalEvent<OpenStorageOnGearEquipComponent, StartingGearEquippedEvent>(OnOpenStorageStartingGear);
 
-        SubscribeLocalEvent<DropshipHijackStartEvent>(OnLockerHijackStart);
+        SubscribeLocalEvent<DropshipHijackStartEvent>(OnDropshipHijackStart);
         SubscribeLocalEvent<RMCLockerOpenOnHijackComponent, StorageOpenAttemptEvent>(OnLockerOpenAttempt);
         SubscribeLocalEvent<RMCLockerOpenOnHijackComponent, LockToggleAttemptEvent>(OnLockerLockToggleAttempt);
 
@@ -562,7 +568,15 @@ public sealed class RMCStorageSystem : EntitySystem
         }
     }
 
-    private void OnLockerHijackStart(ref DropshipHijackStartEvent ev)
+    private void OnDropshipHijackStart(ref DropshipHijackStartEvent ev)
+    {
+        if (_net.IsServer)
+            OnHijackFill();
+
+        OnHijackOpenLockers();
+    }
+
+    private void OnHijackOpenLockers()
     {
         var query = EntityQueryEnumerator<RMCLockerOpenOnHijackComponent, LockComponent>();
         while (query.MoveNext(out var locker, out var onHijackComp, out var lockComp))
@@ -592,6 +606,66 @@ public sealed class RMCStorageSystem : EntitySystem
 
         if (!args.Silent)
             _popup.PopupClient(Loc.GetString("rmc-hijack-cabinet-locked"), ent, args.User);
+    }
+
+    private void OnHijackFill()
+    {
+        var jobCounts = CountActivePlayerJobs();
+
+        var fillQuery = EntityQueryEnumerator<RMCOnHijackFillComponent>();
+        while (fillQuery.MoveNext(out var uid, out var fill))
+        {
+            TryOnHijackFill(uid, fill, jobCounts);
+        }
+    }
+
+    private Dictionary<string, int> CountActivePlayerJobs()
+    {
+        var jobCounts = new Dictionary<string, int>();
+        var playerQuery = EntityQueryEnumerator<ActorComponent, OriginalRoleComponent>();
+        while (playerQuery.MoveNext(out var uid, out _, out var role))
+        {
+            if (role.Job is not { } job)
+                continue;
+
+            if (HasComp<CryostorageContainedComponent>(uid) || HasComp<InsideHyperSleepChamberComponent>(uid))
+                continue;
+
+            jobCounts.TryGetValue(job.Id, out var current);
+            jobCounts[job.Id] = current + 1;
+        }
+
+        return jobCounts;
+    }
+
+    private void TryOnHijackFill(EntityUid uid, RMCOnHijackFillComponent fill, Dictionary<string, int> jobCounts)
+    {
+        if (fill.Table == null)
+            return;
+
+        var count = 1;
+        if (fill.ScaleWithJobs)
+        {
+            count = 0;
+            foreach (var job in fill.Jobs)
+            {
+                if (jobCounts.TryGetValue(job.Id, out var c))
+                    count += c;
+            }
+
+            if (count <= 0)
+                return;
+        }
+
+        var coords = Transform(uid).Coordinates;
+        for (var i = 0; i < count; i++)
+        {
+            foreach (var proto in _entityTable.GetSpawns(fill.Table))
+            {
+                var ent = Spawn(proto, coords);
+                _entityStorage.Insert(ent, uid);
+            }
+        }
     }
 
     public override void Update(float frameTime)
