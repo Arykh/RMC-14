@@ -97,6 +97,7 @@
   components:
   - type: RMCOnHijackFill
     jobs:
+    - CMCMO
     - CMDoctor
     scaleWithJobs: true
     table: !type:NestedSelector
