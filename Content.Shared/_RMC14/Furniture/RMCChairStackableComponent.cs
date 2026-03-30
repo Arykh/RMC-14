@@ -1,3 +1,4 @@
+using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization;
 
@@ -7,7 +8,7 @@ namespace Content.Shared._RMC14.Furniture;
 public sealed partial class RMCChairStackableComponent : Component
 {
     /// <summary>
-    /// Maximum number of chairs that can be stacked stably.
+    /// Maximum number of stacked chairs that is stable.
     /// Beyond this, the stack has a chance to collapse when adding more.
     /// </summary>
     [DataField, AutoNetworkedField]
@@ -18,6 +19,12 @@ public sealed partial class RMCChairStackableComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public int CurrentStackSize;
+
+    [DataField]
+    public SoundSpecifier? CollapseSound = new SoundPathSpecifier("/Audio/_RMC14/Items/metal_chair_crash.ogg");
+
+    [DataField]
+    public SoundSpecifier? ThrownHitSound = new SoundPathSpecifier("/Audio/_RMC14/Items/metal_chair_slam.ogg");
 }
 
 [Serializable, NetSerializable]

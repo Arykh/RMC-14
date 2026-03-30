@@ -1,11 +1,15 @@
 using Content.Shared.Buckle;
 using Content.Shared.Buckle.Components;
+using Content.Shared.Damage;
 using Content.Shared.Destructible;
 using Content.Shared.Foldable;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Popups;
+using Content.Shared.Throwing;
 using Content.Shared.Wieldable.Components;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
 using Robust.Shared.Random;
 
@@ -13,6 +17,7 @@ namespace Content.Shared._RMC14.Furniture;
 
 public sealed class RMCChairStackSystem : EntitySystem
 {
+    [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedBuckleSystem _buckle = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
     [Dependency] private readonly FoldableSystem _foldable = default!;
@@ -34,6 +39,8 @@ public sealed class RMCChairStackSystem : EntitySystem
         SubscribeLocalEvent<RMCChairStackableComponent, InteractHandEvent>(OnInteractHand, before: [typeof(SharedBuckleSystem)]);
         SubscribeLocalEvent<RMCChairStackableComponent, FoldAttemptEvent>(OnFoldAttempt);
         SubscribeLocalEvent<RMCChairStackableComponent, DestructionEventArgs>(OnDestruction);
+        SubscribeLocalEvent<RMCChairStackableComponent, DamageChangedEvent>(OnDamageChanged);
+        SubscribeLocalEvent<RMCChairStackableComponent, ThrowDoHitEvent>(OnThrowDoHit);
     }
 
     private void OnMapInit(Entity<RMCChairStackableComponent> ent, ref MapInitEvent args)
@@ -59,7 +66,6 @@ public sealed class RMCChairStackSystem : EntitySystem
         if (TryComp<FoldableComponent>(ent, out var entFoldable) && entFoldable.IsFolded)
             return;
 
-        // cmss13: locate(/mob/living) in loc — check for any living mob on the tile
         if (TryComp<StrapComponent>(ent, out var strap) && strap.BuckledEntities.Count > 0)
         {
             _popup.PopupPredicted(Loc.GetString("rmc-chair-stack-blocked"), ent, args.User);
@@ -69,7 +75,6 @@ public sealed class RMCChairStackSystem : EntitySystem
 
         var container = _container.EnsureContainer<Container>(ent, ContainerId);
 
-        // Drop the item from the user's hand and insert it into the container
         if (!_hands.TryDrop(args.User, used))
             return;
 
@@ -139,6 +144,24 @@ public sealed class RMCChairStackSystem : EntitySystem
             StackCollapse(ent);
     }
 
+    private void OnDamageChanged(Entity<RMCChairStackableComponent> ent, ref DamageChangedEvent args)
+    {
+        if (!args.DamageIncreased)
+            return;
+
+        if (ent.Comp.CurrentStackSize > 0)
+            StackCollapse(ent);
+    }
+
+    private void OnThrowDoHit(Entity<RMCChairStackableComponent> ent, ref ThrowDoHitEvent args)
+    {
+        if (!HasComp<MobStateComponent>(args.Target))
+            return;
+
+        if (ent.Comp.ThrownHitSound != null)
+            _audio.PlayPvs(ent.Comp.ThrownHitSound, ent);
+    }
+
     private void UpdateStackState(Entity<RMCChairStackableComponent> ent)
     {
         if (ent.Comp.CurrentStackSize > 0)
@@ -166,6 +189,9 @@ public sealed class RMCChairStackSystem : EntitySystem
     private void StackCollapse(Entity<RMCChairStackableComponent> ent)
     {
         _popup.PopupPredicted(Loc.GetString("rmc-chair-stack-collapse"), ent, null);
+
+        if (ent.Comp.CollapseSound != null)
+            _audio.PlayPvs(ent.Comp.CollapseSound, ent);
 
         var container = _container.EnsureContainer<Container>(ent, ContainerId);
         var coords = Transform(ent).Coordinates;
