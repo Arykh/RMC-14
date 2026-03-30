@@ -79,6 +79,13 @@ public sealed class RMCChairStackVisualizerSystem : EntitySystem
                 deltaX = -1 * pxToWorld;
                 deltaY = 3 * pxToWorld;
                 break;
+            case Direction.Invalid:
+            case Direction.South:
+            case Direction.SouthEast:
+            case Direction.NorthEast:
+            case Direction.North:
+            case Direction.NorthWest:
+            case Direction.SouthWest:
             default:
                 deltaX = 0;
                 deltaY = 2 * pxToWorld;

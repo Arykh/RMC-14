@@ -5,7 +5,6 @@ using Content.Shared.Destructible;
 using Content.Shared.Foldable;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
-using Content.Shared.Mobs.Components;
 using Content.Shared.Popups;
 using Content.Shared.Throwing;
 using Content.Shared.Wieldable.Components;
@@ -25,10 +24,12 @@ public sealed class RMCChairStackSystem : EntitySystem
     [Dependency] private readonly MetaDataSystem _metaData = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
+    [Dependency] private readonly ThrowingSystem _throwing = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
 
     private const string ContainerId = "rmc_chair_stack";
+    private const float SpeedFast = 6.67f;
 
     public override void Initialize()
     {
@@ -40,7 +41,6 @@ public sealed class RMCChairStackSystem : EntitySystem
         SubscribeLocalEvent<RMCChairStackableComponent, FoldAttemptEvent>(OnFoldAttempt);
         SubscribeLocalEvent<RMCChairStackableComponent, DestructionEventArgs>(OnDestruction);
         SubscribeLocalEvent<RMCChairStackableComponent, DamageChangedEvent>(OnDamageChanged);
-        SubscribeLocalEvent<RMCChairStackableComponent, ThrowDoHitEvent>(OnThrowDoHit);
     }
 
     private void OnMapInit(Entity<RMCChairStackableComponent> ent, ref MapInitEvent args)
@@ -153,15 +153,6 @@ public sealed class RMCChairStackSystem : EntitySystem
             StackCollapse(ent);
     }
 
-    private void OnThrowDoHit(Entity<RMCChairStackableComponent> ent, ref ThrowDoHitEvent args)
-    {
-        if (!HasComp<MobStateComponent>(args.Target))
-            return;
-
-        if (ent.Comp.ThrownHitSound != null)
-            _audio.PlayPvs(ent.Comp.ThrownHitSound, ent);
-    }
-
     private void UpdateStackState(Entity<RMCChairStackableComponent> ent)
     {
         if (ent.Comp.CurrentStackSize > 0)
@@ -189,27 +180,36 @@ public sealed class RMCChairStackSystem : EntitySystem
     private void StackCollapse(Entity<RMCChairStackableComponent> ent)
     {
         _popup.PopupPredicted(Loc.GetString("rmc-chair-stack-collapse"), ent, null);
-
-        if (ent.Comp.CollapseSound != null)
-            _audio.PlayPvs(ent.Comp.CollapseSound, ent);
+        _audio.PlayPredicted(ent.Comp.CollapseSound, ent, null);
 
         var container = _container.EnsureContainer<Container>(ent, ContainerId);
         var coords = Transform(ent).Coordinates;
 
-        // Dump all stacked chairs
+        // Dump and throw the stacked chairs
         var contained = new List<EntityUid>(container.ContainedEntities);
+        var remainingStack = contained.Count;
         foreach (var child in contained)
         {
+            remainingStack--;
             _container.Remove(child, container);
             _transform.SetCoordinates(child, coords);
-            // TODO RMC14: throw chairs to random nearby turfs like cmss13
+
+            var scatterRadius = MathF.Floor(remainingStack / 2f);
+            var throwRange = _random.NextFloat(2f, 5f);
+            var effectiveDistance = MathF.Max(1f, MathF.Min(scatterRadius, throwRange));
+            var direction = _random.NextAngle().ToVec() * effectiveDistance;
+            _throwing.TryThrow(child, direction, SpeedFast);
         }
 
         ent.Comp.CurrentStackSize = 0;
         Dirty(ent);
         UpdateStackState(ent);
 
-        if (TryComp<FoldableComponent>(ent, out var foldable))
-            _foldable.TrySetFolded(ent, foldable, true);
+        if (TryComp<FoldableComponent>(ent, out var foldable) && _foldable.TrySetFolded(ent, foldable, true))
+        {
+            var baseRange = _random.NextFloat(2f, 5f);
+            var baseDirection = _random.NextAngle().ToVec() * baseRange;
+            _throwing.TryThrow(ent, baseDirection, SpeedFast);
+        }
     }
 }
