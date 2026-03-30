@@ -56,6 +56,8 @@
     bodyType: Static
   - type: Foldable
     anchorOnUnfold: true
+  - type: DeployFoldable
+    setDirectionOnDeploy: true
   - type: Sprite
     sprite: _RMC14/Structures/Furniture/folding_chair.rsi
     layers:
@@ -81,6 +83,7 @@
   - type: RMCStaminaDamageOnHit
     requiresWield: true
     damage: 17
+  - type: RMCChairStackable
 
 - type: entity
   parent: CMChair

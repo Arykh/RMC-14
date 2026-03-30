@@ -113,6 +113,13 @@
       map: [ "buckledLayer" ]
       visible: false
   - type: Appearance
+  - type: Transform
+    anchored: true
+  - type: Physics
+    bodyType: Static
+  - type: Foldable
+    anchorOnUnfold: true
+    fitIntoEntityStorage: true
   - type: ReceiverXenoClaws
     minimumClawStrength: ImpossiblySharp
   - type: PhysicalComposition

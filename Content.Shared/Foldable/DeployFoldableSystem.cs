@@ -19,6 +19,7 @@ public sealed class DeployFoldableSystem : EntitySystem
 
     // RMC14
     [Dependency] private readonly TagSystem _tag = default!;
+    [Dependency] private readonly SharedTransformSystem _transform = default!;
 
     private static readonly ProtoId<TagPrototype> CatwalkTag = "Catwalk";
     private static readonly ProtoId<TagPrototype> StairsTag = "RMCStairs";
@@ -94,6 +95,13 @@ public sealed class DeployFoldableSystem : EntitySystem
         {
             _hands.TryPickup(args.User, args.Used, handsComp: hands);
             return;
+        }
+
+        // RMC14 - set the entity's direction to the user's facing direction
+        if (ent.Comp.SetDirectionOnDeploy)
+        {
+            var userDir = Transform(args.User).LocalRotation.GetCardinalDir();
+            _transform.SetLocalRotation(ent, userDir.ToAngle());
         }
 
         args.Handled = true;
