@@ -97,7 +97,7 @@ public sealed class DeployFoldableSystem : EntitySystem
             return;
         }
 
-        // RMC14 - set the entity's direction to the user's facing direction
+        // RMC14 deploying direction
         if (ent.Comp.SetDirectionOnDeploy)
         {
             var userDir = Transform(args.User).LocalRotation.GetCardinalDir();
