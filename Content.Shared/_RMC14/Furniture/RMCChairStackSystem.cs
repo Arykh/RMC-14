@@ -1,5 +1,6 @@
 using Content.Shared.Buckle;
 using Content.Shared.Buckle.Components;
+using Content.Shared.Destructible;
 using Content.Shared.Foldable;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
@@ -14,12 +15,15 @@ public sealed class RMCChairStackSystem : EntitySystem
 {
     [Dependency] private readonly SharedBuckleSystem _buckle = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
+    [Dependency] private readonly FoldableSystem _foldable = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly MetaDataSystem _metaData = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
+
+    private const string ContainerId = "rmc_chair_stack";
 
     public override void Initialize()
     {
@@ -29,11 +33,12 @@ public sealed class RMCChairStackSystem : EntitySystem
         SubscribeLocalEvent<RMCChairStackableComponent, InteractUsingEvent>(OnInteractUsing);
         SubscribeLocalEvent<RMCChairStackableComponent, InteractHandEvent>(OnInteractHand, before: [typeof(SharedBuckleSystem)]);
         SubscribeLocalEvent<RMCChairStackableComponent, FoldAttemptEvent>(OnFoldAttempt);
+        SubscribeLocalEvent<RMCChairStackableComponent, DestructionEventArgs>(OnDestruction);
     }
 
     private void OnMapInit(Entity<RMCChairStackableComponent> ent, ref MapInitEvent args)
     {
-        _container.EnsureContainer<Container>(ent, ent.Comp.ContainerId);
+        _container.EnsureContainer<Container>(ent, ContainerId);
     }
 
     private void OnInteractUsing(Entity<RMCChairStackableComponent> ent, ref InteractUsingEvent args)
@@ -54,7 +59,7 @@ public sealed class RMCChairStackSystem : EntitySystem
         if (TryComp<FoldableComponent>(ent, out var entFoldable) && entFoldable.IsFolded)
             return;
 
-        // Can't stack if someone is buckled to the chair
+        // cmss13: locate(/mob/living) in loc — check for any living mob on the tile
         if (TryComp<StrapComponent>(ent, out var strap) && strap.BuckledEntities.Count > 0)
         {
             _popup.PopupPredicted(Loc.GetString("rmc-chair-stack-blocked"), ent, args.User);
@@ -62,20 +67,7 @@ public sealed class RMCChairStackSystem : EntitySystem
             return;
         }
 
-        // For stacks over max, chance to collapse
-        if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack)
-        {
-            // probability increases with stack size: sqrt(50 * stackSize) %
-            var collapseChance = Math.Sqrt(50 * ent.Comp.CurrentStackSize) / 100.0;
-            if (_random.Prob((float) collapseChance))
-            {
-                StackCollapse(ent);
-                args.Handled = true;
-                return;
-            }
-        }
-
-        var container = _container.EnsureContainer<Container>(ent, ent.Comp.ContainerId);
+        var container = _container.EnsureContainer<Container>(ent, ContainerId);
 
         // Drop the item from the user's hand and insert it into the container
         if (!_hands.TryDrop(args.User, used))
@@ -89,11 +81,20 @@ public sealed class RMCChairStackSystem : EntitySystem
 
         ent.Comp.CurrentStackSize++;
         Dirty(ent);
-
         UpdateStackState(ent);
 
         if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack)
+        {
             _popup.PopupPredicted(Loc.GetString("rmc-chair-stack-unstable"), ent, args.User);
+
+            var collapseChance = Math.Sqrt(50 * ent.Comp.CurrentStackSize) / 100.0;
+            if (_random.Prob((float) collapseChance))
+            {
+                StackCollapse(ent);
+                args.Handled = true;
+                return;
+            }
+        }
 
         args.Handled = true;
     }
@@ -106,7 +107,7 @@ public sealed class RMCChairStackSystem : EntitySystem
         if (ent.Comp.CurrentStackSize <= 0)
             return;
 
-        var container = _container.EnsureContainer<Container>(ent, ent.Comp.ContainerId);
+        var container = _container.EnsureContainer<Container>(ent, ContainerId);
         if (container.ContainedEntities.Count == 0)
             return;
 
@@ -123,15 +124,19 @@ public sealed class RMCChairStackSystem : EntitySystem
         args.Handled = true;
     }
 
-    private void OnFoldAttempt(Entity<RMCChairStackableComponent> ent, ref FoldAttemptEvent args)
+    private static void OnFoldAttempt(Entity<RMCChairStackableComponent> ent, ref FoldAttemptEvent args)
     {
         if (args.Cancelled)
             return;
 
         if (ent.Comp.CurrentStackSize > 0)
-        {
             args.Cancelled = true;
-        }
+    }
+
+    private void OnDestruction(Entity<RMCChairStackableComponent> ent, ref DestructionEventArgs args)
+    {
+        if (ent.Comp.CurrentStackSize > 0)
+            StackCollapse(ent);
     }
 
     private void UpdateStackState(Entity<RMCChairStackableComponent> ent)
@@ -162,17 +167,23 @@ public sealed class RMCChairStackSystem : EntitySystem
     {
         _popup.PopupPredicted(Loc.GetString("rmc-chair-stack-collapse"), ent, null);
 
-        var container = _container.EnsureContainer<Container>(ent, ent.Comp.ContainerId);
+        var container = _container.EnsureContainer<Container>(ent, ContainerId);
         var coords = Transform(ent).Coordinates;
+
+        // Dump all stacked chairs
         var contained = new List<EntityUid>(container.ContainedEntities);
         foreach (var child in contained)
         {
             _container.Remove(child, container);
             _transform.SetCoordinates(child, coords);
+            // TODO RMC14: throw chairs to random nearby turfs like cmss13
         }
 
         ent.Comp.CurrentStackSize = 0;
         Dirty(ent);
         UpdateStackState(ent);
+
+        if (TryComp<FoldableComponent>(ent, out var foldable))
+            _foldable.TrySetFolded(ent, foldable, true);
     }
 }

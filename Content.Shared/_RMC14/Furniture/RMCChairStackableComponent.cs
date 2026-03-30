@@ -3,7 +3,7 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._RMC14.Furniture;
 
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class RMCChairStackableComponent : Component
 {
     /// <summary>
@@ -18,12 +18,6 @@ public sealed partial class RMCChairStackableComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public int CurrentStackSize;
-
-    /// <summary>
-    /// The container ID used to store stacked folded chairs.
-    /// </summary>
-    [DataField]
-    public string ContainerId = "rmc_chair_stack";
 }
 
 [Serializable, NetSerializable]
