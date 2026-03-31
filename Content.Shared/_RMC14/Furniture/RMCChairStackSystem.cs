@@ -1,5 +1,7 @@
+using Content.Shared._RMC14.PowerLoader;
 using Content.Shared.Buckle;
 using Content.Shared.Buckle.Components;
+using Content.Shared.Construction.EntitySystems;
 using Content.Shared.Damage;
 using Content.Shared.Destructible;
 using Content.Shared.Foldable;
@@ -8,15 +10,19 @@ using Content.Shared.Interaction;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Popups;
 using Content.Shared.Throwing;
+using Content.Shared.Tools;
+using Content.Shared.Tools.Systems;
 using Content.Shared.Wieldable.Components;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
 namespace Content.Shared._RMC14.Furniture;
 
 public sealed class RMCChairStackSystem : EntitySystem
 {
+    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedBuckleSystem _buckle = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
@@ -24,21 +30,23 @@ public sealed class RMCChairStackSystem : EntitySystem
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly MetaDataSystem _metaData = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly ThrowingSystem _throwing = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly ThrowingSystem _throwing = default!;
+    [Dependency] private readonly SharedToolSystem _tool = default!;
+    [Dependency] private readonly SharedTransformSystem _transform = default!;
 
     private const string ContainerId = "rmc_chair_stack";
     private const float SpeedFast = 6.67f;
+    private static readonly ProtoId<ToolQualityPrototype> WrenchQuality = "Anchoring";
 
     public override void Initialize()
     {
         base.Initialize();
 
         SubscribeLocalEvent<RMCChairStackableComponent, MapInitEvent>(OnMapInit);
-        SubscribeLocalEvent<RMCChairStackableComponent, InteractUsingEvent>(OnInteractUsing);
+        SubscribeLocalEvent<RMCChairStackableComponent, InteractUsingEvent>(OnInteractUsing, before: [typeof(AnchorableSystem)]);
         SubscribeLocalEvent<RMCChairStackableComponent, InteractHandEvent>(OnInteractHand, before: [typeof(SharedBuckleSystem)]);
+        SubscribeLocalEvent<RMCChairStackableComponent, PowerLoaderGrabEvent>(OnPowerLoaderGrab);
         SubscribeLocalEvent<RMCChairStackableComponent, FoldAttemptEvent>(OnFoldAttempt);
         SubscribeLocalEvent<RMCChairStackableComponent, DestructionEventArgs>(OnDestruction);
         SubscribeLocalEvent<RMCChairStackableComponent, DamageChangedEvent>(OnDamageChanged);
@@ -56,6 +64,13 @@ public sealed class RMCChairStackSystem : EntitySystem
             return;
 
         var used = args.Used;
+        if (_tool.HasQuality(used, WrenchQuality) && ent.Comp.CurrentStackSize > 0)
+        {
+            _popup.PopupPredicted(Loc.GetString("rmc-chair-stack-wrench-blocked"), ent, args.User);
+            args.Handled = true;
+            return;
+        }
+
         if (!TryComp<FoldableComponent>(used, out var foldable) || !foldable.IsFolded)
             return;
 
@@ -94,7 +109,7 @@ public sealed class RMCChairStackSystem : EntitySystem
         {
             _popup.PopupPredicted(Loc.GetString("rmc-chair-stack-unstable"), ent, args.User);
 
-            var collapseChance = Math.Sqrt(50 * ent.Comp.CurrentStackSize) / 100.0;
+            var collapseChance = Math.Sqrt(50 * ent.Comp.CurrentStackSize) / 100;
             if (_random.Prob((float) collapseChance))
             {
                 StackCollapse(ent);
@@ -129,6 +144,34 @@ public sealed class RMCChairStackSystem : EntitySystem
         UpdateStackState(ent);
 
         args.Handled = true;
+    }
+
+    private void OnPowerLoaderGrab(Entity<RMCChairStackableComponent> ent, ref PowerLoaderGrabEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        if (ent.Comp.CurrentStackSize <= 0)
+        {
+            var msg = Loc.GetString("rmc-chair-stack-power-loader-grab");
+            foreach (var buckled in args.Buckled)
+            {
+                _popup.PopupClient(msg, ent, buckled, PopupType.SmallCaution);
+            }
+
+            args.Handled = true;
+            return;
+        }
+
+        if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack)
+        {
+            var collapseChance = Math.Sqrt(50 * ent.Comp.CurrentStackSize) / 100;
+            if (_random.Prob((float) collapseChance))
+            {
+                StackCollapse(ent);
+                args.Handled = true;
+            }
+        }
     }
 
     private static void OnFoldAttempt(Entity<RMCChairStackableComponent> ent, ref FoldAttemptEvent args)
@@ -171,6 +214,7 @@ public sealed class RMCChairStackSystem : EntitySystem
             _metaData.SetEntityName(ent, Loc.GetString("rmc-chair-stack-name"));
             _metaData.SetEntityDescription(ent, Loc.GetString("rmc-chair-stack-description", ("count", total)));
             _buckle.StrapSetEnabled(ent, false);
+            EnsureComp<PowerLoaderGrabbableComponent>(ent);
         }
         else
         {
@@ -182,6 +226,7 @@ public sealed class RMCChairStackSystem : EntitySystem
             }
 
             _buckle.StrapSetEnabled(ent, true);
+            RemComp<PowerLoaderGrabbableComponent>(ent);
         }
 
         _appearance.SetData(ent.Owner, RMCChairStackVisuals.StackSize, ent.Comp.CurrentStackSize);
