@@ -1,3 +1,4 @@
+using Content.Shared._RMC14.Marines.Skills;
 using Content.Shared._RMC14.PowerLoader;
 using Content.Shared.Buckle;
 using Content.Shared.Buckle.Components;
@@ -31,6 +32,7 @@ public sealed class RMCChairStackSystem : EntitySystem
     [Dependency] private readonly MetaDataSystem _metaData = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly SkillsSystem _skills = default!;
     [Dependency] private readonly ThrowingSystem _throwing = default!;
     [Dependency] private readonly SharedToolSystem _tool = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
@@ -109,8 +111,8 @@ public sealed class RMCChairStackSystem : EntitySystem
         {
             _popup.PopupPredicted(Loc.GetString("rmc-chair-stack-unstable"), ent, args.User);
 
-            var collapseChance = Math.Sqrt(50 * ent.Comp.CurrentStackSize) / 100;
-            if (_random.Prob((float) collapseChance))
+            var collapseChance = (float) Math.Sqrt(50 * ent.Comp.CurrentStackSize) / 100;
+            if (_random.Prob(collapseChance))
             {
                 StackCollapse(ent);
                 args.Handled = true;
@@ -163,10 +165,20 @@ public sealed class RMCChairStackSystem : EntitySystem
             return;
         }
 
-        if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack)
+        // Skill reduces the chance of collapse
+        if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack &&
+            TryComp(args.PowerLoader, out PowerLoaderComponent? loader))
         {
-            var collapseChance = Math.Sqrt(50 * ent.Comp.CurrentStackSize) / 100;
-            if (_random.Prob((float) collapseChance))
+            var highestSkill = 0;
+            foreach (var buckled in args.Buckled)
+            {
+                var skill = _skills.GetSkill(buckled, loader.SpeedSkill);
+                if (skill > highestSkill)
+                    highestSkill = skill;
+            }
+
+            var collapseChance = (50f / Math.Max(highestSkill, 1)) / 100f;
+            if (_random.Prob(collapseChance))
             {
                 StackCollapse(ent);
                 args.Handled = true;
