@@ -1,45 +1,4 @@
 ﻿Entries:
-- author: Aurallianz
-  changes:
-  - message: improved Mutiny text
-    type: Add
-  id: 2524
-  time: '2025-11-19T02:17:13.0000000+00:00'
-  url: https://github.com/RMC-14/RMC-14/pull/8432
-- author: monomethylhydrazine
-  changes:
-  - message: Added the cassette pouch, which can store up to 3 cassettes. Available
-      in Rec-Vends.
-    type: Add
-  id: 2525
-  time: '2025-11-19T02:20:11.0000000+00:00'
-  url: https://github.com/RMC-14/RMC-14/pull/8387
-- author: Ian321
-  changes:
-  - message: Synthetics can now toggle their nightvision.
-    type: Tweak
-  - message: Synthetics should now always have oil for blood.
-    type: Fix
-  id: 2526
-  time: '2025-11-19T02:23:47.0000000+00:00'
-  url: https://github.com/RMC-14/RMC-14/pull/8280
-- author: noctyrnal
-  changes:
-  - message: Added Bosenmori Basho, a large version of LV designed for PVE.
-    type: Add
-  - message: Fixed RCM, Corporate Security and UN Riot armor having PMC lights.
-    type: Fix
-  id: 2527
-  time: '2025-11-19T02:25:43.0000000+00:00'
-  url: https://github.com/RMC-14/RMC-14/pull/8391
-- author: CatAndHats
-  changes:
-  - message: Fixed the LV-624 corporate goon medic special survivor to have the proper
-      hud icon
-    type: Fix
-  id: 2528
-  time: '2025-11-19T02:47:45.0000000+00:00'
-  url: https://github.com/RMC-14/RMC-14/pull/8413
 - author: PursuitInAshes
   changes:
   - message: The LV-624 Goon Leader survivor variant will now spawn with the correct
@@ -4508,5 +4467,48 @@
   id: 3025
   time: '2026-03-28T22:39:08.0000000+00:00'
   url: https://github.com/RMC-14/RMC-14/pull/9130
+- author: BreakpointDebug1234
+  changes:
+  - message: M1984 hollow point magazine box. Can be crafted, purchased or received
+      as a random crate from ASRS.
+    type: Add
+  id: 3026
+  time: '2026-03-30T04:48:06.0000000+00:00'
+  url: https://github.com/RMC-14/RMC-14/pull/8947
+- author: Ian321
+  changes:
+  - message: XO and others now keep their pointer when no longer SL
+    type: Fix
+  id: 3027
+  time: '2026-03-30T04:52:12.0000000+00:00'
+  url: https://github.com/RMC-14/RMC-14/pull/9279
+- author: SharkSnake98
+  changes:
+  - message: Added the option for all non-suit liaison uniforms to fold their sleeves
+      and jackets
+    type: Add
+  - message: Added a closed state to the WEYA rain jacket
+    type: Add
+  - message: Fixed Windbreakers being unable to have patches and accessories on them
+    type: Fix
+  id: 3028
+  time: '2026-03-30T04:53:50.0000000+00:00'
+  url: https://github.com/RMC-14/RMC-14/pull/9297
+- author: Dutch-VanDerLinde
+  changes:
+  - message: Fixed the CLF armor vests having no bio protection and sentinel resistance.
+      They now have sentinel resistance and 15 biohazard protection.
+    type: Fix
+  id: 3029
+  time: '2026-03-30T04:51:21.0000000+00:00'
+  url: https://github.com/RMC-14/RMC-14/pull/9269
+- author: Arykh
+  changes:
+  - message: Fixed the Power Loader being able to load the orbital cannon from across
+      the room.
+    type: Fix
+  id: 3030
+  time: '2026-03-30T04:53:06.0000000+00:00'
+  url: https://github.com/RMC-14/RMC-14/pull/9282
 Name: RMC14
 Order: -1
