@@ -94,7 +94,7 @@
   id: CMChairFolded
   suffix: RMC|folded
   components:
-  - type: Transform # Make it spawn unanchored and dynamic
+  - type: Transform # Makes it spawn unanchored and dynamic
     anchored: false
   - type: Physics
     bodyType: Dynamic

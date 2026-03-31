@@ -223,7 +223,8 @@ public sealed class RMCChairStackSystem : EntitySystem
         if (!HasComp<MobStateComponent>(args.Target))
             return;
 
-        _audio.PlayPredicted(ent.Comp.ThrownHitSound, ent, null);
+        if (_net.IsServer)
+            _audio.PlayPvs(ent.Comp.ThrownHitSound, ent);
     }
 
     private void UpdateStackState(Entity<RMCChairStackableComponent> ent)
@@ -255,7 +256,7 @@ public sealed class RMCChairStackSystem : EntitySystem
     private void StackCollapse(Entity<RMCChairStackableComponent> ent)
     {
         _popup.PopupPredicted(Loc.GetString("rmc-chair-stack-collapse"), ent, null);
-        _audio.PlayPredicted(ent.Comp.CollapseSound, ent, null);
+        _audio.PlayPvs(ent.Comp.CollapseSound, ent);
 
         var container = _container.EnsureContainer<Container>(ent, ContainerId);
         var coords = Transform(ent).Coordinates;
