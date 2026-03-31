@@ -94,6 +94,10 @@
   id: CMChairFolded
   suffix: RMC|folded
   components:
+  - type: Transform
+    anchored: false
+  - type: Physics
+    bodyType: Dynamic
   - type: Foldable
     folded: true
   - type: Strap

@@ -17,10 +17,14 @@ public sealed class RMCFoldableSystem : EntitySystem
             return;
 
         if (args.Comp.IsFolded)
-            _transform.AnchorEntity(ent);
+        {
+            if (!Transform(ent).Anchored)
+                _transform.AnchorEntity(ent);
+        }
         else
         {
-            _transform.Unanchor(ent);
+            if (Transform(ent).Anchored)
+                _transform.Unanchor(ent);
         }
     }
 

@@ -16,6 +16,7 @@ using Content.Shared.Tools.Systems;
 using Content.Shared.Wieldable.Components;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
+using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
@@ -30,6 +31,7 @@ public sealed class RMCChairStackSystem : EntitySystem
     [Dependency] private readonly FoldableSystem _foldable = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly MetaDataSystem _metaData = default!;
+    [Dependency] private readonly INetManager _net = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly SkillsSystem _skills = default!;
@@ -73,6 +75,7 @@ public sealed class RMCChairStackSystem : EntitySystem
             return;
         }
 
+        // The chair being USED FOR stacking must be folded
         if (!TryComp<FoldableComponent>(used, out var foldable) || !foldable.IsFolded)
             return;
 
@@ -82,6 +85,7 @@ public sealed class RMCChairStackSystem : EntitySystem
         if (TryComp<WieldableComponent>(used, out var wieldable) && wieldable.Wielded)
             return;
 
+        // You can't stack ONTO a folded chair. It needs to be an unfolded chair.
         if (TryComp<FoldableComponent>(ent, out var entFoldable) && entFoldable.IsFolded)
             return;
 
@@ -111,12 +115,15 @@ public sealed class RMCChairStackSystem : EntitySystem
         {
             _popup.PopupPredicted(Loc.GetString("rmc-chair-stack-unstable"), ent, args.User);
 
-            var collapseChance = (float) Math.Sqrt(50 * ent.Comp.CurrentStackSize) / 100;
-            if (_random.Prob(collapseChance))
+            if (_net.IsServer)
             {
-                StackCollapse(ent);
-                args.Handled = true;
-                return;
+                var collapseChance = (float) Math.Sqrt(50 * ent.Comp.CurrentStackSize) / 100;
+                if (_random.Prob(collapseChance))
+                {
+                    StackCollapse(ent);
+                    args.Handled = true;
+                    return;
+                }
             }
         }
 
@@ -166,7 +173,8 @@ public sealed class RMCChairStackSystem : EntitySystem
         }
 
         // Skill reduces the chance of collapse
-        if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack &&
+        if (_net.IsServer &&
+            ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack &&
             TryComp(args.PowerLoader, out PowerLoaderComponent? loader))
         {
             var highestSkill = 0;
