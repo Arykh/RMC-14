@@ -95,7 +95,7 @@
   suffix: RMC|folded
   components:
   - type: Transform
-    anchored: false
+    anchored: false # Safeguard from inherited anchored: true
   - type: Physics
     bodyType: Dynamic
   - type: Foldable
