@@ -63,29 +63,29 @@ public sealed class RMCChairStackVisualizerSystem : EntitySystem
         if (string.IsNullOrWhiteSpace(state))
             return;
 
-        var dir = Transform(uid).LocalRotation.GetCardinalDir();
-
         const float pxToWorld = 1f / EyeManager.PixelsPerMeter;
-
         float deltaX;
         float deltaY;
+
+        var dir = Transform(uid).LocalRotation.GetCardinalDir();
         switch (dir)
         {
+            case Direction.South:
+                deltaX = 0;
+                deltaY = 2 * pxToWorld;
+                break;
             case Direction.East:
                 deltaX = 1 * pxToWorld;
                 deltaY = 3 * pxToWorld;
+                break;
+            case Direction.North:
+                deltaX = 0;
+                deltaY = 2 * pxToWorld;
                 break;
             case Direction.West:
                 deltaX = -1 * pxToWorld;
                 deltaY = 3 * pxToWorld;
                 break;
-            case Direction.Invalid:
-            case Direction.South:
-            case Direction.SouthEast:
-            case Direction.NorthEast:
-            case Direction.North:
-            case Direction.NorthWest:
-            case Direction.SouthWest:
             default:
                 deltaX = 0;
                 deltaY = 2 * pxToWorld;

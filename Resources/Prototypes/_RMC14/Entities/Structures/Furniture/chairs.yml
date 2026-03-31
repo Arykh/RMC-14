@@ -82,8 +82,6 @@
     damage:
       types:
         Blunt: 3
-    soundHit:
-      path: /Audio/_RMC14/Items/metal_chair_slam.ogg
   - type: Construction
     graph: CMSeat
     node: chair

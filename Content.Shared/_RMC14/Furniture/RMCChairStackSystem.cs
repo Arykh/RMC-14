@@ -5,6 +5,7 @@ using Content.Shared.Destructible;
 using Content.Shared.Foldable;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Popups;
 using Content.Shared.Throwing;
 using Content.Shared.Wieldable.Components;
@@ -41,6 +42,7 @@ public sealed class RMCChairStackSystem : EntitySystem
         SubscribeLocalEvent<RMCChairStackableComponent, FoldAttemptEvent>(OnFoldAttempt);
         SubscribeLocalEvent<RMCChairStackableComponent, DestructionEventArgs>(OnDestruction);
         SubscribeLocalEvent<RMCChairStackableComponent, DamageChangedEvent>(OnDamageChanged);
+        SubscribeLocalEvent<RMCChairStackableComponent, ThrowDoHitEvent>(OnThrowDoHit);
     }
 
     private void OnMapInit(Entity<RMCChairStackableComponent> ent, ref MapInitEvent args)
@@ -151,6 +153,14 @@ public sealed class RMCChairStackSystem : EntitySystem
 
         if (ent.Comp.CurrentStackSize > 0)
             StackCollapse(ent);
+    }
+
+    private void OnThrowDoHit(Entity<RMCChairStackableComponent> ent, ref ThrowDoHitEvent args)
+    {
+        if (!HasComp<MobStateComponent>(args.Target))
+            return;
+
+        _audio.PlayPredicted(ent.Comp.ThrownHitSound, ent, null);
     }
 
     private void UpdateStackState(Entity<RMCChairStackableComponent> ent)

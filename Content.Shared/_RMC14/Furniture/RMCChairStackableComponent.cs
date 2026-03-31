@@ -22,6 +22,9 @@ public sealed partial class RMCChairStackableComponent : Component
 
     [DataField]
     public SoundSpecifier? CollapseSound = new SoundPathSpecifier("/Audio/_RMC14/Items/metal_chair_crash.ogg");
+
+    [DataField]
+    public SoundSpecifier? ThrownHitSound = new SoundPathSpecifier("/Audio/_RMC14/Items/metal_chair_slam.ogg");
 }
 
 [Serializable, NetSerializable]
