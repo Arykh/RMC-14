@@ -1,5 +1,6 @@
 using Content.Shared._RMC14.Marines.Skills;
 using Content.Shared._RMC14.PowerLoader;
+using Content.Shared._RMC14.Xenonids;
 using Content.Shared.Buckle;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Construction.EntitySystems;
@@ -177,7 +178,6 @@ public sealed class RMCChairStackSystem : EntitySystem
             return;
         }
 
-        // Skill reduces the chance of collapse
         if (_net.IsServer &&
             ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack &&
             TryComp(args.PowerLoader, out PowerLoaderComponent? loader))
@@ -237,22 +237,20 @@ public sealed class RMCChairStackSystem : EntitySystem
         if (ent.Comp.CurrentStackSize <= 0)
             return;
 
-        if (HasComp<MobStateComponent>(args.Thrown))
+        if (HasComp<MobStateComponent>(args.Thrown) &&
+            !HasComp<XenoComponent>(args.Thrown))
         {
-            if (_net.IsServer)
-            {
-                StackCollapse(ent);
-                _stun.TryStun(args.Thrown, ent.Comp.ThrownMobStatusDuration, true);
-                _stun.TryKnockdown(args.Thrown, ent.Comp.ThrownMobStatusDuration, true);
-            }
+            StackCollapse(ent);
+            _stun.TryStun(args.Thrown, ent.Comp.ThrownMobStatusDuration, true);
+            _stun.TryKnockdown(args.Thrown, ent.Comp.ThrownMobStatusDuration, true);
 
             return;
         }
 
-        if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack && _random.Prob(0.5f))
+        if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack &&
+            _random.Prob(0.5f))
         {
-            if (_net.IsServer)
-                StackCollapse(ent);
+            StackCollapse(ent);
         }
     }
 
@@ -291,6 +289,9 @@ public sealed class RMCChairStackSystem : EntitySystem
 
     private void StackCollapse(Entity<RMCChairStackableComponent> ent)
     {
+        if (!_net.IsServer)
+            return;
+
         _popup.PopupPredicted(Loc.GetString("rmc-chair-stack-collapse"), ent, null);
         _audio.PlayPvs(ent.Comp.CollapseSound, ent);
 
