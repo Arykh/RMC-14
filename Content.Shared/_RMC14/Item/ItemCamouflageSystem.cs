@@ -17,6 +17,8 @@ public sealed class ItemCamouflageSystem : EntitySystem
     [Dependency] private readonly INetManager _net = default!;
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
     [Dependency] private readonly SharedStationSpawningSystem _stationSpawning = default!;
+    [Dependency] private readonly MetaDataSystem _metaData = default!;
+
 
     [ViewVariables(VVAccess.ReadWrite)]
     public CamouflageType CurrentMapCamouflage { get; set; } = CamouflageType.Jungle;
@@ -85,6 +87,12 @@ public sealed class ItemCamouflageSystem : EntitySystem
         while (_items.TryDequeue(out var ent))
         {
             _appearance.SetData(ent, ItemCamouflageVisuals.Camo, CurrentMapCamouflage);
+
+            if (ent.Comp.CamoNames != null && ent.Comp.CamoNames.TryGetValue(CurrentMapCamouflage, out var camoName))
+                _metaData.SetEntityName(ent, camoName);
+
+            if (ent.Comp.CamoDescriptions != null && ent.Comp.CamoDescriptions.TryGetValue(CurrentMapCamouflage, out var camoDescription))
+                _metaData.SetEntityDescription(ent, camoDescription);
 
             if (ent.Comp.States != null && ent.Comp.States.TryGetValue(CurrentMapCamouflage, out var camoState))
                 _item.SetHeldPrefix(ent, camoState);
