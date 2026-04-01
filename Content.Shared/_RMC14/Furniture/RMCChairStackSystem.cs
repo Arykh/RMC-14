@@ -82,7 +82,7 @@ public sealed class RMCChairStackSystem : EntitySystem
             return;
         }
 
-        // The chair being USED FOR stacking must be folded
+        // The chair being USED FOR stacking must be folded.
         if (!TryComp<FoldableComponent>(used, out var foldable) || !foldable.IsFolded)
             return;
 
@@ -117,23 +117,16 @@ public sealed class RMCChairStackSystem : EntitySystem
         ent.Comp.CurrentStackSize++;
         Dirty(ent);
         UpdateStackState(ent);
+        args.Handled = true;
 
         if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack)
         {
             _popup.PopupPredicted(Loc.GetString("rmc-chair-stack-unstable"), ent, args.User);
 
-            if (_net.IsServer)
-            {
-                var collapseChance = (float) Math.Sqrt(50 * ent.Comp.CurrentStackSize) / 100;
-                if (_random.Prob(collapseChance))
-                {
-                    StackCollapse(ent);
-                    args.Handled = true;
-                }
-            }
+            var collapseChance = (float) Math.Sqrt(50 * ent.Comp.CurrentStackSize) / 100;
+            if (_random.Prob(collapseChance))
+                StackCollapse(ent);
         }
-
-        args.Handled = true;
     }
 
     private void OnInteractHand(Entity<RMCChairStackableComponent> ent, ref InteractHandEvent args)
@@ -178,8 +171,7 @@ public sealed class RMCChairStackSystem : EntitySystem
             return;
         }
 
-        if (_net.IsServer &&
-            ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack &&
+        if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack &&
             TryComp(args.PowerLoader, out PowerLoaderComponent? loader))
         {
             var highestSkill = 0;
@@ -237,26 +229,27 @@ public sealed class RMCChairStackSystem : EntitySystem
         if (ent.Comp.CurrentStackSize <= 0)
             return;
 
-        if (HasComp<MobStateComponent>(args.Thrown) &&
-            !HasComp<XenoComponent>(args.Thrown))
+        if (HasComp<MobStateComponent>(args.Thrown))
         {
             StackCollapse(ent);
-            _stun.TryStun(args.Thrown, ent.Comp.ThrownMobStatusDuration, true);
-            _stun.TryKnockdown(args.Thrown, ent.Comp.ThrownMobStatusDuration, true);
+
+            if (!HasComp<XenoComponent>(args.Thrown) && _net.IsServer)
+            {
+                _stun.TryStun(args.Thrown, ent.Comp.ThrownMobStatusDuration, true);
+                _stun.TryKnockdown(args.Thrown, ent.Comp.ThrownMobStatusDuration, true);
+            }
 
             return;
         }
 
-        if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack &&
-            _random.Prob(0.5f))
-        {
+        if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack && _random.Prob(0.5f))
             StackCollapse(ent);
-        }
     }
 
     private void UpdateStackState(Entity<RMCChairStackableComponent> ent)
     {
         var stackFixture = _fixture.GetFixtureOrNull(ent, ent.Comp.StackFixtureId);
+
         if (ent.Comp.CurrentStackSize > 0)
         {
             var total = ent.Comp.CurrentStackSize + 1;
@@ -292,7 +285,7 @@ public sealed class RMCChairStackSystem : EntitySystem
         if (!_net.IsServer)
             return;
 
-        _popup.PopupPredicted(Loc.GetString("rmc-chair-stack-collapse"), ent, null);
+        _popup.PopupEntity(Loc.GetString("rmc-chair-stack-collapse"), ent);
         _audio.PlayPvs(ent.Comp.CollapseSound, ent);
 
         var container = _container.EnsureContainer<Container>(ent, ContainerId);
@@ -321,9 +314,9 @@ public sealed class RMCChairStackSystem : EntitySystem
         if (TryComp<FoldableComponent>(ent, out var foldable) &&
             _foldable.TrySetFolded(ent, foldable, true))
         {
-            var baseRange = _random.NextFloat(2f, 5f);
-            var baseDirection = _random.NextAngle().ToVec() * baseRange;
-            _throwing.TryThrow(ent, baseDirection, SpeedFast);
+            var lastChairRange = _random.NextFloat(2f, 5f);
+            var lastChairDirection = _random.NextAngle().ToVec() * lastChairRange;
+            _throwing.TryThrow(ent, lastChairDirection, SpeedFast);
         }
     }
 }
