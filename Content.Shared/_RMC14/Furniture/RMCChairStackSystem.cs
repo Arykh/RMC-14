@@ -10,6 +10,7 @@ using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Popups;
+using Content.Shared.Stunnable;
 using Content.Shared.Throwing;
 using Content.Shared.Tools;
 using Content.Shared.Tools.Systems;
@@ -17,6 +18,7 @@ using Content.Shared.Wieldable.Components;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
 using Robust.Shared.Network;
+using Robust.Shared.Physics.Systems;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
@@ -28,13 +30,16 @@ public sealed class RMCChairStackSystem : EntitySystem
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedBuckleSystem _buckle = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
+    [Dependency] private readonly FixtureSystem _fixture = default!;
     [Dependency] private readonly FoldableSystem _foldable = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly MetaDataSystem _metaData = default!;
     [Dependency] private readonly INetManager _net = default!;
+    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly SkillsSystem _skills = default!;
+    [Dependency] private readonly SharedStunSystem _stun = default!;
     [Dependency] private readonly ThrowingSystem _throwing = default!;
     [Dependency] private readonly SharedToolSystem _tool = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
@@ -55,6 +60,7 @@ public sealed class RMCChairStackSystem : EntitySystem
         SubscribeLocalEvent<RMCChairStackableComponent, DestructionEventArgs>(OnDestruction);
         SubscribeLocalEvent<RMCChairStackableComponent, DamageChangedEvent>(OnDamageChanged);
         SubscribeLocalEvent<RMCChairStackableComponent, ThrowDoHitEvent>(OnThrowDoHit);
+        SubscribeLocalEvent<RMCChairStackableComponent, ThrowHitByEvent>(OnThrowHitBy);
     }
 
     private void OnMapInit(Entity<RMCChairStackableComponent> ent, ref MapInitEvent args)
@@ -122,7 +128,6 @@ public sealed class RMCChairStackSystem : EntitySystem
                 {
                     StackCollapse(ent);
                     args.Handled = true;
-                    return;
                 }
             }
         }
@@ -227,8 +232,33 @@ public sealed class RMCChairStackSystem : EntitySystem
             _audio.PlayPvs(ent.Comp.ThrownHitSound, ent);
     }
 
+    private void OnThrowHitBy(Entity<RMCChairStackableComponent> ent, ref ThrowHitByEvent args)
+    {
+        if (ent.Comp.CurrentStackSize <= 0)
+            return;
+
+        if (HasComp<MobStateComponent>(args.Thrown))
+        {
+            if (_net.IsServer)
+            {
+                StackCollapse(ent);
+                _stun.TryStun(args.Thrown, ent.Comp.ThrownMobStatusDuration, true);
+                _stun.TryKnockdown(args.Thrown, ent.Comp.ThrownMobStatusDuration, true);
+            }
+
+            return;
+        }
+
+        if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack && _random.Prob(0.5f))
+        {
+            if (_net.IsServer)
+                StackCollapse(ent);
+        }
+    }
+
     private void UpdateStackState(Entity<RMCChairStackableComponent> ent)
     {
+        var stackFixture = _fixture.GetFixtureOrNull(ent, ent.Comp.StackFixtureId);
         if (ent.Comp.CurrentStackSize > 0)
         {
             var total = ent.Comp.CurrentStackSize + 1;
@@ -236,6 +266,9 @@ public sealed class RMCChairStackSystem : EntitySystem
             _metaData.SetEntityDescription(ent, Loc.GetString("rmc-chair-stack-description", ("count", total)));
             _buckle.StrapSetEnabled(ent, false);
             EnsureComp<PowerLoaderGrabbableComponent>(ent);
+
+            if (stackFixture != null)
+                _physics.SetHard(ent, stackFixture, true);
         }
         else
         {
@@ -248,6 +281,9 @@ public sealed class RMCChairStackSystem : EntitySystem
 
             _buckle.StrapSetEnabled(ent, true);
             RemComp<PowerLoaderGrabbableComponent>(ent);
+
+            if (stackFixture != null)
+                _physics.SetHard(ent, stackFixture, false);
         }
 
         _appearance.SetData(ent.Owner, RMCChairStackVisuals.StackSize, ent.Comp.CurrentStackSize);
@@ -281,7 +317,8 @@ public sealed class RMCChairStackSystem : EntitySystem
         Dirty(ent);
         UpdateStackState(ent);
 
-        if (TryComp<FoldableComponent>(ent, out var foldable) && _foldable.TrySetFolded(ent, foldable, true))
+        if (TryComp<FoldableComponent>(ent, out var foldable) &&
+            _foldable.TrySetFolded(ent, foldable, true))
         {
             var baseRange = _random.NextFloat(2f, 5f);
             var baseDirection = _random.NextAngle().ToVec() * baseRange;

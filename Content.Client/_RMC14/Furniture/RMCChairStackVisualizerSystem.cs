@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Shared._RMC14.Furniture;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
+using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
 
 namespace Content.Client._RMC14.Furniture;
 
@@ -28,6 +29,13 @@ public sealed class RMCChairStackVisualizerSystem : EntitySystem
             stackSize = 0;
 
         UpdateStackLayers(ent, args.Sprite, stackSize, ent.Comp.MaxStableStack);
+
+        // Raise draw depth above mobs when stacked, reset when unstacked
+        Entity<SpriteComponent?> spriteEnt = (ent, args.Sprite);
+        if (stackSize > 0)
+            _sprite.SetDrawDepth(spriteEnt, (int) DrawDepth.OverMobs);
+        else
+            _sprite.SetDrawDepth(spriteEnt, (int) DrawDepth.Objects);
     }
 
     private void UpdateStackLayers(EntityUid uid, SpriteComponent sprite, int stackSize, int maxStableStack)

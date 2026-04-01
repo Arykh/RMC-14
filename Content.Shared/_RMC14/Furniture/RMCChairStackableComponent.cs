@@ -20,6 +20,16 @@ public sealed partial class RMCChairStackableComponent : Component
     [DataField, AutoNetworkedField]
     public int CurrentStackSize;
 
+    /// <summary>
+    /// The fixture ID to toggle hard/not-hard when stacking/unstacking.
+    /// When stacked, this fixture becomes hard. :godo:
+    /// </summary>
+    [DataField]
+    public string StackFixtureId = "stack_block";
+
+    [DataField]
+    public TimeSpan ThrownMobStatusDuration = TimeSpan.FromSeconds(4);
+
     [DataField]
     public SoundSpecifier? CollapseSound = new SoundPathSpecifier("/Audio/_RMC14/Items/metal_chair_crash.ogg");
 
