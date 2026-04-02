@@ -158,16 +158,11 @@ public sealed class RMCChairStackSystem : EntitySystem
 
     private void OnAfterInteract(Entity<RMCChairStackableComponent> ent, ref AfterInteractEvent args)
     {
-        if (args.Handled)
+        if (!args.Handled || !HasComp<DeployFoldableComponent>(ent))
             return;
 
-        if (HasComp<DeployFoldableComponent>(ent))
-        {
-            var userDir = Transform(args.User).LocalRotation.GetCardinalDir();
-            _transform.SetLocalRotation(ent, userDir.ToAngle());
-        }
-
-        args.Handled = true;
+        var userDir = Transform(args.User).LocalRotation.GetCardinalDir();
+        _transform.SetLocalRotation(ent, userDir.ToAngle());
     }
 
     private void OnPowerLoaderGrab(Entity<RMCChairStackableComponent> ent, ref PowerLoaderGrabEvent args)
