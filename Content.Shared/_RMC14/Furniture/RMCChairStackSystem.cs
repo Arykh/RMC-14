@@ -57,6 +57,7 @@ public sealed class RMCChairStackSystem : EntitySystem
         SubscribeLocalEvent<RMCChairStackableComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<RMCChairStackableComponent, InteractUsingEvent>(OnInteractUsing, before: [typeof(AnchorableSystem)]);
         SubscribeLocalEvent<RMCChairStackableComponent, InteractHandEvent>(OnInteractHand, before: [typeof(SharedBuckleSystem)]);
+        SubscribeLocalEvent<RMCChairStackableComponent, AfterInteractEvent>(OnAfterInteract, after: [typeof(DeployFoldableSystem)]);
         SubscribeLocalEvent<RMCChairStackableComponent, PowerLoaderGrabEvent>(OnPowerLoaderGrab);
         SubscribeLocalEvent<RMCChairStackableComponent, FoldAttemptEvent>(OnFoldAttempt);
         SubscribeLocalEvent<RMCChairStackableComponent, DestructionEventArgs>(OnDestruction);
@@ -151,6 +152,20 @@ public sealed class RMCChairStackSystem : EntitySystem
         ent.Comp.CurrentStackSize--;
         Dirty(ent);
         UpdateStackState(ent);
+
+        args.Handled = true;
+    }
+
+    private void OnAfterInteract(Entity<RMCChairStackableComponent> ent, ref AfterInteractEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        if (HasComp<DeployFoldableComponent>(ent))
+        {
+            var userDir = Transform(args.User).LocalRotation.GetCardinalDir();
+            _transform.SetLocalRotation(ent, userDir.ToAngle());
+        }
 
         args.Handled = true;
     }
