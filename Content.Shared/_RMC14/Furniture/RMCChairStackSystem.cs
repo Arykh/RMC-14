@@ -10,6 +10,7 @@ using Content.Shared.Foldable;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Physics;
 using Content.Shared.Popups;
 using Content.Shared.Stunnable;
 using Content.Shared.Throwing;
@@ -259,7 +260,10 @@ public sealed class RMCChairStackSystem : EntitySystem
             EnsureComp<PowerLoaderGrabbableComponent>(ent);
 
             if (stackFixture != null)
+            {
                 _physics.SetHard(ent, stackFixture, true);
+                _physics.AddCollisionLayer(ent, ent.Comp.StackFixtureId, stackFixture, (int) CollisionGroup.MidImpassable);
+            }
         }
         else
         {
@@ -274,7 +278,10 @@ public sealed class RMCChairStackSystem : EntitySystem
             RemComp<PowerLoaderGrabbableComponent>(ent);
 
             if (stackFixture != null)
+            {
                 _physics.SetHard(ent, stackFixture, false);
+                _physics.RemoveCollisionLayer(ent, ent.Comp.StackFixtureId, stackFixture, (int) CollisionGroup.MidImpassable);
+            }
         }
 
         _appearance.SetData(ent.Owner, RMCChairStackVisuals.StackSize, ent.Comp.CurrentStackSize);

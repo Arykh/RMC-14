@@ -72,10 +72,8 @@
         shape:
           !type:PhysShapeCircle
           radius: 0.35
+        density: 100
         hard: false
-        layer:
-        - MidImpassable
-        - BulletImpassable
   - type: Sprite
     sprite: _RMC14/Structures/Furniture/folding_chair.rsi
     layers:
