@@ -57,6 +57,7 @@
   - type: Foldable
     anchorOnUnfold: true
   - type: RMCChairStackable
+  - type: PowerLoaderGrabbable
   - type: Fixtures
     fixtures:
       fix1:
