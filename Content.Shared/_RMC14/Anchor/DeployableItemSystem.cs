@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using Content.Shared._RMC14.Inventory;
-using Content.Shared._RMC14.Wieldable;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Construction.EntitySystems;
 using Content.Shared.Coordinates.Helpers;
@@ -15,7 +14,6 @@ using Content.Shared.Popups;
 using Content.Shared.Tag;
 using Content.Shared.Verbs;
 using Content.Shared.Wieldable;
-using Content.Shared.Wieldable.Components;
 using Robust.Shared.Map;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
