@@ -13,6 +13,7 @@ using Content.Shared.Interaction.Events;
 using Content.Shared.Popups;
 using Content.Shared.Tag;
 using Content.Shared.Verbs;
+using Content.Shared.Wieldable.Components;
 using Robust.Shared.Map;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
@@ -182,6 +183,9 @@ public sealed class DeployableItemSystem : EntitySystem
     private void OnFoldableUseInHand(Entity<DeployFoldableComponent> ent, ref UseInHandEvent args)
     {
         if (args.Handled)
+            return;
+
+        if (HasComp<WieldableComponent>(ent))
             return;
 
         if (!TryComp<FoldableComponent>(ent, out var foldable))
