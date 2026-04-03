@@ -190,8 +190,7 @@ public sealed class RMCChairStackSystem : EntitySystem
         if (!HasComp<MobStateComponent>(args.Target))
             return;
 
-        if (_net.IsServer)
-            _audio.PlayPvs(ent.Comp.ThrownHitSound, ent);
+        _audio.PlayPredicted(ent.Comp.ThrownHitSound, ent, null);
     }
 
     private void OnThrowHitBy(Entity<RMCChairStackableComponent> ent, ref ThrowHitByEvent args)
