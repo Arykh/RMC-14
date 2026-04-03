@@ -1,5 +1,3 @@
-using Content.Shared._RMC14.Marines.Skills;
-using Content.Shared._RMC14.PowerLoader;
 using Content.Shared._RMC14.Xenonids;
 using Content.Shared.Buckle;
 using Content.Shared.Buckle.Components;
@@ -40,7 +38,6 @@ public sealed class RMCChairStackSystem : EntitySystem
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly SkillsSystem _skills = default!;
     [Dependency] private readonly SharedStunSystem _stun = default!;
     [Dependency] private readonly ThrowingSystem _throwing = default!;
     [Dependency] private readonly SharedToolSystem _tool = default!;
@@ -58,7 +55,6 @@ public sealed class RMCChairStackSystem : EntitySystem
         SubscribeLocalEvent<RMCChairStackableComponent, InteractUsingEvent>(OnInteractUsing, before: [typeof(AnchorableSystem)]);
         SubscribeLocalEvent<RMCChairStackableComponent, InteractHandEvent>(OnInteractHand, before: [typeof(SharedBuckleSystem)]);
         SubscribeLocalEvent<RMCChairStackableComponent, AfterInteractEvent>(OnAfterInteract, after: [typeof(DeployFoldableSystem)]);
-        SubscribeLocalEvent<RMCChairStackableComponent, PowerLoaderGrabEvent>(OnPowerLoaderGrab);
         SubscribeLocalEvent<RMCChairStackableComponent, FoldAttemptEvent>(OnFoldAttempt);
         SubscribeLocalEvent<RMCChairStackableComponent, DestructionEventArgs>(OnDestruction);
         SubscribeLocalEvent<RMCChairStackableComponent, DamageChangedEvent>(OnDamageChanged);
@@ -163,48 +159,6 @@ public sealed class RMCChairStackSystem : EntitySystem
 
         var userDir = Transform(args.User).LocalRotation.GetCardinalDir();
         _transform.SetLocalRotation(ent, userDir.ToAngle());
-    }
-
-    private void OnPowerLoaderGrab(Entity<RMCChairStackableComponent> ent, ref PowerLoaderGrabEvent args)
-    {
-        if (args.Handled)
-            return;
-
-        if (ent.Comp.CurrentStackSize <= 0)
-        {
-            var msg = Loc.GetString("rmc-chair-stack-power-loader-grab");
-            foreach (var buckled in args.Buckled)
-            {
-                _popup.PopupClient(msg, ent, buckled, PopupType.SmallCaution);
-            }
-
-            args.Handled = true;
-        }
-        else if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack)
-        {
-            if (!TryComp(args.PowerLoader, out PowerLoaderComponent? loader))
-                return;
-            if (!TryComp(args.PowerLoader, out StrapComponent? strap))
-                return;
-
-            var highestSkill = 0;
-            foreach (var buckled in strap.BuckledEntities)
-            {
-                var skill = _skills.GetSkill(buckled, loader.SpeedSkill);
-                if (skill > highestSkill)
-                    highestSkill = skill;
-            }
-
-            if (highestSkill <= 0)
-                return;
-
-            var collapseChance = (50f / highestSkill) / 100f;
-            if (_random.Prob(collapseChance))
-            {
-                StackCollapse(ent);
-                args.Handled = true;
-            }
-        }
     }
 
     private static void OnFoldAttempt(Entity<RMCChairStackableComponent> ent, ref FoldAttemptEvent args)
