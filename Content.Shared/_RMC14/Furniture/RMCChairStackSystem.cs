@@ -179,13 +179,14 @@ public sealed class RMCChairStackSystem : EntitySystem
             }
 
             args.Handled = true;
-            return;
         }
-
-        if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack &&
-            TryComp(args.PowerLoader, out PowerLoaderComponent? loader) &&
-            TryComp(args.PowerLoader, out StrapComponent? strap))
+        else if (ent.Comp.CurrentStackSize > ent.Comp.MaxStableStack)
         {
+            if (!TryComp(args.PowerLoader, out PowerLoaderComponent? loader))
+                return;
+            if (!TryComp(args.PowerLoader, out StrapComponent? strap))
+                return;
+
             var highestSkill = 0;
             foreach (var buckled in strap.BuckledEntities)
             {
@@ -197,7 +198,7 @@ public sealed class RMCChairStackSystem : EntitySystem
             if (highestSkill <= 0)
                 return;
 
-            var collapseChance = (50f / Math.Max(highestSkill, 1)) / 100f;
+            var collapseChance = (50f / highestSkill) / 100f;
             if (_random.Prob(collapseChance))
             {
                 StackCollapse(ent);
