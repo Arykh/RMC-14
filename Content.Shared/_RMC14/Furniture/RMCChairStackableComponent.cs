@@ -28,6 +28,9 @@ public sealed partial class RMCChairStackableComponent : Component
     public string StackFixtureId = "stack_block";
 
     [DataField]
+    public float StackFixtureRadius = 0.35f;
+
+    [DataField]
     public TimeSpan ThrownMobStatusDuration = TimeSpan.FromSeconds(4);
 
     [DataField]

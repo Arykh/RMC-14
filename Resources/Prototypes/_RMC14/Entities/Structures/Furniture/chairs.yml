@@ -57,20 +57,6 @@
   - type: Foldable
     anchorOnUnfold: true
   - type: RMCChairStackable
-  - type: Fixtures
-    fixtures:
-      fix1:
-        shape:
-          !type:PhysShapeCircle
-          radius: 0.2
-        density: 100
-        mask:
-        - TableMask
-      stack_block:
-        shape:
-          !type:PhysShapeCircle
-          radius: 0.35
-        hard: false
   - type: Sprite
     sprite: _RMC14/Structures/Furniture/folding_chair.rsi
     layers:

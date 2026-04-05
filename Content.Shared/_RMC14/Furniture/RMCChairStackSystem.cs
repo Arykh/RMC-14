@@ -18,6 +18,7 @@ using Content.Shared.Wieldable.Components;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
 using Robust.Shared.Network;
+using Robust.Shared.Physics.Collision.Shapes;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -190,7 +191,8 @@ public sealed class RMCChairStackSystem : EntitySystem
         if (!HasComp<MobStateComponent>(args.Target))
             return;
 
-        _audio.PlayPredicted(ent.Comp.ThrownHitSound, ent, null);
+        if (_net.IsServer)
+            _audio.PlayPvs(ent.Comp.ThrownHitSound, ent);
     }
 
     private void OnThrowHitBy(Entity<RMCChairStackableComponent> ent, ref ThrowHitByEvent args)
@@ -226,6 +228,18 @@ public sealed class RMCChairStackSystem : EntitySystem
             _metaData.SetEntityDescription(ent, Loc.GetString("rmc-chair-stack-description", ("count", total)));
             _buckle.StrapSetEnabled(ent, false);
 
+            if (stackFixture == null)
+            {
+                _fixture.TryCreateFixture(
+                    ent,
+                    new PhysShapeCircle(ent.Comp.StackFixtureRadius),
+                    ent.Comp.StackFixtureId,
+                    hard: true,
+                    collisionLayer: (int) CollisionGroup.MidImpassable);
+
+                stackFixture = _fixture.GetFixtureOrNull(ent, ent.Comp.StackFixtureId);
+            }
+
             if (stackFixture != null)
             {
                 _physics.SetHard(ent, stackFixture, true);
@@ -244,10 +258,7 @@ public sealed class RMCChairStackSystem : EntitySystem
             _buckle.StrapSetEnabled(ent, true);
 
             if (stackFixture != null)
-            {
-                _physics.SetHard(ent, stackFixture, false);
-                _physics.RemoveCollisionLayer(ent, ent.Comp.StackFixtureId, stackFixture, (int) CollisionGroup.MidImpassable);
-            }
+                _fixture.DestroyFixture(ent, ent.Comp.StackFixtureId, stackFixture);
         }
 
         _appearance.SetData(ent.Owner, RMCChairStackVisuals.StackSize, ent.Comp.CurrentStackSize);
