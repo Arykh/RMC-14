@@ -41,14 +41,14 @@ public sealed partial class Hemogenic : RMCChemicalEffect
         }
 
         var rmcBloodstream = System<SharedRMCBloodstreamSystem>(args);
-        var shouldApplyDamage = Potency > 3 &&
-                                rmcBloodstream.TryGetBloodSolution(args.TargetEntity, out var bloodSolution) &&
-                                bloodSolution.Volume > 570; // TODO RMC14 Also check if they're not a Yautja.
-        if (!shouldApplyDamage)
-            return;
-        TryChangeDamage(args, BluntType, potency);
-        TryChangeDamage(args, AsphyxiationType, potency * 2);
-        // TODO RMC14 M.reagent_move_delay_modifier += potency
+        if (Potency > 3 &&
+            rmcBloodstream.TryGetBloodSolution(args.TargetEntity, out var bloodSolution) &&
+            bloodSolution.Volume > 570) // TODO RMC14 Also check if they're not a Yautja.
+        {
+            TryChangeDamage(args, BluntType, potency);
+            TryChangeDamage(args, AsphyxiationType, potency * 2);
+            // TODO RMC14 M.reagent_move_delay_modifier += potency
+        }
     }
 
     protected override void TickOverdose(DamageableSystem damageable, FixedPoint2 potency, EntityEffectReagentArgs args)
