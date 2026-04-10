@@ -17,6 +17,7 @@ using Content.Shared.Popups;
 using Content.Shared.Stunnable;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
@@ -61,7 +62,7 @@ public sealed class RMCVomitSystem : EntitySystem
         vomitComp.ToxinHeal = toxinHeal;
         Dirty(uid, vomitComp);
 
-        _popup.PopupEntity(Loc.GetString("rmc-vomit-nausea"), uid, uid);
+        _popup.PopupClient(Loc.GetString("rmc-vomit-nausea"), uid, uid, PopupType.MediumCaution);
     }
 
     /// <summary>
@@ -131,11 +132,13 @@ public sealed class RMCVomitSystem : EntitySystem
             _damageable.TryChangeDamage(uid, healing, true, interruptsDoAfters: false);
         }
 
-        _popup.PopupEntity(Loc.GetString("rmc-vomit-others", ("person", Identity.Entity(uid, EntityManager))), uid);
-        _popup.PopupEntity(Loc.GetString("rmc-vomit-self"), uid, uid);
+        if (_net.IsClient)
+            return;
 
-        if (_net.IsServer)
-            _audio.PlayPvs(vomitComp.VomitSound, uid);
+        var othersPopup = Loc.GetString("rmc-vomit-others", ("person", Identity.Entity(uid, EntityManager)));
+        _popup.PopupEntity(othersPopup, uid, Filter.PvsExcept(uid), true, PopupType.MediumCaution);
+        _popup.PopupEntity(Loc.GetString("rmc-vomit-self"), uid, uid, PopupType.MediumCaution);
+        _audio.PlayPvs(vomitComp.VomitSound, uid);
     }
 
     public override void Update(float frameTime)
@@ -162,7 +165,7 @@ public sealed class RMCVomitSystem : EntitySystem
             switch (comp.Phase)
             {
                 case RMCVomitPhase.Nausea:
-                    _popup.PopupEntity(Loc.GetString("rmc-vomit-warning"), uid, uid);
+                    _popup.PopupEntity(Loc.GetString("rmc-vomit-warning"), uid, uid, PopupType.MediumCaution);
                     comp.Phase = RMCVomitPhase.Warning;
                     comp.NextPhaseAt = curTime + (comp.VomitDelay - comp.WarningDelay);
                     Dirty(uid, comp);
