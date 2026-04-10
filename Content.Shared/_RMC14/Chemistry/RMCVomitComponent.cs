@@ -63,7 +63,7 @@ public sealed partial class RMCVomitComponent : Component
     public TimeSpan VomitStunDuration = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// Multiplier for how much of the chemical solution gets added to vomit (default 10%).
+    /// Multiplier for how much of the chemical solution gets added to the vomit (default 10%).
     /// </summary>
     [DataField]
     public float ChemMultiplier = 0.1f;
@@ -78,12 +78,7 @@ public sealed partial class RMCVomitComponent : Component
 [Serializable, NetSerializable]
 public enum RMCVomitPhase : byte
 {
-    /// <summary>Initial phase — waiting for the warning popup.</summary>
     Nausea,
-
-    /// <summary>Warning shown — waiting for the actual vomit.</summary>
     Warning,
-
-    /// <summary>Vomit happened — on cooldown before component removal.</summary>
     Cooldown,
 }

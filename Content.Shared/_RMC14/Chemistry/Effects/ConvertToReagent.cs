@@ -35,7 +35,13 @@ public sealed partial class ConvertToReagent : EntityEffect
         if (reagentArgs.Quantity <= FixedPoint2.Zero)
             return;
 
-        var amountToConvert = FixedPoint2.Max(reagentArgs.Quantity * PercentRate, MinimumRate) * reagentArgs.Scale;
+        var amountToConvert = FixedPoint2.Min(
+            FixedPoint2.Max(reagentArgs.Quantity * PercentRate, MinimumRate) * reagentArgs.Scale,
+            reagentArgs.Quantity);
+
+        if (amountToConvert <= FixedPoint2.Zero)
+            return;
+
         reagentArgs.Source.RemoveReagent(reagentArgs.Reagent!.ID, amountToConvert);
         reagentArgs.Source.AddReagent(TargetReagent, amountToConvert);
     }

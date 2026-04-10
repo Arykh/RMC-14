@@ -47,7 +47,8 @@ public sealed partial class NutrimentOverdose : EntityEffect
         var removalAmount = FixedPoint2.Max(nutVolume * PercentRate, MinimumRate) * reagentArgs.Scale;
         reagentArgs.Source.RemoveReagent("Nutriment", removalAmount);
 
-        if (nutVolume < OverdoseThreshold)
+        // Re-check volume AFTER removal. If removal brought us below threshold, skip the vomit.
+        if (reagentArgs.Source.GetTotalPrototypeQuantity("Nutriment") < OverdoseThreshold)
             return;
 
         if (args.EntityManager.HasComponent<RMCVomitComponent>(args.TargetEntity))
@@ -56,6 +57,7 @@ public sealed partial class NutrimentOverdose : EntityEffect
         var rmcSuperSlow = args.EntityManager.System<RMCSlowSystem>();
         rmcSuperSlow.TrySuperSlowdown(args.TargetEntity, SlowdownDuration);
 
-        args.EntityManager.System<RMCVomitSystem>().StartVomit(args.TargetEntity);
+        var rmcVomit = args.EntityManager.System<RMCVomitSystem>();
+        rmcVomit.StartVomit(args.TargetEntity);
     }
 }
