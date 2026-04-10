@@ -24,10 +24,12 @@ namespace Content.Shared._RMC14.Chemistry;
 
 public sealed class RMCVomitSystem : EntitySystem
 {
-    [Dependency] private readonly INetManager _netManager = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly INetManager _net = default!;
     [Dependency] private readonly IPrototypeManager _proto = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedBloodstreamSystem _bloodstream = default!;
+    [Dependency] private readonly SharedRMCDamageableSystem _rmcDamageable = default!;
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly HungerSystem _hunger = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
@@ -38,32 +40,9 @@ public sealed class RMCVomitSystem : EntitySystem
 
     private static readonly ProtoId<DamageGroupPrototype> ToxinGroup = "Toxin";
 
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<RMCVomitEvent>(OnRMCVomit);
-        SubscribeLocalEvent<RMCDoVomitEvent>(OnRMCDoVomit);
-    }
-
     /// <summary>
-    ///     Handles the vomit() proc from 13 - starts the delayed vomit sequence.
-    /// </summary>
-    private void OnRMCVomit(ref RMCVomitEvent args)
-    {
-        StartVomit(args.Target, args.HungerLoss, args.ToxinHeal);
-    }
-
-    /// <summary>
-    ///     Handles the do_vomit() proc from 13 - performs the actual vomit immediately.
-    /// </summary>
-    private void OnRMCDoVomit(ref RMCDoVomitEvent args)
-    {
-        DoVomit(args.Target, args.HungerLoss, args.ToxinHeal);
-    }
-
-    /// <summary>
-    ///     Start the vomit process. Shows nausea message, schedules warning and actual vomit.
+    /// Start the delayed vomit process. Shows nausea message and schedules
+    /// warning → vomit → cooldown via the <see cref="Update"/> loop.
     /// </summary>
     public void StartVomit(EntityUid uid, float hungerLoss = -40f, float toxinHeal = 3f)
     {
@@ -74,39 +53,18 @@ public sealed class RMCVomitSystem : EntitySystem
         if (HasComp<RMCVomitComponent>(uid))
             return;
 
-        // Add component to track vomit state and get timing values
         var vomitComp = EnsureComp<RMCVomitComponent>(uid);
-        vomitComp.IsVomiting = true;
+        vomitComp.Phase = RMCVomitPhase.Nausea;
+        vomitComp.NextPhaseAt = _timing.CurTime + vomitComp.WarningDelay;
+        vomitComp.HungerLoss = hungerLoss;
+        vomitComp.ToxinHeal = toxinHeal;
+        Dirty(uid, vomitComp);
 
         _popup.PopupEntity(Loc.GetString("rmc-vomit-nausea"), uid, uid);
-
-        // Warning message after 15 seconds
-        Timer.Spawn(vomitComp.WarningDelay,
-            () =>
-        {
-            if (!Exists(uid))
-                return;
-            if (!HasComp<RMCVomitComponent>(uid))
-                return;
-
-            _popup.PopupEntity(Loc.GetString("rmc-vomit-warning"), uid, uid);
-        });
-
-        // Actual vomit after 25 seconds
-        Timer.Spawn(vomitComp.VomitDelay,
-            () =>
-        {
-            if (!Exists(uid))
-                return;
-            if (!HasComp<RMCVomitComponent>(uid))
-                return;
-
-            DoVomit(uid, hungerLoss, toxinHeal);
-        });
     }
 
     /// <summary>
-    ///     Make an entity vomit immediately.
+    /// Make an entity vomit immediately and enter cooldown.
     /// </summary>
     public void DoVomit(EntityUid uid, float hungerLoss = -40f, float toxinHeal = 3f)
     {
@@ -116,17 +74,29 @@ public sealed class RMCVomitSystem : EntitySystem
             return;
 
         var vomitComp = EnsureComp<RMCVomitComponent>(uid);
-        if (!vomitComp.IsVomiting)
-            vomitComp.IsVomiting = true;
+        vomitComp.HungerLoss = hungerLoss;
+        vomitComp.ToxinHeal = toxinHeal;
 
+        PerformVomit(uid, vomitComp);
+
+        vomitComp.Phase = RMCVomitPhase.Cooldown;
+        vomitComp.NextPhaseAt = _timing.CurTime + vomitComp.CooldownAfterVomit;
+        Dirty(uid, vomitComp);
+    }
+
+    /// <summary>
+    /// Performs the actual vomit effects: stun, puddle, hunger loss, toxin healing, popups, sound.
+    /// </summary>
+    private void PerformVomit(EntityUid uid, RMCVomitComponent vomitComp)
+    {
         if (vomitComp.VomitStunDuration > TimeSpan.Zero)
             _stun.TryStun(uid, vomitComp.VomitStunDuration, true);
 
         // Create vomit solution
         var solution = new Solution();
-        var solutionSize = MathF.Abs(hungerLoss) / 3f;
+        var solutionSize = MathF.Abs(vomitComp.HungerLoss) / 3f;
 
-        // Adds a tiny amount of the chem stream from earlier along with vomit -- Code from upstream VomitSystem
+        // Adds a tiny amount of the chem stream from earlier along with vomit — Code from upstream VomitSystem
         if (TryComp<BloodstreamComponent>(uid, out var bloodStream))
         {
             var vomitAmount = solutionSize;
@@ -137,7 +107,7 @@ public sealed class RMCVomitSystem : EntitySystem
                 vomitChemstreamAmount.ScaleSolution(vomitComp.ChemMultiplier);
                 solution.AddSolution(vomitChemstreamAmount, _proto);
 
-                vomitAmount -= (float)vomitChemstreamAmount.Volume;
+                vomitAmount -= (float) vomitChemstreamAmount.Volume;
             }
 
             solution.AddReagent(new ReagentId(vomitComp.VomitPrototype, _bloodstream.GetEntityBloodData(uid)), vomitAmount);
@@ -146,34 +116,64 @@ public sealed class RMCVomitSystem : EntitySystem
         if (_puddle.TrySpillAt(uid, solution, out var puddle, false))
         {
             // TODO RMC14 SharedForensicsSystem Dependency Injection
-            // _forensics.TransferDna(puddle, uid, false);
             var ev = new TransferDnaEvent { Donor = uid, Recipient = puddle, CanDnaBeCleaned = false };
             RaiseLocalEvent(uid, ref ev);
         }
 
         if (TryComp<HungerComponent>(uid, out var hunger))
-            _hunger.ModifyHunger(uid, hungerLoss, hunger);
+            _hunger.ModifyHunger(uid, vomitComp.HungerLoss, hunger);
 
-        if (toxinHeal > 0)
+        if (vomitComp.ToxinHeal > 0)
         {
-            var rmcDamageable = EntityManager.System<SharedRMCDamageableSystem>();
-            var healing = rmcDamageable.DistributeHealingCached(uid, ToxinGroup, toxinHeal);
+            var healing = _rmcDamageable.DistributeHealingCached(uid, ToxinGroup, vomitComp.ToxinHeal);
             _damageable.TryChangeDamage(uid, healing, true, interruptsDoAfters: false);
         }
 
         _popup.PopupEntity(Loc.GetString("rmc-vomit-others", ("person", Identity.Entity(uid, EntityManager))), uid);
         _popup.PopupEntity(Loc.GetString("rmc-vomit-self"), uid, uid);
 
-        if (_netManager.IsServer)
+        if (_net.IsServer)
             _audio.PlayPvs(vomitComp.VomitSound, uid);
+    }
 
-        // Reset cooldown 35 seconds after vomit
-        Timer.Spawn(vomitComp.CooldownAfterVomit,
-            () =>
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        var curTime = _timing.CurTime;
+        var query = EntityQueryEnumerator<RMCVomitComponent>();
+
+        while (query.MoveNext(out var uid, out var comp))
         {
-            if (!Exists(uid))
-                return;
-            RemComp<RMCVomitComponent>(uid);
-        });
+            if (_mobState.IsDead(uid))
+            {
+                RemCompDeferred<RMCVomitComponent>(uid);
+                continue;
+            }
+
+            if (curTime < comp.NextPhaseAt)
+                continue;
+
+            switch (comp.Phase)
+            {
+                case RMCVomitPhase.Nausea:
+                    _popup.PopupEntity(Loc.GetString("rmc-vomit-warning"), uid, uid);
+                    comp.Phase = RMCVomitPhase.Warning;
+                    comp.NextPhaseAt = curTime + (comp.VomitDelay - comp.WarningDelay);
+                    Dirty(uid, comp);
+                    break;
+
+                case RMCVomitPhase.Warning:
+                    PerformVomit(uid, comp);
+                    comp.Phase = RMCVomitPhase.Cooldown;
+                    comp.NextPhaseAt = curTime + comp.CooldownAfterVomit;
+                    Dirty(uid, comp);
+                    break;
+
+                case RMCVomitPhase.Cooldown:
+                    RemCompDeferred<RMCVomitComponent>(uid);
+                    break;
+            }
+        }
     }
 }

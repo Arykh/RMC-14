@@ -56,7 +56,6 @@ public sealed partial class NutrimentOverdose : EntityEffect
         var rmcSuperSlow = args.EntityManager.System<RMCSlowSystem>();
         rmcSuperSlow.TrySuperSlowdown(args.TargetEntity, SlowdownDuration);
 
-        var vomitEvent = new RMCVomitEvent(args.TargetEntity);
-        args.EntityManager.EventBus.RaiseEvent(EventSource.Local, ref vomitEvent);
+        args.EntityManager.System<RMCVomitSystem>().StartVomit(args.TargetEntity);
     }
 }
