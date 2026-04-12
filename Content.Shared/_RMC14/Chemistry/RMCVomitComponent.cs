@@ -26,7 +26,8 @@ public sealed partial class RMCVomitComponent : Component
     public TimeSpan NextPhaseAt;
 
     /// <summary>
-    /// Hunger loss to apply when vomiting (stored per-instance since callers can override).
+    /// Hunger change to apply when vomiting. Negative values decrease hunger.
+    /// Passed directly to <c>HungerSystem.ModifyHunger</c>.
     /// </summary>
     [DataField, AutoNetworkedField]
     public float HungerLoss = -40f;

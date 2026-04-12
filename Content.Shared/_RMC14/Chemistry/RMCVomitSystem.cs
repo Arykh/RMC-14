@@ -50,8 +50,10 @@ public sealed class RMCVomitSystem : EntitySystem
     {
         if (_mobState.IsDead(uid))
             return;
+
         if (HasComp<SynthComponent>(uid))
             return;
+
         if (HasComp<RMCVomitComponent>(uid))
             return;
 
@@ -62,17 +64,24 @@ public sealed class RMCVomitSystem : EntitySystem
         vomitComp.ToxinHeal = toxinHeal;
         Dirty(uid, vomitComp);
 
-        _popup.PopupClient(Loc.GetString("rmc-vomit-nausea"), uid, uid, PopupType.MediumCaution);
+        if (_net.IsServer)
+            _popup.PopupEntity(Loc.GetString("rmc-vomit-nausea"), uid, uid, PopupType.MediumCaution);
     }
 
     /// <summary>
     /// Make an entity vomit immediately and enter cooldown.
+    /// If the entity is already in a vomit sequence (nausea/warning), this is a no-op.
     /// </summary>
     public void DoVomit(EntityUid uid, float hungerLoss = -40f, float toxinHeal = 3f)
     {
         if (_mobState.IsDead(uid))
             return;
+
         if (HasComp<SynthComponent>(uid))
+            return;
+
+        // Don't interrupt vomit that is in-progress
+        if (TryComp<RMCVomitComponent>(uid, out var existing) && existing.Phase != RMCVomitPhase.Cooldown)
             return;
 
         var vomitComp = EnsureComp<RMCVomitComponent>(uid);

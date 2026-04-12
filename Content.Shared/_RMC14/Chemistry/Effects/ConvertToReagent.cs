@@ -29,20 +29,20 @@ public sealed partial class ConvertToReagent : EntityEffect
         if (reagentArgs.Source == null)
             return;
 
-        if (reagentArgs.Reagent?.ID == TargetReagent.Id)
+        if (reagentArgs.Reagent == null)
+            return;
+
+        if (reagentArgs.Reagent.ID == TargetReagent.Id)
             return;
 
         if (reagentArgs.Quantity <= FixedPoint2.Zero)
             return;
 
-        var amountToConvert = FixedPoint2.Min(
-            FixedPoint2.Max(reagentArgs.Quantity * PercentRate, MinimumRate) * reagentArgs.Scale,
-            reagentArgs.Quantity);
-
-        if (amountToConvert <= FixedPoint2.Zero)
+        var convertAmount = FixedPoint2.Min(FixedPoint2.Max(reagentArgs.Quantity * PercentRate, MinimumRate) * reagentArgs.Scale, reagentArgs.Quantity);
+        if (convertAmount <= FixedPoint2.Zero)
             return;
 
-        reagentArgs.Source.RemoveReagent(reagentArgs.Reagent!.ID, amountToConvert);
-        reagentArgs.Source.AddReagent(TargetReagent, amountToConvert);
+        reagentArgs.Source.RemoveReagent(reagentArgs.Reagent.ID, convertAmount);
+        reagentArgs.Source.AddReagent(TargetReagent, convertAmount);
     }
 }
