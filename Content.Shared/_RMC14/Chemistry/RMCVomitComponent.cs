@@ -13,21 +13,14 @@ namespace Content.Shared._RMC14.Chemistry;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class RMCVomitComponent : Component
 {
-    /// <summary>
-    /// Current phase of the vomit sequence.
-    /// </summary>
     [DataField, AutoNetworkedField]
     public RMCVomitPhase Phase = RMCVomitPhase.Nausea;
 
-    /// <summary>
-    /// When the next phase transition should occur.
-    /// </summary>
     [DataField, AutoNetworkedField]
     public TimeSpan NextPhaseAt;
 
     /// <summary>
     /// Hunger change to apply when vomiting. Negative values decrease hunger.
-    /// Passed directly to <c>HungerSystem.ModifyHunger</c>.
     /// </summary>
     [DataField, AutoNetworkedField]
     public float HungerLoss = -40f;
