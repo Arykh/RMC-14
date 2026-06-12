@@ -18,9 +18,12 @@ public sealed partial class CryoCellComponent : Component
     public string BeakerContainerId = "cryo_cell_beaker";
 
     [DataField, AutoNetworkedField]
-    public bool IsOn;
+    public bool IsPoweredOn;
 
     // Temperatures in Kelvin
+    [DataField, AutoNetworkedField]
+    public float TargetCellTemperature = 0f;
+
     [DataField]
     public float CryoLiquidThreshold = 210f;
 
@@ -35,18 +38,6 @@ public sealed partial class CryoCellComponent : Component
 
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoNetworkedField, AutoPausedField]
     public TimeSpan NextTick;
-
-    [DataField]
-    public float OxyHealAmount = 1f;
-
-    [DataField]
-    public float PassiveBruteHealAmount = 1f;
-
-    [DataField]
-    public float PassiveBurnHealAmount = 1f;
-
-    [DataField]
-    public float PassiveToxHealAmount = 1f;
 
     [DataField]
     public float BeakerTransferAmount = 5f;

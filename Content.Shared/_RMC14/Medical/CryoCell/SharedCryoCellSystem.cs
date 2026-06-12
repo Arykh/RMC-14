@@ -81,7 +81,7 @@ public abstract class SharedCryoCellSystem : EntitySystem
         EjectOccupant((cellId, cellComp), ent);
     }
 
-    public void EjectOccupant(Entity<CryoCellComponent> cell, EntityUid occupant)
+    protected void EjectOccupant(Entity<CryoCellComponent> cell, EntityUid occupant)
     {
         if (!_container.TryGetContainer(cell, cell.Comp.ContainerId, out var container))
             return;
@@ -107,9 +107,9 @@ public abstract class SharedCryoCellSystem : EntitySystem
         return true;
     }
 
-    public void UpdateCryoCellVisuals(Entity<CryoCellComponent> cell, bool? powered = null)
+    protected void UpdateCryoCellVisuals(Entity<CryoCellComponent> cell, bool? powered = null)
     {
-        var isOn = cell.Comp.IsOn && (powered ?? true);
+        var isOn = cell.Comp.IsPoweredOn && (powered ?? true);
         var hasOccupant = cell.Comp.Occupant != null;
 
         var state = (isOn, hasOccupant) switch

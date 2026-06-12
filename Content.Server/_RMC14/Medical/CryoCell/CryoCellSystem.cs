@@ -11,9 +11,11 @@ using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Interaction;
+using Content.Shared.Maths;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
+using Content.Shared.Temperature;
 using Content.Shared.UserInterface;
 using Robust.Server.Audio;
 using Robust.Server.GameObjects;
@@ -65,7 +67,7 @@ public sealed class CryoCellSystem : SharedCryoCellSystem
 
     private void OnTogglePower(Entity<CryoCellComponent> cell, ref CryoCellTogglePowerBuiMsg args)
     {
-        cell.Comp.IsOn = !cell.Comp.IsOn;
+        cell.Comp.IsPoweredOn = !cell.Comp.IsPoweredOn;
         var powered = IsPowered(cell);
 
         Dirty(cell);
@@ -208,7 +210,7 @@ public sealed class CryoCellSystem : SharedCryoCellSystem
             toxinLoss,
             oxyLoss,
             bodyTemp,
-            cell.Comp.IsOn,
+            cell.Comp.IsPoweredOn,
             cell.Comp.AutoEject,
             cell.Comp.ReleaseNotice,
             isBeakerLoaded,
@@ -225,22 +227,18 @@ public sealed class CryoCellSystem : SharedCryoCellSystem
         var cells = EntityQueryEnumerator<CryoCellComponent>();
         while (cells.MoveNext(out var uid, out var cell))
         {
-            // Periodic UI refresh
-            if (_ui.IsUiOpen(uid, CryoCellUIKey.Key) && time >= cell.NextTick)
-                UpdateUI((uid, cell));
+            if (cell.Occupant == null)
+                continue;
 
-            if (cell.Occupant == null || !cell.IsOn)
+            if (!IsPowered(uid))
                 continue;
 
             if (time < cell.NextTick)
                 continue;
 
             cell.NextTick = time + cell.TickDelay;
-
-            if (!IsPowered(uid))
-                continue;
-
             ProcessOccupant((uid, cell));
+            UpdateUI((uid, cell));
         }
     }
 
@@ -249,7 +247,7 @@ public sealed class CryoCellSystem : SharedCryoCellSystem
         if (cell.Comp.Occupant is not { } occupant)
             return;
 
-        // Dead occupants are immediately auto-ejected
+        // Auto-eject Perma Dead occupants
         if (_mobState.IsDead(occupant))
         {
             _popup.PopupEntity(Loc.GetString("rmc-cryo-cell-patient-dead"), cell.Owner);
@@ -258,53 +256,56 @@ public sealed class CryoCellSystem : SharedCryoCellSystem
             return;
         }
 
-        // Cool the occupant towards the cell target temperature
-        _rmcTemperature.ForceChangeTemperature(occupant, 0f);
-        _rmcTemperature.TryGetCurrentTemperature(occupant, out var bodyTemp);
+        _rmcTemperature.TryGetCurrentTemperature(occupant, out var curBodyTemp);
+
+        // Cooling the occupant
+        var normalBodyTemp = TemperatureHelpers.CelsiusToKelvin(Atmospherics.NormalBodyTemperature);
+        if (Math.Abs(curBodyTemp - normalBodyTemp) >= 0.01)
+        {
+            var change = 2 * (cell.Comp.TargetCellTemperature + curBodyTemp);
+            var temp = curBodyTemp > normalBodyTemp
+                ? Math.Max(normalBodyTemp, curBodyTemp - change)
+                : Math.Min(normalBodyTemp, curBodyTemp + change);
+
+            _rmcTemperature.ForceChangeTemperature(occupant, temp);
+        }
 
         if (!TryComp<DamageableComponent>(occupant, out var damageable))
             return;
 
-        // Passive oxy healing when body is below freezing
-        if (bodyTemp < Atmospherics.T0C &&
+        // Passive healing when body is below freezing
+        if (curBodyTemp < Atmospherics.T0C &&
             damageable.DamagePerGroup.GetValueOrDefault(AirlossGroup) > 0)
         {
-            var healAmount = FixedPoint2.New(cell.Comp.OxyHealAmount);
-            var oxyHeal = _rmcDamageable.DistributeHealingCached(occupant, AirlossGroup, healAmount);
+            var oxyHeal = _rmcDamageable.DistributeHealingCached(occupant, AirlossGroup, 1);
             _damageable.TryChangeDamage(occupant, oxyHeal, ignoreResistances: true, interruptsDoAfters: false);
         }
 
-        // Enhanced passive healing at cryo liquid threshold
-        if (bodyTemp < cell.Comp.CryoLiquidThreshold)
+        // Severe damage heals slower without proper chemicals
+        if (curBodyTemp < cell.Comp.CryoLiquidThreshold)
         {
             if (damageable.DamagePerGroup.GetValueOrDefault(BruteGroup) > 0)
             {
-                var bruteGroup = damageable.DamagePerGroup.GetValueOrDefault(BruteGroup);
-                var bruteHealAmt = FixedPoint2.Min(
-                    FixedPoint2.New(cell.Comp.PassiveBruteHealAmount),
-                    FixedPoint2.New(20) / bruteGroup);
+                var bruteDamage = damageable.DamagePerGroup.GetValueOrDefault(BruteGroup);
+                var bruteHealAmt = FixedPoint2.Min(1, 20 / bruteDamage);
                 var bruteHeal = _rmcDamageable.DistributeHealingCached(occupant, BruteGroup, bruteHealAmt);
                 _damageable.TryChangeDamage(occupant, bruteHeal, ignoreResistances: true, interruptsDoAfters: false);
             }
 
             if (damageable.DamagePerGroup.GetValueOrDefault(BurnGroup) > 0)
             {
-                var burnGroup = damageable.DamagePerGroup.GetValueOrDefault(BurnGroup);
-                var burnHealAmt = FixedPoint2.Min(
-                    FixedPoint2.New(cell.Comp.PassiveBurnHealAmount),
-                    FixedPoint2.New(20) / burnGroup);
+                var burnDamage = damageable.DamagePerGroup.GetValueOrDefault(BurnGroup);
+                var burnHealAmt = FixedPoint2.Min(1, 20 / burnDamage);
                 var burnHeal = _rmcDamageable.DistributeHealingCached(occupant, BurnGroup, burnHealAmt);
                 _damageable.TryChangeDamage(occupant, burnHeal, ignoreResistances: true, interruptsDoAfters: false);
             }
 
             if (damageable.DamagePerGroup.GetValueOrDefault(ToxinGroup) > 0)
             {
-                var toxGroup = damageable.DamagePerGroup.GetValueOrDefault(ToxinGroup);
-                var toxHealAmt = FixedPoint2.Min(
-                    FixedPoint2.New(cell.Comp.PassiveToxHealAmount),
-                    FixedPoint2.New(20) / toxGroup);
-                var toxHeal = _rmcDamageable.DistributeHealingCached(occupant, ToxinGroup, toxHealAmt);
-                _damageable.TryChangeDamage(occupant, toxHeal, ignoreResistances: true, interruptsDoAfters: false);
+                var toxinDamage = damageable.DamagePerGroup.GetValueOrDefault(ToxinGroup);
+                var toxinHealAmt = FixedPoint2.Min(1, 20 / toxinDamage);
+                var toxinHeal = _rmcDamageable.DistributeHealingCached(occupant, ToxinGroup, toxinHealAmt);
+                _damageable.TryChangeDamage(occupant, toxinHeal, ignoreResistances: true, interruptsDoAfters: false);
             }
         }
 
@@ -323,15 +324,14 @@ public sealed class CryoCellSystem : SharedCryoCellSystem
         // Auto-eject when fully healed
         if (cell.Comp.AutoEject)
         {
-            // Re-read after healing
             if (!TryComp<DamageableComponent>(occupant, out var healCheck))
                 return;
 
-            var bruteLeft = healCheck.DamagePerGroup.GetValueOrDefault(BruteGroup);
-            var burnLeft = healCheck.DamagePerGroup.GetValueOrDefault(BurnGroup);
-            var toxLeft = healCheck.DamagePerGroup.GetValueOrDefault(ToxinGroup);
+            var bruteDamage = healCheck.DamagePerGroup.GetValueOrDefault(BruteGroup);
+            var burnDamage = healCheck.DamagePerGroup.GetValueOrDefault(BurnGroup);
+            var toxinDamage = healCheck.DamagePerGroup.GetValueOrDefault(ToxinGroup);
 
-            if (bruteLeft <= 0 && burnLeft <= 0 && toxLeft <= 0)
+            if (bruteDamage <= 0 && burnDamage <= 0 && toxinDamage <= 0)
             {
                 _popup.PopupEntity(Loc.GetString("rmc-cryo-cell-patient-recovered"), cell.Owner);
                 _audio.PlayPvs(cell.Comp.HealingCompleteSound, cell.Owner);
@@ -342,7 +342,7 @@ public sealed class CryoCellSystem : SharedCryoCellSystem
 
     private void AutoEjectOccupant(Entity<CryoCellComponent> cell, EntityUid occupant, bool dead)
     {
-        cell.Comp.IsOn = false;
+        cell.Comp.IsPoweredOn = false;
 
         if (cell.Comp.ReleaseNotice)
         {
