@@ -1,0 +1,62 @@
+- type: entity
+  parent: CMBaseStructureCorrodible
+  id: RMCAutodoc
+  name: autodoc emergency medical system
+  description: An emergency surgical device designed to perform life-saving treatments and basic surgeries on patients automatically, without the need of a surgeon.
+  suffix: Spawns with Console
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+  - type: Sprite
+    sprite: _RMC14\Structures\Machines\Medical\cryo_cell.rsi
+    drawdepth: Mobs
+    noRot: true
+    layers:
+    - state: cell
+      map: ["enum.CryoCellVisualLayers.Base"]
+  - type: InteractionOutline
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.5,-0.5,0.5,0.5"
+        density: 200
+        mask:
+        - MachineMask
+        layer:
+        - MachineLayer
+  - type: ApcPowerReceiver
+    powerLoad: 250
+    needsPower: true
+  - type: RMCPowerReceiver
+    idleLoad: 20
+    activeLoad: 200
+    channel: Equipment
+  - type: CryoCell
+  - type: DragInsertContainer
+    containerId: cryo_cell
+    entryDelay: 2
+    delaySelfEntry: true
+  - type: NoStunOnExit # Cold stuns/unconscious
+  - type: ContainerContainer
+    containers:
+      cryo_cell: !type:ContainerSlot {}
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.CryoCellVisuals.Occupied:
+        enum.CryoCellVisualLayers.Base:
+          Empty: { state: cell-on-empty }
+          Occupied: { state: cell-on-occupied }
+      enum.PowerDeviceVisuals.Powered:
+        enum.PowerDeviceVisualLayers.Powered:
+          True: { visible: true }
+          False: { visible: false }
+  - type: InsertBlacklist
+    blacklist:
+      components:
+      - Xeno
+  - type: RMCMesonsNonviewable
