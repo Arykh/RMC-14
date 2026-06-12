@@ -1,9 +1,8 @@
 - type: entity
   parent: CMBaseStructureCorrodible
-  id: RMCAutodoc
-  name: autodoc emergency medical system
-  description: An emergency surgical device designed to perform life-saving treatments and basic surgeries on patients automatically, without the need of a surgeon.
-  suffix: Spawns with Console
+  id: RMCCryoCell
+  name: cryo cell
+  description: A donation from the old A.W. project, using cryogenic technology. It slowly heals whoever is inside the tube.
   placement:
     mode: SnapgridCenter
   components:
@@ -14,7 +13,7 @@
     drawdepth: Mobs
     noRot: true
     layers:
-    - state: cell
+    - state: cell-off-empty
       map: ["enum.CryoCellVisualLayers.Base"]
   - type: InteractionOutline
   - type: Fixtures
@@ -28,6 +27,14 @@
         - MachineMask
         layer:
         - MachineLayer
+  - type: CryoCell
+  - type: UserInterface
+    interfaces:
+      enum.CryoCellUIKey.Key:
+        type: CryoCellBui
+  - type: ActivatableUI
+    key: enum.CryoCellUIKey.Key
+  - type: ActivatableUIRequiresPower
   - type: ApcPowerReceiver
     powerLoad: 250
     needsPower: true
@@ -35,26 +42,24 @@
     idleLoad: 20
     activeLoad: 200
     channel: Equipment
-  - type: CryoCell
   - type: DragInsertContainer
     containerId: cryo_cell
     entryDelay: 2
     delaySelfEntry: true
-  - type: NoStunOnExit # Cold stuns/unconscious
+  - type: NoStunOnExit # Stun/Unconscious from cold
   - type: ContainerContainer
     containers:
       cryo_cell: !type:ContainerSlot {}
+      cryo_cell_beaker: !type:ContainerSlot {}
   - type: Appearance
   - type: GenericVisualizer
     visuals:
-      enum.CryoCellVisuals.Occupied:
+      enum.CryoCellVisuals.State:
         enum.CryoCellVisualLayers.Base:
-          Empty: { state: cell-on-empty }
-          Occupied: { state: cell-on-occupied }
-      enum.PowerDeviceVisuals.Powered:
-        enum.PowerDeviceVisualLayers.Powered:
-          True: { visible: true }
-          False: { visible: false }
+          OffEmpty: { state: cell-off-empty }
+          OffOccupied: { state: cell-off-occupied }
+          OnEmpty: { state: cell-on-empty }
+          OnOccupied: { state: cell-on-occupied }
   - type: InsertBlacklist
     blacklist:
       components:
