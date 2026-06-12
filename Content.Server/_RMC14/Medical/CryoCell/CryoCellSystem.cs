@@ -327,11 +327,7 @@ public sealed class CryoCellSystem : SharedCryoCellSystem
             if (!TryComp<DamageableComponent>(occupant, out var healCheck))
                 return;
 
-            var bruteDamage = healCheck.DamagePerGroup.GetValueOrDefault(BruteGroup);
-            var burnDamage = healCheck.DamagePerGroup.GetValueOrDefault(BurnGroup);
-            var toxinDamage = healCheck.DamagePerGroup.GetValueOrDefault(ToxinGroup);
-
-            if (bruteDamage <= 0 && burnDamage <= 0 && toxinDamage <= 0)
+            if (healCheck.TotalDamage <= 0)
             {
                 _popup.PopupEntity(Loc.GetString("rmc-cryo-cell-patient-recovered"), cell.Owner);
                 _audio.PlayPvs(cell.Comp.HealingCompleteSound, cell.Owner);
